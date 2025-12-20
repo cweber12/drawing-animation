@@ -21,7 +21,8 @@ const Home = () => {
 
     return (
         <View style={styles.container}>
-            <Link href="/draw" style={styles.link}>Draw</Link>
+            <Link href="/drawMobile" style={styles.link}>Draw Mobile</Link>
+            <Link href="/drawWeb" style={styles.link}>Draw Web</Link>
             <Link href="/camera" style={styles.link}>Open Camera</Link>
             <Button title="Upload Image" onPress={pickImage} />
         </View>

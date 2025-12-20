@@ -9,7 +9,6 @@ const ImagePreview = () => {
 
   return (
     <View style={styles.container}>
-        <Link href="/" style={{ fontSize: 18, color: 'blue' }}>Go Back</Link>   
         {uri ? (
             <Image source={{ uri }} style={styles.image} resizeMode="contain" />
         ) : (
