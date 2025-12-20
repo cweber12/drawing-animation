@@ -2,23 +2,26 @@ import { StyleSheet, Button } from 'react-native'
 import React from 'react'
 import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
+import { View } from 'react-native-web'
 
 const RootLayout = () => {
     const router = useRouter();
 
     // Home button component for the header
     const HomeButton = () => (
+        <View style={{ marginRight: 10 }} >
         <Button 
             title="Home" 
-            style={styles.homeButton} 
             onPress={() => router.replace('/')} 
         />
+        </View> 
+
     );
 
     return (
         <>
             <StatusBar style="auto"/>
-            <Stack>
+            <Stack screenOptions={{ headerTitleAlign: 'center' }}>
                 <Stack.Screen name="index" options={{ title: 'Home' }}/>
                 <Stack.Screen
                     name="imagePreview"
@@ -35,6 +38,14 @@ const RootLayout = () => {
                         headerRight: () => <HomeButton />,
                     }}
                 />
+
+                <Stack.Screen
+                    name="detectPose"
+                    options={{
+                        title: 'Detect Pose',
+                        headerRight: () => <HomeButton />,
+                    }}
+                />  
 
                 <Stack.Screen
                     name="drawMobile"
@@ -59,7 +70,4 @@ const RootLayout = () => {
 export default RootLayout
 
 const styles = StyleSheet.create({
-    homeButton: {
-        marginRight: 20,
-    },
 })

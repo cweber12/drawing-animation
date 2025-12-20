@@ -24,6 +24,7 @@ const Home = () => {
             <Link href="/drawMobile" style={styles.link}>Draw Mobile</Link>
             <Link href="/drawWeb" style={styles.link}>Draw Web</Link>
             <Link href="/camera" style={styles.link}>Open Camera</Link>
+            <Link href="/detectPose" style={styles.link}>Detect Pose</Link>
             <Button title="Upload Image" onPress={pickImage} />
         </View>
     )
