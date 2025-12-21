@@ -66,15 +66,19 @@ function drawHeadSvg(ctx, img, leftEar, rightEar) {
   const dx = rightEar.x - leftEar.x;
   const dy = rightEar.y - leftEar.y;
   const angle = Math.atan2(dy, dx);
+
+  // Midpoint between ears
+  const midX = (leftEar.x + rightEar.x) / 2;
+  const midY = (leftEar.y + rightEar.y) / 2;
   const earDist = Math.hypot(dx, dy);
-  const scale = (earDist / svgW) * 2;
+  const scale = earDist / svgW;
 
   ctx.save();
-  ctx.translate(leftEar.x, leftEar.y);
-  ctx.rotate(angle);
+  ctx.translate(midX, midY);
+  ctx.rotate(angle - Math.PI / 2); // Ensure upright orientation
   ctx.scale(scale, scale);
-  // Draw SVG so left edge aligns with leftEar, right edge aligns with rightEar
-  ctx.drawImage(img, 0, -svgH / 2, svgW, svgH);
+  // Draw SVG so its center is at the midpoint between ears
+  ctx.drawImage(img, -svgW / 2, -svgH / 2, svgW, svgH);
   ctx.restore();
 }
 
@@ -312,7 +316,7 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
             width: '100%',
             height: '100%',
             pointerEvents: 'none',
-            backgroundColor: 'transparent', // or transparent if you prefer
+            backgroundColor: 'white', 
         }}
     />
   );
