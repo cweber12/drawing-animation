@@ -3,7 +3,7 @@ import { View, StyleSheet, Dimensions, Button } from 'react-native';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { bottomLeft } from '@shopify/react-native-skia';
+import { CANVAS_LANDMARK_MAP } from '../constants/landmarkData';
 
 const { width, height } = Dimensions.get('window');
 
@@ -26,83 +26,15 @@ const DrawWeb = () => {
     const rightFootRef = useRef(null);
 
     const [bodySvgs, setBodySvgs] = useState({});
-
-    const LANDMARKS = {
-        nose: 0,
-        leftEye: 1,
-        rightEye: 2,
-        leftEar: 3,
-        rightEar: 4,
-        leftShoulder: 5,
-        rightShoulder: 6,
-        leftElbow: 7,
-        rightElbow: 8,
-        leftWrist: 9,
-        rightWrist: 10,
-        leftHip: 11,
-        rightHip: 12,
-        leftKnee: 13,
-        rightKnee: 14,
-        leftAnkle: 15,
-        rightAnkle: 16,
-    };
-
-    const CANVAS_LANDMARK_MAP = {
-        // Screen-left arm (your left on screen) = rightShoulder/rightElbow/rightWrist
-        leftUpperArm: { 
-            rightCenter: LANDMARKS.rightShoulder, 
-            leftCenter: LANDMARKS.rightElbow 
-        },
-        leftLowerArm: { 
-            rightCenter: LANDMARKS.rightElbow, 
-            leftCenter: LANDMARKS.rightWrist 
-        },
-
-        // Screen-right arm (your right on screen) = leftShoulder/leftElbow/leftWrist
-        rightUpperArm: { 
-            leftCenter: LANDMARKS.leftShoulder, 
-            rightCenter: LANDMARKS.leftElbow 
-        },
-
-        rightLowerArm: { 
-            leftCenter: LANDMARKS.leftElbow, 
-            rightCenter: LANDMARKS.leftWrist 
-        },
-        
-        rightUpperLeg: {
-            topRight: LANDMARKS.leftHip,
-            bottomLeft: LANDMARKS.leftKnee},
-        rightLowerLeg: {
-            topRight: LANDMARKS.leftKnee,
-            bottomLeft: LANDMARKS.leftAnkle},
-        leftUpperLeg: {
-            topLeft: LANDMARKS.rightHip,
-            bottomRight: LANDMARKS.rightKnee},
-        leftLowerLeg: {
-            topLeft: LANDMARKS.rightKnee,
-            bottomRight: LANDMARKS.rightAnkle},
-        torso: {
-            topRight: LANDMARKS.leftShoulder,
-            topLeft: LANDMARKS.rightShoulder,
-            bottomRight: LANDMARKS.leftHip,
-            bottomLeft: LANDMARKS.rightHip, 
-            shoulderAnchorLeft: LANDMARKS.leftShoulder,
-            shoulderAnchorRight: LANDMARKS.rightShoulder,
-        },
-        head: {center: LANDMARKS.nose},
-        leftFoot: {center: LANDMARKS.leftAnkle},
-        rightFoot: {center: LANDMARKS.rightAnkle},
-
-    };
-
+   
     // Sizes
     const torsoWidth = width * 0.12;
     const torsoHeight = height * 0.24;
     const limbWidth = (torsoWidth * 0.5) - 1;
     const armHeight1 = (torsoHeight * 0.45) - 1;
     const armHeight2 = (torsoHeight * 0.45) - 1;
-    const headHeight = torsoHeight * 0.75;
-    const headWidth = torsoWidth;
+    const headHeight = torsoHeight * 0.65;
+    const headWidth = torsoWidth * 0.9;
     const legHeight = torsoHeight * 0.5;
     const footHeight = torsoHeight * 0.35;
     const footWidth = limbWidth;
