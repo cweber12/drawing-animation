@@ -14,50 +14,75 @@ const { width, height } = Dimensions.get('window');
 const DetectPose = () => {
   const webcamRef = useRef(null);
   const [isTfReady, setIsTfReady] = useState(false);
-  const [landmarks, setLandmarks] = useState(null);
-  const [loading, setLoading] = useState(true); 
+  const [landmarks, setLandmarks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const params = useLocalSearchParams();
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};
   const mapping = params.mapping ? JSON.parse(params.mapping) : {};
-  
+
   /* Load TensorFlow.js and Pose Detection Model
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
+    let cancelled = false;
     (async () => {
+      // Ensure the backend is initialized (prevents odd runtime states on web)
+      await tf.setBackend('webgl');
       await tf.ready();
-      setIsTfReady(true);
+      if (!cancelled) setIsTfReady(true);
     })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  /* Detect Pose at Intervals
-  --------------------------------------------------------------------------------------------------
-  Monitor webcam and run pose detection every 50ms
+  /* Detect Pose (safe loop; prevents overlapping estimatePoses calls)
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     let detector;
     let interval;
+    let cancelled = false;
+    let inFlight = false;
+
     const runPoseDetection = async () => {
       detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
+      if (cancelled) return;
+
       setLoading(false);
+
       interval = setInterval(async () => {
-        if (
-          webcamRef.current &&
-          webcamRef.current.video &&
-          webcamRef.current.video.readyState === 4
-        ) {
-          const video = webcamRef.current.video;
-          const image = tf.browser.fromPixels(video);
-          const poses = await detector.estimatePoses(image);
-          setLandmarks(poses[0]?.keypoints || []);
-          tf.dispose(image);
+        if (cancelled || inFlight) return;
+
+        const video = webcamRef.current?.video;
+        if (!video || video.readyState !== 4) return;
+
+        // Guard against invalid dimensions (can trigger internal ROI/crop crashes)
+        if (video.videoWidth <= 0 || video.videoHeight <= 0) return;
+
+        inFlight = true;
+        try {
+          // IMPORTANT: pass the video element directly (avoid fromPixels overhead + concurrency issues)
+          const poses = await detector.estimatePoses(video, { flipHorizontal: true });
+          setLandmarks(poses?.[0]?.keypoints ?? []);
+        } catch (e) {
+          console.error('estimatePoses error:', e);
+        } finally {
+          inFlight = false;
         }
       }, 50);
     };
+
     if (isTfReady) {
       runPoseDetection();
     }
-    return () => clearInterval(interval);
+
+    return () => {
+      cancelled = true;
+      if (interval) clearInterval(interval);
+      try {
+        detector?.dispose?.();
+      } catch {}
+    };
   }, [isTfReady]);
 
   if (!isTfReady || loading) {
@@ -105,7 +130,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignSelf: 'center',
   },
-  
+
   webcam: {
     position: 'absolute',
     top: 0,
@@ -121,6 +146,7 @@ const styles = StyleSheet.create({
     left: 0,
     width: '100%',
     height: '100%',
+    objectFit: 'cover',
     pointerEvents: 'none',
   },
 });

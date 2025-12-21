@@ -70,8 +70,8 @@ export const CANVAS_LANDMARK_MAP = {
         shoulderAnchorRight: LANDMARKS.rightShoulder,
     },
     head: {
-        leftAnchor: LANDMARKS.leftEar,
-        rightAnchor: LANDMARKS.rightEar,
+        rightAnchor: LANDMARKS.leftEar,
+        leftAnchor: LANDMARKS.rightEar,
     },
     leftFoot: {center: LANDMARKS.leftAnkle},
     rightFoot: {center: LANDMARKS.rightAnkle},
