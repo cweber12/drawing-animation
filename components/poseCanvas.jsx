@@ -71,11 +71,11 @@ function drawHeadSvg(ctx, img, leftEar, rightEar) {
   const midX = (leftEar.x + rightEar.x) / 2;
   const midY = (leftEar.y + rightEar.y) / 2;
   const earDist = Math.hypot(dx, dy);
-  const scale = earDist / svgW;
+  const scale = (earDist / svgW) * 2.0;
 
   ctx.save();
   ctx.translate(midX, midY);
-  ctx.rotate(angle - Math.PI / 2); // Ensure upright orientation
+  ctx.rotate(angle); // Ensure upright orientation
   ctx.scale(scale, scale);
   // Draw SVG so its center is at the midpoint between ears
   ctx.drawImage(img, -svgW / 2, -svgH / 2, svgW, svgH);
@@ -158,7 +158,7 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
     if (!landmarks || landmarks.length === 0) return;
 
     // Draw pose lines
-    ctx.strokeStyle = 'green';
+    ctx.strokeStyle = 'transparent';
     ctx.lineWidth = 2;
     CONNECTED_KEYPOINTS.forEach(([i, j]) => {
       const kp1 = landmarks[i];
@@ -172,7 +172,7 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
     });
 
     // Draw keypoints
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = 'transparent';
     landmarks.forEach((kp) => {
       if (kp && kp.score > 0.3) {
         ctx.beginPath();

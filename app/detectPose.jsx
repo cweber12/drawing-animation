@@ -40,9 +40,7 @@ const DetectPose = () => {
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     let detector;
-    let interval;
     let cancelled = false;
-    let inFlight = false;
 
     const runPoseDetection = async () => {
       detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
@@ -50,26 +48,22 @@ const DetectPose = () => {
 
       setLoading(false);
 
-      interval = setInterval(async () => {
-        if (cancelled || inFlight) return;
-
+      const detect = async () => {
+        if (cancelled) return;
         const video = webcamRef.current?.video;
-        if (!video || video.readyState !== 4) return;
-
-        // Guard against invalid dimensions (can trigger internal ROI/crop crashes)
-        if (video.videoWidth <= 0 || video.videoHeight <= 0) return;
-
-        inFlight = true;
+        if (!video || video.readyState !== 4) {
+          requestAnimationFrame(detect);
+          return;
+        }
         try {
-          // IMPORTANT: pass the video element directly (avoid fromPixels overhead + concurrency issues)
           const poses = await detector.estimatePoses(video, { flipHorizontal: true });
           setLandmarks(poses?.[0]?.keypoints ?? []);
         } catch (e) {
           console.error('estimatePoses error:', e);
-        } finally {
-          inFlight = false;
         }
-      }, 50);
+        requestAnimationFrame(detect);
+      };
+      detect();
     };
 
     if (isTfReady) {
@@ -78,7 +72,6 @@ const DetectPose = () => {
 
     return () => {
       cancelled = true;
-      if (interval) clearInterval(interval);
       try {
         detector?.dispose?.();
       } catch {}
@@ -125,8 +118,8 @@ export default DetectPose;
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
-    width: '80vw',
-    height: '80vh',
+    width: '100vw',
+    height: '100vh',
     overflow: 'hidden',
     alignSelf: 'center',
   },

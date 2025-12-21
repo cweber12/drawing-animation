@@ -30,19 +30,22 @@ const DrawWeb = () => {
     // Sizes
     const torsoWidth = width * 0.12;
     const torsoHeight = height * 0.24;
-    const limbWidth = (torsoWidth * 0.5) - 1;
+    const legWidth = (torsoWidth * 0.5) - 1;
+    const armWidth = torsoWidth * 0.65;
     const armHeight1 = (torsoHeight * 0.45) - 1;
     const armHeight2 = (torsoHeight * 0.45) - 1;
     const headHeight = torsoHeight * 0.65;
     const headWidth = torsoWidth * 0.9;
-    const legHeight = torsoHeight * 0.5;
+    const legHeight = torsoHeight * 0.65;
     const footHeight = torsoHeight * 0.35;
-    const footWidth = limbWidth;
+    const footWidth = legWidth;
 
     const canvasExportTransparentProps = {
-        canvasColor: 'rgba(0,0,0,0)',          // <-- makes exported SVG background transparent
-        exportWithBackgroundImage: false,      // default false, but make it explicit
-        svgStyle: { background: 'transparent'} // extra safety
+        canvasColor: 'rgba(0,0,0,0)',          
+        exportWithBackgroundImage: false,      
+        svgStyle: { background: 'transparent'} ,
+        strokeWidth: 2,
+        strokeColor: "black"
     };
 
     function sanitizeExportedSvg(svgString) {
@@ -175,8 +178,6 @@ const DrawWeb = () => {
                 style={styles.canvas}
                 width={headWidth}
                 height={headHeight}
-                strokeWidth={4}
-                strokeColor="black"
                 {...canvasExportTransparentProps}
                 />
             </View>
@@ -184,25 +185,21 @@ const DrawWeb = () => {
             <View style={styles.armTorsoRow}>
                 {/* Left Arm (upper + lower) */}
                 <View style={styles.armRow}>
-                    <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight2 }]}>
+                    <View style={[styles.canvasWrapper, { width: armWidth, height: armHeight2 }]}>
                         <ReactSketchCanvas
                             ref={leftLowerArmRef}
                             style={styles.canvas}
-                            width={limbWidth}
+                            width={armWidth}
                             height={armHeight2}
-                            strokeWidth={4}
-                            strokeColor="black"
                             {...canvasExportTransparentProps}
                         />
                     </View>
-                    <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight1 }]}>
+                    <View style={[styles.canvasWrapper, { width: armWidth, height: armHeight1 }]}>
                         <ReactSketchCanvas
                             ref={leftUpperArmRef}
                             style={styles.canvas}
-                            width={limbWidth}
+                            width={armWidth}
                             height={armHeight1}
-                            strokeWidth={4}
-                            strokeColor="black"
                             {...canvasExportTransparentProps}
                         />
                     </View>
@@ -215,8 +212,6 @@ const DrawWeb = () => {
                             style={styles.canvas}
                             width={torsoWidth}
                             height={torsoHeight}
-                            strokeWidth={4}
-                            strokeColor="black"
                             {...canvasExportTransparentProps}
                         />
                     </View>
@@ -224,25 +219,21 @@ const DrawWeb = () => {
                     <View style={styles.legsRow}>
                         {/* Left Leg (upper + lower) */}
                         <View style={[styles.legColumn, {alignItems: "flex-end"}]}>
-                            <View style={[styles.canvasWrapper, { width: limbWidth, height: legHeight }]}>
+                            <View style={[styles.canvasWrapper, { width: legWidth, height: legHeight }]}>
                                 <ReactSketchCanvas
                                 ref={leftUpperLegRef}
                                 style={styles.canvas}
-                                width={limbWidth}
+                                width={legWidth}
                                 height={legHeight}
-                                strokeWidth={4}
-                                strokeColor="black"
                                 {...canvasExportTransparentProps}
                                 />
                             </View>
-                            <View style={[styles.canvasWrapper, { width: limbWidth, height: legHeight }]}>
+                            <View style={[styles.canvasWrapper, { width: legWidth, height: legHeight }]}>
                                 <ReactSketchCanvas
                                 ref={leftLowerLegRef}
                                 style={styles.canvas}
-                                width={limbWidth}
+                                width={legWidth}
                                 height={legHeight}
-                                strokeWidth={4}
-                                strokeColor="black"
                                 {...canvasExportTransparentProps}
                                 />
                             </View>
@@ -250,25 +241,21 @@ const DrawWeb = () => {
                         </View>
                         {/* Right Leg (upper + lower) */}
                         <View style={[styles.legColumn, {alignItems: "flex-start"}]}>
-                            <View style={[styles.canvasWrapper, { width: limbWidth, height: legHeight }]}>
+                            <View style={[styles.canvasWrapper, { width: legWidth, height: legHeight }]}>
                                 <ReactSketchCanvas
                                 ref={rightUpperLegRef}
                                 style={styles.canvas}
-                                width={limbWidth}
+                                width={legWidth}
                                 height={legHeight}
-                                strokeWidth={4}
-                                strokeColor="black"
                                 {...canvasExportTransparentProps}
                                 />
                             </View>
-                            <View style={[styles.canvasWrapper, { width: limbWidth, height: legHeight }]}>
+                            <View style={[styles.canvasWrapper, { width: legWidth, height: legHeight }]}>
                                 <ReactSketchCanvas
                                 ref={rightLowerLegRef}
                                 style={styles.canvas}
-                                width={limbWidth}
+                                width={legWidth}
                                 height={legHeight}
-                                strokeWidth={4}
-                                strokeColor="black"
                                 {...canvasExportTransparentProps}
                                 />
                             </View>
@@ -277,25 +264,21 @@ const DrawWeb = () => {
                 </View>
                 {/* Right Arm (upper + lower) */}
                 <View style={styles.armRow}>
-                    <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight1 }]}>
+                    <View style={[styles.canvasWrapper, { width: armWidth, height: armHeight1 }]}>
                         <ReactSketchCanvas
                             ref={rightUpperArmRef}
                             style={{ backgroundColor: 'transparent' }}
-                            width={limbWidth}
+                            width={armWidth}
                             height={armHeight1}
-                            strokeWidth={4}
-                            strokeColor="black"
                             {...canvasExportTransparentProps}
                         />
                     </View>
-                    <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight2 }]}>
+                    <View style={[styles.canvasWrapper, { width: armWidth, height: armHeight2 }]}>
                         <ReactSketchCanvas
                         ref={rightLowerArmRef}
                         style={styles.canvas}
-                        width={limbWidth}
+                        width={armWidth}
                         height={armHeight2}
-                        strokeWidth={4}
-                        strokeColor="black"
                         {...canvasExportTransparentProps}
                         />
                     </View>
@@ -309,8 +292,6 @@ const DrawWeb = () => {
                         style={styles.canvas}
                         width={footWidth}
                         height={footHeight}
-                        strokeWidth={4}
-                        strokeColor="black"
                         {...canvasExportTransparentProps}
                     />
                 </View>
@@ -320,16 +301,15 @@ const DrawWeb = () => {
                         style={styles.canvas}
                         width={footWidth}
                         height={footHeight}
-                        strokeWidth={4}
-                        strokeColor="black"
                         {...canvasExportTransparentProps}
                     />
                 </View>
             </View>
-            <Button title="Clear All Canvases"onPress={clearAll}/>
-            <Button title="Save Drawing" onPress={saveAll} />
-            <Button title="Go to Detect Pose" onPress={goToDetectPose} />
-        
+            <View style={styles.controls}>
+                <Button title="Clear"onPress={clearAll}/>
+                <Button title="Save" onPress={saveAll} />
+                <Button title="Open Camera" onPress={goToDetectPose} />
+            </View>
         </View>
     );
 };
@@ -344,6 +324,15 @@ const styles = StyleSheet.create({
         padding: 16,
         backgroundColor: '#dededeff',
         gap: 2, 
+    },
+
+    controls: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        marginTop: 16,
+        gap: 8,
     },
 
     canvasWrapper: {
