@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { View, StyleSheet, Dimensions, Button } from 'react-native';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 import { useRouter } from 'expo-router';
@@ -8,6 +8,7 @@ const { width, height } = Dimensions.get('window');
 
 const DrawWeb = () => {
     const router = useRouter();
+    const bodySvgsRef = useRef({});
     
     // Refs for all canvases
     const headRef = useRef(null);
@@ -27,6 +28,78 @@ const DrawWeb = () => {
 
     const [bodySvgs, setBodySvgs] = useState({});
 
+    const LANDMARKS = {
+        nose: 0,
+        leftEye: 1,
+        rightEye: 2,
+        leftEar: 3,
+        rightEar: 4,
+        leftShoulder: 5,
+        rightShoulder: 6,
+        leftElbow: 7,
+        rightElbow: 8,
+        leftWrist: 9,
+        rightWrist: 10,
+        leftHip: 11,
+        rightHip: 12,
+        leftKnee: 13,
+        rightKnee: 14,
+        leftAnkle: 15,
+        rightAnkle: 16,
+    };
+
+    const CANVAS_LANDMARK_MAP = {
+        rightUpperArm: {
+            topRight: LANDMARKS.leftShoulder,
+            bottomLeft: LANDMARKS.leftElbow},
+        rightLowerArm: {
+            topLeft: LANDMARKS.leftElbow,
+            bottomCenter: LANDMARKS.leftWrist},
+        leftUpperArm: {
+            topLeft: LANDMARKS.rightShoulder,
+            bottomRight: LANDMARKS.rightElbow},
+        leftLowerArm: {
+            topRight: LANDMARKS.rightElbow,
+            bottomCenter: LANDMARKS.rightWrist},
+        rightUpperLeg: {
+            topRight: LANDMARKS.leftHip,
+            bottomLeft: LANDMARKS.leftKnee},
+        rightLowerLeg: {
+            topRight: LANDMARKS.leftKnee,
+            bottomLeft: LANDMARKS.leftAnkle},
+        leftUpperLeg: {
+            topLeft: LANDMARKS.rightHip,
+            bottomRight: LANDMARKS.rightKnee},
+        leftLowerLeg: {
+            topLeft: LANDMARKS.rightKnee,
+            bottomRight: LANDMARKS.rightAnkle},
+        torso: {
+            topRight: LANDMARKS.leftShoulder,
+            topLeft: LANDMARKS.rightShoulder,
+            bottomRight: LANDMARKS.leftHip,
+            bottomLeft: LANDMARKS.rightHip
+        },
+        head: {center: LANDMARKS.nose},
+        rightHand: {center: LANDMARKS.rightWrist},
+        leftHand: {center: LANDMARKS.leftWrist},
+        leftFoot: {center: LANDMARKS.leftAnkle},
+        rightFoot: {center: LANDMARKS.rightAnkle},
+
+    };
+
+    // Sizes
+    const torsoWidth = width * 0.12;
+    const torsoHeight = height * 0.24;
+    const limbWidth = (torsoWidth * 0.5) - 1;
+    const armHeight = (torsoHeight * 0.5) - 1;
+    const headHeight = torsoHeight * 0.75;
+    const headWidth = torsoWidth + (limbWidth * 2);
+    const legHeight = torsoHeight * 0.5;
+    const footHeight = torsoHeight * 0.5;
+    const footWidth = limbWidth * 2;
+    const handHeight = torsoHeight;
+    const handWidth = limbWidth;
+
     const clearAll = () => {
         headRef.current?.clearCanvas();
         torsoRef.current?.clearCanvas();
@@ -44,22 +117,10 @@ const DrawWeb = () => {
         rightFootRef.current?.clearCanvas();
     };
 
-    // Sizes
-    const torsoWidth = width * 0.12;
-    const torsoHeight = height * 0.24;
-    const limbWidth = (torsoWidth * 0.5) - 1;
-    const armHeight = (torsoHeight * 0.5) - 1;
-    const headHeight = torsoHeight * 0.75;
-    const headWidth = torsoWidth + (limbWidth * 2);
-    const legHeight = torsoHeight * 0.5;
-    const footHeight = torsoHeight * 0.5;
-    const footWidth = limbWidth * 2;
-    const handHeight = torsoHeight;
-    const handWidth = limbWidth;
-
+    // update saveAll:
     const saveAll = async () => {
         try {
-        const svgs = {
+            const svgs = {
             head: await headRef.current.exportSvg(),
             torso: await torsoRef.current.exportSvg(),
             leftUpperArm: await leftUpperArmRef.current.exportSvg(),
@@ -74,14 +135,34 @@ const DrawWeb = () => {
             rightUpperLeg: await rightUpperLegRef.current.exportSvg(),
             rightLowerLeg: await rightLowerLegRef.current.exportSvg(),
             rightFoot: await rightFootRef.current.exportSvg(),
-        };
-        setBodySvgs(svgs);
+            };
 
-        console.log('Saved SVGs:', svgs);
-        } catch (error) {
-        console.error('Error saving SVGs:', error);
+            bodySvgsRef.current = svgs;
+            setBodySvgs(svgs);
+            return svgs;
+        } catch (e) {
+            console.error('Error saving SVGs:', e);
+            return null;
         }
     };
+
+    const goToDetectPose = async () => {
+        const svgsToSend =
+            Object.keys(bodySvgsRef.current || {}).length > 0
+            ? bodySvgsRef.current
+            : await saveAll();
+
+        if (!svgsToSend) return;
+
+        router.push({
+            pathname: '/detectPose',
+            params: {
+            svgs: JSON.stringify(svgsToSend),
+            mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
+            },
+        });
+    };
+
 
     return (
         <View style={styles.container}>
@@ -255,6 +336,7 @@ const DrawWeb = () => {
             </View>
             <Button title="Clear All Canvases"onPress={clearAll}/>
             <Button title="Save Drawing" onPress={saveAll} />
+            <Button title="Go to Detect Pose" onPress={goToDetectPose} />
         
         </View>
     );
