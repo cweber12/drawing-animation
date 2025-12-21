@@ -10,6 +10,26 @@ const CONNECTED_KEYPOINTS = [
   [5, 11], [6, 12],
 ];
 
+const LANDMARKS = {
+  nose: 0,
+  leftEye: 1,
+  rightEye: 2,
+  leftEar: 3,
+  rightEar: 4,
+  leftShoulder: 5,
+  rightShoulder: 6,
+  leftElbow: 7,
+  rightElbow: 8,
+  leftWrist: 9,
+  rightWrist: 10,
+  leftHip: 11,
+  rightHip: 12,
+  leftKnee: 13,
+  rightKnee: 14,
+  leftAnkle: 15,
+  rightAnkle: 16,
+};
+
 function affineFrom3Points(src0, src1, src2, dst0, dst1, dst2) {
   const x0 = src0.x, y0 = src0.y;
   const x1 = src1.x, y1 = src1.y;
@@ -141,7 +161,7 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
     if (!landmarks || landmarks.length === 0) return;
 
     // Draw pose lines
-    ctx.strokeStyle = '#00FF00';
+    ctx.strokeStyle = 'transparent';
     ctx.lineWidth = 2;
     CONNECTED_KEYPOINTS.forEach(([i, j]) => {
       const kp1 = landmarks[i];
@@ -155,7 +175,7 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
     });
 
     // Draw keypoints
-    ctx.fillStyle = '#FF0000';
+    ctx.fillStyle = 'transparent';
     landmarks.forEach((kp) => {
       if (kp && kp.score > 0.3) {
         ctx.beginPath();
@@ -168,18 +188,18 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
     const images = imagesRef.current;
 
     for (const [part, img] of Object.entries(images)) {
-      const map = mapping?.[part];
-      if (!map || !img) continue;
+        const map = mapping?.[part];
+        if (!map || !img) continue;
 
-      const { w: svgW, h: svgH } = getSvgSize(img);
+        const { w: svgW, h: svgH } = getSvgSize(img);
 
-      // ---- 1) 4-corner affine (torso) ----
-      if (
+        // ---- 1) 4-corner affine (torso) ----
+        if (
         map.topLeft !== undefined &&
         map.topRight !== undefined &&
         map.bottomLeft !== undefined &&
         map.bottomRight !== undefined
-      ) {
+        ) {
         const tl = landmarks[map.topLeft];
         const tr = landmarks[map.topRight];
         const bl = landmarks[map.bottomLeft];
@@ -188,14 +208,27 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
         if (!tl || !tr || !bl || !br) continue;
         if (tl.score < 0.3 || tr.score < 0.3 || bl.score < 0.3 || br.score < 0.3) continue;
 
-        // Map SVG (0,0)->topLeft, (svgW,0)->topRight, (0,svgH)->bottomLeft
+        // --- ADD THIS BLOCK HERE ---
+        // Calculate virtual anchor points on the SVG
+        const svgShoulderLeft = { x: 0, y: svgH * 0.25 };
+        const svgShoulderRight = { x: svgW, y: svgH * 0.25 };
+
+        // Landmarks
+        const leftShoulder = landmarks[LANDMARKS.leftShoulder];
+        const rightShoulder = landmarks[LANDMARKS.rightShoulder];
+        // --- END BLOCK ---
+
+        // (You can now use svgShoulderLeft, svgShoulderRight, leftShoulder, rightShoulder
+        //  for a custom transform if you want to align the SVG's "shoulder" points to the pose shoulders.)
+
+        // ...existing affine transform code...
         const M = affineFrom3Points(
-          { x: 0, y: 0 },
-          { x: svgW, y: 0 },
-          { x: 0, y: svgH },
-          { x: tl.x, y: tl.y },
-          { x: tr.x, y: tr.y },
-          { x: bl.x, y: bl.y }
+            { x: 0, y: 0 },
+            { x: svgW, y: 0 },
+            { x: 0, y: svgH },
+            { x: tl.x, y: tl.y },
+            { x: tr.x, y: tr.y },
+            { x: bl.x, y: bl.y }
         );
 
         if (!M) continue;
@@ -205,59 +238,59 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
         ctx.drawImage(img, 0, 0, svgW, svgH);
         ctx.restore();
         continue;
-      }
-
-      // ---- 2) Center-only parts: { center } ----
-      if (map.center !== undefined) {
-        const center = landmarks[map.center];
-        if (!center || center.score < 0.3) continue;
-
-        ctx.save();
-        ctx.translate(center.x, center.y);
-        ctx.drawImage(img, -svgW / 2, -svgH / 2, svgW, svgH);
-        ctx.restore();
-        continue;
-      }
-
-     if (
-        (part === 'leftUpperArm' || part === 'rightUpperArm' ||
-        part === 'leftLowerArm' || part === 'rightLowerArm') &&
-        map.leftCenter !== undefined &&
-        map.rightCenter !== undefined
-        ) {
-        const from = landmarks[map.leftCenter];
-        const to = landmarks[map.rightCenter];
-        if (!from || !to || from.score < 0.3 || to.score < 0.3) continue;
-        drawHorizontalSegmentSvg(ctx, img, from, to);
-        continue;
         }
 
-      // ---- 5) Other segments: generic ----
-      let fromIdx = null;
-      let toIdx = null;
-      if (map.start !== undefined && map.end !== undefined) {
-        fromIdx = map.start;
-        toIdx = map.end;
-      } else if (map.topRight !== undefined && map.bottomLeft !== undefined) {
-        fromIdx = map.topRight;
-        toIdx = map.bottomLeft;
-      } else if (map.topLeft !== undefined && map.bottomRight !== undefined) {
-        fromIdx = map.topLeft;
-        toIdx = map.bottomRight;
-      } else if (map.topLeft !== undefined && map.bottomCenter !== undefined) {
-        fromIdx = map.topLeft;
-        toIdx = map.bottomCenter;
-      } else if (map.topRight !== undefined && map.bottomCenter !== undefined) {
-        fromIdx = map.topRight;
-        toIdx = map.bottomCenter;
-      } else {
-        continue;
-      }
+        // ---- 2) Center-only parts: { center } ----
+        if (map.center !== undefined) {
+            const center = landmarks[map.center];
+            if (!center || center.score < 0.3) continue;
 
-      const from = landmarks[fromIdx];
-      const to = landmarks[toIdx];
-      if (!from || !to || from.score < 0.3 || to.score < 0.3) continue;
-      drawSegmentSvg(ctx, img, from, to);
+            ctx.save();
+            ctx.translate(center.x, center.y);
+            ctx.drawImage(img, -svgW / 2, -svgH / 2, svgW, svgH);
+            ctx.restore();
+            continue;
+        }
+
+        if (
+            (part === 'leftUpperArm' || part === 'rightUpperArm' ||
+            part === 'leftLowerArm' || part === 'rightLowerArm') &&
+            map.leftCenter !== undefined &&
+            map.rightCenter !== undefined
+        ) {
+            const from = landmarks[map.leftCenter];
+            const to = landmarks[map.rightCenter];
+            if (!from || !to || from.score < 0.3 || to.score < 0.3) continue;
+            drawHorizontalSegmentSvg(ctx, img, from, to);
+            continue;
+        }
+
+        // ---- 5) Other segments: generic ----
+        let fromIdx = null;
+        let toIdx = null;
+        if (map.start !== undefined && map.end !== undefined) {
+            fromIdx = map.start;
+            toIdx = map.end;
+        } else if (map.topRight !== undefined && map.bottomLeft !== undefined) {
+            fromIdx = map.topRight;
+            toIdx = map.bottomLeft;
+        } else if (map.topLeft !== undefined && map.bottomRight !== undefined) {
+            fromIdx = map.topLeft;
+            toIdx = map.bottomRight;
+        } else if (map.topLeft !== undefined && map.bottomCenter !== undefined) {
+            fromIdx = map.topLeft;
+            toIdx = map.bottomCenter;
+        } else if (map.topRight !== undefined && map.bottomCenter !== undefined) {
+            fromIdx = map.topRight;
+            toIdx = map.bottomCenter;
+        } else {
+            continue;
+        }
+
+        const from = landmarks[fromIdx];
+        const to = landmarks[toIdx];
+        if (!from || !to || from.score < 0.3 || to.score < 0.3) continue;
+        drawSegmentSvg(ctx, img, from, to);
     }
   }, [landmarks, width, height, mapping]);
 
