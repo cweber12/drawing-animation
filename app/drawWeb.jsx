@@ -85,7 +85,9 @@ const DrawWeb = () => {
             topRight: LANDMARKS.leftShoulder,
             topLeft: LANDMARKS.rightShoulder,
             bottomRight: LANDMARKS.leftHip,
-            bottomLeft: LANDMARKS.rightHip
+            bottomLeft: LANDMARKS.rightHip, 
+            shoulderAnchorLeft: LANDMARKS.leftShoulder,
+            shoulderAnchorRight: LANDMARKS.rightShoulder,
         },
         head: {center: LANDMARKS.nose},
         leftFoot: {center: LANDMARKS.leftAnkle},
@@ -103,7 +105,63 @@ const DrawWeb = () => {
     const headWidth = torsoWidth;
     const legHeight = torsoHeight * 0.5;
     const footHeight = torsoHeight * 0.35;
-    const footWidth = limbWidth * 2;
+    const footWidth = limbWidth;
+
+    const canvasExportTransparentProps = {
+        canvasColor: 'rgba(0,0,0,0)',          // <-- makes exported SVG background transparent
+        exportWithBackgroundImage: false,      // default false, but make it explicit
+        svgStyle: { background: 'transparent'} // extra safety
+    };
+
+    function sanitizeExportedSvg(svgString) {
+        try {
+            if (typeof window === 'undefined' || !window.DOMParser) return svgString;
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(svgString, 'image/svg+xml');
+            const svg = doc.querySelector('svg');
+            if (!svg) return svgString;
+
+            // Remove background styles on the root svg
+            svg.removeAttribute('style');
+
+            // Remove first full-size rect if it looks like a background
+            const rects = Array.from(svg.querySelectorAll('rect'));
+            for (const r of rects) {
+            const w = (r.getAttribute('width') || '').trim();
+            const h = (r.getAttribute('height') || '').trim();
+            const fill = (r.getAttribute('fill') || '').trim().toLowerCase();
+            const style = (r.getAttribute('style') || '').toLowerCase();
+
+            const isFullSize =
+                w === '100%' || w === '100' || w === '100.0' || w === '' ||
+                w === svg.getAttribute('width'); // sometimes blank width/height
+
+            const isFullHeight =
+                h === '100%' || h === '100' || h === '100.0' || h === '' ||
+                h === svg.getAttribute('height');
+
+            const looksWhite =
+                fill === '#fff' ||
+                fill === '#ffffff' ||
+                fill === 'white' ||
+                fill.startsWith('rgb(255') ||
+                style.includes('fill:#fff') ||
+                style.includes('fill:#ffffff') ||
+                style.includes('fill:white') ||
+                style.includes('fill:rgb(255');
+
+            if (isFullSize && isFullHeight && looksWhite) {
+                r.remove();
+                break;
+            }
+            }
+
+            return new XMLSerializer().serializeToString(doc);
+        } catch {
+            return svgString;
+        }
+        }
 
     const clearAll = () => {
         headRef.current?.clearCanvas();
@@ -140,7 +198,9 @@ const DrawWeb = () => {
             const svgs = {};
             for (const [key, ref] of Object.entries(refs)) {
                 if (ref.current && ref.current.exportSvg) {
-                    svgs[key] = await ref.current.exportSvg();
+                    let svg = await ref.current.exportSvg();
+                    svg = sanitizeExportedSvg(svg); // <-- Remove white rect if present
+                    svgs[key] = svg;
                 } else {
                     console.warn(`No stroke found or ref not ready for ${key}`);
                     svgs[key] = null;
@@ -185,6 +245,7 @@ const DrawWeb = () => {
                 height={headHeight}
                 strokeWidth={4}
                 strokeColor="black"
+                {...canvasExportTransparentProps}
                 />
             </View>
             {/* Arms and Torso */}
@@ -199,6 +260,7 @@ const DrawWeb = () => {
                             height={armHeight2}
                             strokeWidth={4}
                             strokeColor="black"
+                            {...canvasExportTransparentProps}
                         />
                     </View>
                     <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight1 }]}>
@@ -209,6 +271,7 @@ const DrawWeb = () => {
                             height={armHeight1}
                             strokeWidth={4}
                             strokeColor="black"
+                            {...canvasExportTransparentProps}
                         />
                     </View>
                 </View>
@@ -222,6 +285,7 @@ const DrawWeb = () => {
                             height={torsoHeight}
                             strokeWidth={4}
                             strokeColor="black"
+                            {...canvasExportTransparentProps}
                         />
                     </View>
                     {/* Legs */}
@@ -236,6 +300,7 @@ const DrawWeb = () => {
                                 height={legHeight}
                                 strokeWidth={4}
                                 strokeColor="black"
+                                {...canvasExportTransparentProps}
                                 />
                             </View>
                             <View style={[styles.canvasWrapper, { width: limbWidth, height: legHeight }]}>
@@ -246,6 +311,7 @@ const DrawWeb = () => {
                                 height={legHeight}
                                 strokeWidth={4}
                                 strokeColor="black"
+                                {...canvasExportTransparentProps}
                                 />
                             </View>
                             
@@ -260,6 +326,7 @@ const DrawWeb = () => {
                                 height={legHeight}
                                 strokeWidth={4}
                                 strokeColor="black"
+                                {...canvasExportTransparentProps}
                                 />
                             </View>
                             <View style={[styles.canvasWrapper, { width: limbWidth, height: legHeight }]}>
@@ -270,6 +337,7 @@ const DrawWeb = () => {
                                 height={legHeight}
                                 strokeWidth={4}
                                 strokeColor="black"
+                                {...canvasExportTransparentProps}
                                 />
                             </View>
                         </View>
@@ -279,12 +347,13 @@ const DrawWeb = () => {
                 <View style={styles.armRow}>
                     <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight1 }]}>
                         <ReactSketchCanvas
-                        ref={rightUpperArmRef}
-                        style={styles.canvas}
-                        width={limbWidth}
-                        height={armHeight1}
-                        strokeWidth={4}
-                        strokeColor="black"
+                            ref={rightUpperArmRef}
+                            style={{ backgroundColor: 'transparent' }}
+                            width={limbWidth}
+                            height={armHeight1}
+                            strokeWidth={4}
+                            strokeColor="black"
+                            {...canvasExportTransparentProps}
                         />
                     </View>
                     <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight2 }]}>
@@ -295,6 +364,7 @@ const DrawWeb = () => {
                         height={armHeight2}
                         strokeWidth={4}
                         strokeColor="black"
+                        {...canvasExportTransparentProps}
                         />
                     </View>
                 </View>              
@@ -309,6 +379,7 @@ const DrawWeb = () => {
                         height={footHeight}
                         strokeWidth={4}
                         strokeColor="black"
+                        {...canvasExportTransparentProps}
                     />
                 </View>
                 <View style={[styles.canvasWrapper, { width: footWidth, height: footHeight}]}>
@@ -319,6 +390,7 @@ const DrawWeb = () => {
                         height={footHeight}
                         strokeWidth={4}
                         strokeColor="black"
+                        {...canvasExportTransparentProps}
                     />
                 </View>
             </View>
@@ -343,13 +415,13 @@ const styles = StyleSheet.create({
     },
 
     canvasWrapper: {
-        backgroundColor: '#242424ff',
+        backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'center',
     },
 
     canvas: {
-        backgroundColor: '#fff',
+        backgroundColor: 'transparent',
     },
 
     armTorsoRow: {
