@@ -25,9 +25,9 @@ const RootLayout = () => {
                 <Stack.Screen name="index" options={{ title: 'Home' }}/>
 
                 <Stack.Screen
-                    name="detectPose"
+                    name="Animate Sketch"
                     options={{
-                        title: 'Detect Pose',
+                        title: '',
                         headerRight: () => <HomeButton />,
                     }}
                 />  
@@ -35,7 +35,7 @@ const RootLayout = () => {
                 <Stack.Screen
                     name="drawWeb"
                     options={{
-                        title: 'Draw Web',
+                        title: 'Sketch',
                         headerRight: () => <HomeButton />,
                     }}
                 />
@@ -43,11 +43,11 @@ const RootLayout = () => {
                 <Stack.Screen
                     name="savedDrawings"
                     options={{
-                        title: 'Saved Drawings',
+                        title: 'Saved Sketches',
                         headerRight: () => <HomeButton />,
                     }}
                 />
-                
+
             </Stack>
         </>
     )
