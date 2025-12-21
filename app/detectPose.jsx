@@ -5,21 +5,24 @@ import '@tensorflow/tfjs-backend-webgl';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import PoseCanvas from '../components/poseCanvas';
 import { useLocalSearchParams } from 'expo-router';
+import { Dimensions, StyleSheet } from 'react-native';
 
+const { width, height } = Dimensions.get('window');
 
-// Main component for detecting pose using webcam
+/* Detect Pose and Overlay SVGs
+--------------------------------------------------------------------------------------------------*/
 const DetectPose = () => {
   const webcamRef = useRef(null);
   const [isTfReady, setIsTfReady] = useState(false);
   const [landmarks, setLandmarks] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [dimensions, setDimensions] = useState({ width: 640, height: 480 }); // <-- Move here
+  const [loading, setLoading] = useState(true); 
 
   const params = useLocalSearchParams();
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};
   const mapping = params.mapping ? JSON.parse(params.mapping) : {};
   
-  // Load TensorFlow.js and the pose detection model
+  /* Load TensorFlow.js and Pose Detection Model
+  ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     (async () => {
       await tf.ready();
@@ -27,7 +30,10 @@ const DetectPose = () => {
     })();
   }, []);
 
-  // Set up pose detection and periodically estimate poses
+  /* Detect Pose at Intervals
+  --------------------------------------------------------------------------------------------------
+  Monitor webcam and run pose detection every 50ms
+  ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     let detector;
     let interval;
@@ -46,7 +52,7 @@ const DetectPose = () => {
           setLandmarks(poses[0]?.keypoints || []);
           tf.dispose(image);
         }
-      }, 100);
+      }, 50);
     };
     if (isTfReady) {
       runPoseDetection();
@@ -62,26 +68,59 @@ const DetectPose = () => {
     );
   }
 
+  /* Render Webcam and PoseCanvas
+  --------------------------------------------------------------------------------------------------
+  Overlay PoseCanvas on top of Webcam to display detected poses with SVGs
+  ------------------------------------------------------------------------------------------------*/
   return (
-    <div style={{ position: 'relative', width: dimensions.width, height: dimensions.height }}>
+    <div style={styles.container}>
       <Webcam
         ref={webcamRef}
-        width={dimensions.width}
-        height={dimensions.height}
-        onUserMedia={() => {
-          // Optionally update dimensions here if needed
+        style={styles.webcam}
+        videoConstraints={{
+          width: width,
+          height: height,
+          facingMode: 'user',
         }}
-        style={{ position: 'absolute', left: 0, top: 0 }}
       />
       <PoseCanvas
-        width={dimensions.width}
-        height={dimensions.height}
+        width={width}
+        height={height}
         landmarks={landmarks}
         svgs={svgs}
         mapping={mapping}
+        style={styles.poseCanvas}
       />
     </div>
   );
 };
 
 export default DetectPose;
+
+const styles = StyleSheet.create({
+  container: {
+    position: 'relative',
+    width: '80vw',
+    height: '80vh',
+    overflow: 'hidden',
+    alignSelf: 'center',
+  },
+  
+  webcam: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+
+  poseCanvas: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    pointerEvents: 'none',
+  },
+});

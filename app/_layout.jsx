@@ -23,21 +23,6 @@ const RootLayout = () => {
             <StatusBar style="auto"/>
             <Stack screenOptions={{ headerTitleAlign: 'center' }}>
                 <Stack.Screen name="index" options={{ title: 'Home' }}/>
-                <Stack.Screen
-                    name="imagePreview"
-                    options={{
-                        title: 'Image Preview',
-                        headerRight: () => <HomeButton />,
-                    }}
-                />
-
-                <Stack.Screen
-                    name="camera"
-                    options={{
-                        title: 'Camera',
-                        headerRight: () => <HomeButton />,
-                    }}
-                />
 
                 <Stack.Screen
                     name="detectPose"
@@ -48,20 +33,21 @@ const RootLayout = () => {
                 />  
 
                 <Stack.Screen
-                    name="drawMobile"
-                    options={{
-                        title: 'Draw Mobile',
-                        headerRight: () => <HomeButton />,
-                    }}
-                />
-
-                <Stack.Screen
                     name="drawWeb"
                     options={{
                         title: 'Draw Web',
                         headerRight: () => <HomeButton />,
                     }}
                 />
+
+                <Stack.Screen
+                    name="savedDrawings"
+                    options={{
+                        title: 'Saved Drawings',
+                        headerRight: () => <HomeButton />,
+                    }}
+                />
+                
             </Stack>
         </>
     )

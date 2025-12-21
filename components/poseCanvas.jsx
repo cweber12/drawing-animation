@@ -1,34 +1,8 @@
 import React, { useRef, useEffect } from 'react';
 
-// Define connections between keypoints (for MoveNet/BlazePose)
-const CONNECTED_KEYPOINTS = [
-  [5, 6], [11, 12],
-  [5, 7], [7, 9],
-  [6, 8], [8, 10],
-  [11, 13], [13, 15],
-  [12, 14], [14, 16],
-  [5, 11], [6, 12],
-];
+import { LANDMARKS, CONNECTED_KEYPOINTS } from '../constants/landmarkData';
 
-const LANDMARKS = {
-  nose: 0,
-  leftEye: 1,
-  rightEye: 2,
-  leftEar: 3,
-  rightEar: 4,
-  leftShoulder: 5,
-  rightShoulder: 6,
-  leftElbow: 7,
-  rightElbow: 8,
-  leftWrist: 9,
-  rightWrist: 10,
-  leftHip: 11,
-  rightHip: 12,
-  leftKnee: 13,
-  rightKnee: 14,
-  leftAnkle: 15,
-  rightAnkle: 16,
-};
+// Define connections between keypoints (for MoveNet/BlazePose)
 
 function affineFrom3Points(src0, src1, src2, dst0, dst1, dst2) {
   const x0 = src0.x, y0 = src0.y;
@@ -83,6 +57,25 @@ function getSvgSize(img) {
   const w = img?.naturalWidth || img?.width || DEFAULT_SVG_SIZE.width;
   const h = img?.naturalHeight || img?.height || DEFAULT_SVG_SIZE.height;
   return { w, h };
+}
+
+function drawHeadSvg(ctx, img, leftEar, rightEar) {
+  const { w: svgW, h: svgH } = getSvgSize(img);
+
+  // Calculate the distance and angle between ears
+  const dx = rightEar.x - leftEar.x;
+  const dy = rightEar.y - leftEar.y;
+  const angle = Math.atan2(dy, dx);
+  const earDist = Math.hypot(dx, dy);
+  const scale = (earDist / svgW) * 2;
+
+  ctx.save();
+  ctx.translate(leftEar.x, leftEar.y);
+  ctx.rotate(angle);
+  ctx.scale(scale, scale);
+  // Draw SVG so left edge aligns with leftEar, right edge aligns with rightEar
+  ctx.drawImage(img, 0, -svgH / 2, svgW, svgH);
+  ctx.restore();
 }
 
 function drawHorizontalSegmentSvg(ctx, img, from, to) {
@@ -161,7 +154,7 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
     if (!landmarks || landmarks.length === 0) return;
 
     // Draw pose lines
-    ctx.strokeStyle = 'transparent';
+    ctx.strokeStyle = 'green';
     ctx.lineWidth = 2;
     CONNECTED_KEYPOINTS.forEach(([i, j]) => {
       const kp1 = landmarks[i];
@@ -175,7 +168,7 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
     });
 
     // Draw keypoints
-    ctx.fillStyle = 'transparent';
+    ctx.fillStyle = 'red';
     landmarks.forEach((kp) => {
       if (kp && kp.score > 0.3) {
         ctx.beginPath();
@@ -253,6 +246,19 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
         }
 
         if (
+            part === 'head' &&
+            map.leftAnchor !== undefined &&
+            map.rightAnchor !== undefined
+            ) {
+            const leftEar = landmarks[map.leftAnchor];
+            const rightEar = landmarks[map.rightAnchor];
+            if (!leftEar || !rightEar || leftEar.score < 0.3 || rightEar.score < 0.3) continue;
+
+            drawHeadSvg(ctx, img, leftEar, rightEar);
+            continue;
+        }
+
+        if (
             (part === 'leftUpperArm' || part === 'rightUpperArm' ||
             part === 'leftLowerArm' || part === 'rightLowerArm') &&
             map.leftCenter !== undefined &&
@@ -296,10 +302,18 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
 
   return (
     <canvas
-      ref={canvasRef}
-      width={width}
-      height={height}
-      style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none', backgroundColor: 'white' }}
+        ref={canvasRef}
+        width={width}
+        height={height}
+        style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            backgroundColor: 'transparent', // or transparent if you prefer
+        }}
     />
   );
 };
