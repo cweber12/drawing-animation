@@ -3,6 +3,7 @@ import { View, StyleSheet, Dimensions, Button } from 'react-native';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { bottomLeft } from '@shopify/react-native-skia';
 
 const { width, height } = Dimensions.get('window');
 
@@ -15,10 +16,8 @@ const DrawWeb = () => {
     const torsoRef = useRef(null);
     const leftUpperArmRef = useRef(null);
     const leftLowerArmRef = useRef(null);
-    const leftHandRef = useRef(null);
     const rightUpperArmRef = useRef(null);
     const rightLowerArmRef = useRef(null);
-    const rightHandRef = useRef(null);
     const leftUpperLegRef = useRef(null);
     const leftLowerLegRef = useRef(null);
     const leftFootRef = useRef(null);
@@ -49,18 +48,27 @@ const DrawWeb = () => {
     };
 
     const CANVAS_LANDMARK_MAP = {
-        rightUpperArm: {
-            topRight: LANDMARKS.leftShoulder,
-            bottomLeft: LANDMARKS.leftElbow},
-        rightLowerArm: {
-            topLeft: LANDMARKS.leftElbow,
-            bottomCenter: LANDMARKS.leftWrist},
-        leftUpperArm: {
-            topLeft: LANDMARKS.rightShoulder,
-            bottomRight: LANDMARKS.rightElbow},
-        leftLowerArm: {
-            topRight: LANDMARKS.rightElbow,
-            bottomCenter: LANDMARKS.rightWrist},
+        // Screen-left arm (your left on screen) = rightShoulder/rightElbow/rightWrist
+        leftUpperArm: { 
+            rightCenter: LANDMARKS.rightShoulder, 
+            leftCenter: LANDMARKS.rightElbow 
+        },
+        leftLowerArm: { 
+            rightCenter: LANDMARKS.rightElbow, 
+            leftCenter: LANDMARKS.rightWrist 
+        },
+
+        // Screen-right arm (your right on screen) = leftShoulder/leftElbow/leftWrist
+        rightUpperArm: { 
+            leftCenter: LANDMARKS.leftShoulder, 
+            rightCenter: LANDMARKS.leftElbow 
+        },
+
+        rightLowerArm: { 
+            leftCenter: LANDMARKS.leftElbow, 
+            rightCenter: LANDMARKS.leftWrist 
+        },
+        
         rightUpperLeg: {
             topRight: LANDMARKS.leftHip,
             bottomLeft: LANDMARKS.leftKnee},
@@ -80,8 +88,6 @@ const DrawWeb = () => {
             bottomLeft: LANDMARKS.rightHip
         },
         head: {center: LANDMARKS.nose},
-        rightHand: {center: LANDMARKS.rightWrist},
-        leftHand: {center: LANDMARKS.leftWrist},
         leftFoot: {center: LANDMARKS.leftAnkle},
         rightFoot: {center: LANDMARKS.rightAnkle},
 
@@ -91,24 +97,21 @@ const DrawWeb = () => {
     const torsoWidth = width * 0.12;
     const torsoHeight = height * 0.24;
     const limbWidth = (torsoWidth * 0.5) - 1;
-    const armHeight = (torsoHeight * 0.5) - 1;
+    const armHeight1 = (torsoHeight * 0.45) - 1;
+    const armHeight2 = (torsoHeight * 0.45) - 1;
     const headHeight = torsoHeight * 0.75;
-    const headWidth = torsoWidth + (limbWidth * 2);
+    const headWidth = torsoWidth;
     const legHeight = torsoHeight * 0.5;
-    const footHeight = torsoHeight * 0.5;
+    const footHeight = torsoHeight * 0.35;
     const footWidth = limbWidth * 2;
-    const handHeight = torsoHeight;
-    const handWidth = limbWidth;
 
     const clearAll = () => {
         headRef.current?.clearCanvas();
         torsoRef.current?.clearCanvas();
         leftUpperArmRef.current?.clearCanvas();
         leftLowerArmRef.current?.clearCanvas();
-        leftHandRef.current?.clearCanvas();
         rightUpperArmRef.current?.clearCanvas();
         rightLowerArmRef.current?.clearCanvas();
-        rightHandRef.current?.clearCanvas();
         leftUpperLegRef.current?.clearCanvas();
         leftLowerLegRef.current?.clearCanvas();
         leftFootRef.current?.clearCanvas();
@@ -117,25 +120,32 @@ const DrawWeb = () => {
         rightFootRef.current?.clearCanvas();
     };
 
-    // update saveAll:
     const saveAll = async () => {
         try {
-            const svgs = {
-            head: await headRef.current.exportSvg(),
-            torso: await torsoRef.current.exportSvg(),
-            leftUpperArm: await leftUpperArmRef.current.exportSvg(),
-            leftLowerArm: await leftLowerArmRef.current.exportSvg(),
-            leftHand: await leftHandRef.current.exportSvg(),
-            rightUpperArm: await rightUpperArmRef.current.exportSvg(),
-            rightLowerArm: await rightLowerArmRef.current.exportSvg(),
-            rightHand: await rightHandRef.current.exportSvg(),
-            leftUpperLeg: await leftUpperLegRef.current.exportSvg(),
-            leftLowerLeg: await leftLowerLegRef.current.exportSvg(),
-            leftFoot: await leftFootRef.current.exportSvg(),
-            rightUpperLeg: await rightUpperLegRef.current.exportSvg(),
-            rightLowerLeg: await rightLowerLegRef.current.exportSvg(),
-            rightFoot: await rightFootRef.current.exportSvg(),
+            const refs = {
+                head: headRef,
+                torso: torsoRef,
+                leftUpperArm: leftUpperArmRef,
+                leftLowerArm: leftLowerArmRef,
+                rightUpperArm: rightUpperArmRef,
+                rightLowerArm: rightLowerArmRef,
+                leftUpperLeg: leftUpperLegRef,
+                leftLowerLeg: leftLowerLegRef,
+                leftFoot: leftFootRef,
+                rightUpperLeg: rightUpperLegRef,
+                rightLowerLeg: rightLowerLegRef,
+                rightFoot: rightFootRef,
             };
+
+            const svgs = {};
+            for (const [key, ref] of Object.entries(refs)) {
+                if (ref.current && ref.current.exportSvg) {
+                    svgs[key] = await ref.current.exportSvg();
+                } else {
+                    console.warn(`No stroke found or ref not ready for ${key}`);
+                    svgs[key] = null;
+                }
+            }
 
             bodySvgsRef.current = svgs;
             setBodySvgs(svgs);
@@ -180,34 +190,23 @@ const DrawWeb = () => {
             {/* Arms and Torso */}
             <View style={styles.armTorsoRow}>
                 {/* Left Arm (upper + lower) */}
-                <View style={styles.armColumn}>
-                    
-                    <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight }]}>
-                        <ReactSketchCanvas
-                            ref={leftUpperArmRef}
-                            style={styles.canvas}
-                            width={limbWidth}
-                            height={armHeight}
-                            strokeWidth={4}
-                            strokeColor="black"
-                        />
-                    </View>
-                    <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight }]}>
+                <View style={styles.armRow}>
+                    <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight2 }]}>
                         <ReactSketchCanvas
                             ref={leftLowerArmRef}
                             style={styles.canvas}
                             width={limbWidth}
-                            height={armHeight}
+                            height={armHeight2}
                             strokeWidth={4}
                             strokeColor="black"
                         />
                     </View>
-                    <View style={[styles.canvasWrapper, { width: handWidth, height: handHeight }]}>
+                    <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight1 }]}>
                         <ReactSketchCanvas
-                            ref={leftHandRef}
+                            ref={leftUpperArmRef}
                             style={styles.canvas}
-                            width={handWidth}
-                            height={handHeight}
+                            width={limbWidth}
+                            height={armHeight1}
                             strokeWidth={4}
                             strokeColor="black"
                         />
@@ -277,39 +276,28 @@ const DrawWeb = () => {
                     </View>
                 </View>
                 {/* Right Arm (upper + lower) */}
-                <View style={styles.armColumn}>
-                    <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight }]}>
+                <View style={styles.armRow}>
+                    <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight1 }]}>
                         <ReactSketchCanvas
                         ref={rightUpperArmRef}
                         style={styles.canvas}
                         width={limbWidth}
-                        height={armHeight}
+                        height={armHeight1}
                         strokeWidth={4}
                         strokeColor="black"
                         />
                     </View>
-                    <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight }]}>
+                    <View style={[styles.canvasWrapper, { width: limbWidth, height: armHeight2 }]}>
                         <ReactSketchCanvas
                         ref={rightLowerArmRef}
                         style={styles.canvas}
                         width={limbWidth}
-                        height={armHeight}
+                        height={armHeight2}
                         strokeWidth={4}
                         strokeColor="black"
                         />
                     </View>
-                    <View style={[styles.canvasWrapper, { width: handWidth, height: handHeight }]}>
-                        <ReactSketchCanvas
-                        ref={rightHandRef}
-                        style={styles.canvas}
-                        width={handWidth}
-                        height={handHeight}
-                        strokeWidth={4}
-                        strokeColor="black"
-                        />
-                    </View>
-                </View>
-                
+                </View>              
             </View>
             {/* Feet */}
             <View style={styles.legsRow}>
@@ -366,13 +354,13 @@ const styles = StyleSheet.create({
 
     armTorsoRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'center',
         gap: 2, 
     },
 
-    armColumn: {
-        flexDirection: 'column',
+    armRow: {
+        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 2, 
