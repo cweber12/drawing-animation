@@ -3,17 +3,21 @@ export const Colors = {
     warning: "#FF6500",
 
     dark: {
-        text: "#d4d4d4",
-        title: "#fff",
-        background: "#121920ff",
-        navBackground: "#050b14ff",
+        text: "#e9e9e9ff",
+        title: "#C6DE41",
+        background: "#041114ff",
+        navBackground: "black",
+        button: "#d9ff00ff",
+        buttonText: "#071C21"
     },
 
     light: {
-        text: "#000000ff",
-        title: "#201e2b",
-        background: "#c9d3dfff",
-        navBackground: "#9ab2d2ff",
+        text: "#071C21",
+        title: "#153B44",
+        background: "#ffffffff",
+        navBackground: "#ffffff",
+        button: "#2D6E7E",
+        buttonText: "#153B44"
     },
 
 }

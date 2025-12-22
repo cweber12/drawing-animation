@@ -3,11 +3,12 @@ import Webcam from 'react-webcam';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
 import * as poseDetection from '@tensorflow-models/pose-detection';
-import PoseCanvas from '../components/poseCanvas';
+import SvgCanvas from '../components/SvgCanvas';
+import PoseCanvas from '../components/PoseCanvas';
 import { useLocalSearchParams } from 'expo-router';
-import { Dimensions, StyleSheet } from 'react-native';
-
-const { width, height } = Dimensions.get('window');
+import { StyleSheet, View } from 'react-native';
+import ThemedView from '../components/ThemedView';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, WEBCAM_WIDTH, WEBCAM_HEIGHT } from '../constants/Sizes';
 
 /* Detect Pose and Overlay SVGs
 --------------------------------------------------------------------------------------------------*/
@@ -86,34 +87,61 @@ const DetectPose = () => {
     );
   }
 
-  /* Render Webcam and PoseCanvas
+  /* Render Webcam and SvgCanvas
   --------------------------------------------------------------------------------------------------
-  Overlay PoseCanvas on top of Webcam to display detected poses with SVGs
+  Overlay SvgCanvas on top of Webcam to display detected poses with SVGs
   ------------------------------------------------------------------------------------------------*/
   return (
-    <div style={styles.container}>
-      <div style={styles.mediaWrapper}>
-        {/* Webcam Feed */}
-        <Webcam
-          ref={webcamRef}
-          style={styles.webcam}
-          videoConstraints={{
-            width: 640,
-            height: 480,
-            facingMode: 'user',
-          }}
-        />
-        {/* Display SVGs Aligned with Detected Landmarks */}
-        <PoseCanvas
-          width={1024}
-          height={768}
+     <ThemedView style={styles.container}>
+      <div style={{ position: 'relative', width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}>
+        <SvgCanvas
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
+          webcamWidth={WEBCAM_WIDTH}
+          webcamHeight={WEBCAM_HEIGHT}
           landmarks={landmarks}
           svgs={svgs}
           mapping={mapping}
-          style={styles.poseCanvas}
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            zIndex: 1,
+            width: CANVAS_WIDTH,
+            height: CANVAS_HEIGHT,
+          }}
+        />
+        <Webcam
+          ref={webcamRef}
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            zIndex: 2,
+            width: WEBCAM_WIDTH,
+            height: WEBCAM_HEIGHT,
+          }}
+          videoConstraints={{
+            width: WEBCAM_WIDTH,
+            height: WEBCAM_HEIGHT,
+            facingMode: 'user',
+          }}
+        />
+        <PoseCanvas
+          width={WEBCAM_WIDTH}
+          height={WEBCAM_HEIGHT}
+          landmarks={landmarks}
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            zIndex: 3,
+            width: WEBCAM_WIDTH,
+            height: WEBCAM_HEIGHT,
+          }}
         />
       </div>
-    </div>
+    </ThemedView>
   );
 };
 
@@ -127,31 +155,32 @@ const styles = StyleSheet.create({
     width: '100vw',
     height: '100vh',
     overflow: 'hidden',
-    backgroundColor: 'black',
   },
 
   mediaWrapper: {
     position: 'relative',
-    width: 1024,
-    height: 768,
+
   },
 
   webcam: {
     position: 'absolute',
     left: 0,
     top: 0,
-    width: 640,
-    height: 480,
-    zIndex: 0,
-    visibility: 'hidden',
+    zIndex: 2,
+
   },
 
   poseCanvas: {
     position: 'absolute',
     left: 0,
     top: 0,
-    width: 1024,
-    height: 768,
+    zIndex: 3,
+  },
+
+  svgCanvas: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
     zIndex: 1,
   },
 });

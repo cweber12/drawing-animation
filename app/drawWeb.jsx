@@ -41,7 +41,7 @@ const DrawWeb = () => {
     const handHeight = armHeight1 * 4;
     const handWidth = armWidth * 2;
     const handOffsetY = armHeight1 + armHeight1 / 2;
-    const headHeight = torsoHeight * 0.75;
+    const headHeight = torsoHeight * 0.8;
     const headWidth = torsoWidth;
     const footHeight = torsoHeight * 0.35;
     const footWidth = legWidth * 1.5;
