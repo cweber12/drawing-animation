@@ -36,7 +36,7 @@ const DetectPose = () => {
     };
   }, []);
 
-  /* Detect Pose (safe loop; prevents overlapping estimatePoses calls)
+  /* Detect Pose from Webcam Feed and Update Landmarks
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     let detector;
@@ -92,23 +92,27 @@ const DetectPose = () => {
   ------------------------------------------------------------------------------------------------*/
   return (
     <div style={styles.container}>
-      <Webcam
-        ref={webcamRef}
-        style={styles.webcam}
-        videoConstraints={{
-          width: width,
-          height: height,
-          facingMode: 'user',
-        }}
-      />
-      <PoseCanvas
-        width={width}
-        height={height}
-        landmarks={landmarks}
-        svgs={svgs}
-        mapping={mapping}
-        style={styles.poseCanvas}
-      />
+      <div style={styles.mediaWrapper}>
+        {/* Webcam Feed */}
+        <Webcam
+          ref={webcamRef}
+          style={styles.webcam}
+          videoConstraints={{
+            width: 640,
+            height: 480,
+            facingMode: 'user',
+          }}
+        />
+        {/* Display SVGs Aligned with Detected Landmarks */}
+        <PoseCanvas
+          width={640}
+          height={480}
+          landmarks={landmarks}
+          svgs={svgs}
+          mapping={mapping}
+          style={styles.poseCanvas}
+        />
+      </div>
     </div>
   );
 };
@@ -117,29 +121,36 @@ export default DetectPose;
 
 const styles = StyleSheet.create({
   container: {
-    position: 'relative',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     width: '100vw',
     height: '100vh',
     overflow: 'hidden',
-    alignSelf: 'center',
+  },
+
+  mediaWrapper: {
+    position: 'relative',
+    width: 640,
+    height: 480,
   },
 
   webcam: {
     position: 'absolute',
-    top: 0,
     left: 0,
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
+    top: 0,
+    width: 640,
+    height: 480,
+    zIndex: 0,
+    visibility: 'hidden',
   },
 
   poseCanvas: {
     position: 'absolute',
-    top: 0,
     left: 0,
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    pointerEvents: 'none',
+    top: 0,
+    width: 640,
+    height: 480,
+    zIndex: 1,
   },
 });

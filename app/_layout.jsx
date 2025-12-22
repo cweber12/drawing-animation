@@ -10,12 +10,8 @@ const RootLayout = () => {
     // Home button component for the header
     const HomeButton = () => (
         <View style={{ marginRight: 10 }} >
-        <Button 
-            title="Home" 
-            onPress={() => router.replace('/')} 
-        />
+            <Button title="Home" onPress={() => router.replace('/')}/>
         </View> 
-
     );
 
     return (
@@ -23,28 +19,28 @@ const RootLayout = () => {
             <StatusBar style="auto"/>
             <Stack screenOptions={{ headerTitleAlign: 'center' }}>
                 <Stack.Screen name="index" options={{ title: 'Home' }}/>
-
+                
                 <Stack.Screen
                     name="Animate Sketch"
-                    options={{
-                        title: '',
+                    options={{ 
+                        title: '', 
                         headerRight: () => <HomeButton />,
                     }}
                 />  
-
+                
                 <Stack.Screen
                     name="drawWeb"
-                    options={{
-                        title: 'Sketch',
-                        headerRight: () => <HomeButton />,
+                    options={{ 
+                        title: 'Sketch', 
+                        headerRight: () => <HomeButton />, 
                     }}
                 />
-
+                
                 <Stack.Screen
                     name="savedDrawings"
-                    options={{
-                        title: 'Saved Sketches',
-                        headerRight: () => <HomeButton />,
+                    options={{ 
+                        title: 'Saved Sketches', 
+                        headerRight: () => <HomeButton />, 
                     }}
                 />
 

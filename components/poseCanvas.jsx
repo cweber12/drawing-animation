@@ -71,7 +71,7 @@ function drawHeadSvg(ctx, img, leftEar, rightEar) {
   const midX = (leftEar.x + rightEar.x) / 2;
   const midY = (leftEar.y + rightEar.y) / 2;
   const earDist = Math.hypot(dx, dy);
-  const scale = (earDist / svgW) * 2.0;
+  const scale = (earDist / svgW) * 3.0;
 
   ctx.save();
   ctx.translate(midX, midY);
@@ -307,14 +307,11 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
   return (
     <canvas
         ref={canvasRef}
-        width={width}
-        height={height}
+        width={640}
+        height={480}
         style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            width: '100%',
-            height: '100%',
+            width: 640,
+            height: 480,
             pointerEvents: 'none',
             backgroundColor: 'white', 
         }}
