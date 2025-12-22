@@ -105,8 +105,8 @@ const DetectPose = () => {
         />
         {/* Display SVGs Aligned with Detected Landmarks */}
         <PoseCanvas
-          width={640}
-          height={480}
+          width={1024}
+          height={768}
           landmarks={landmarks}
           svgs={svgs}
           mapping={mapping}
@@ -127,12 +127,13 @@ const styles = StyleSheet.create({
     width: '100vw',
     height: '100vh',
     overflow: 'hidden',
+    backgroundColor: 'black',
   },
 
   mediaWrapper: {
     position: 'relative',
-    width: 640,
-    height: 480,
+    width: 1024,
+    height: 768,
   },
 
   webcam: {
@@ -149,8 +150,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     top: 0,
-    width: 640,
-    height: 480,
+    width: 1024,
+    height: 768,
     zIndex: 1,
   },
 });
