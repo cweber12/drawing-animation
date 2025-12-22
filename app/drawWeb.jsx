@@ -8,7 +8,13 @@ import { CANVAS_LANDMARK_MAP } from '../constants/landmarkData';
 const { width, height } = Dimensions.get('window');
 
 const DrawWeb = () => {
+    // Router for navigation
     const router = useRouter();
+    
+    // State to trigger re-render when SVGs are saved
+    const [bodySvgs, setBodySvgs] = useState({});
+
+    // Ref to store saved SVGs
     const bodySvgsRef = useRef({});
     
     // Refs for all canvases
@@ -24,10 +30,8 @@ const DrawWeb = () => {
     const rightUpperLegRef = useRef(null);
     const rightLowerLegRef = useRef(null);
     const rightFootRef = useRef(null);
-
-    const [bodySvgs, setBodySvgs] = useState({});
    
-    // Sizes
+    // SVG dimensions
     const torsoWidth = width * 0.12;
     const torsoHeight = height * 0.24;
     const legWidth = (torsoWidth * 0.5) - 1;
@@ -35,68 +39,19 @@ const DrawWeb = () => {
     const armHeight1 = (torsoHeight * 0.45) - 1;
     const armHeight2 = (torsoHeight * 0.45) - 1;
     const headHeight = torsoHeight * 0.65;
-    const headWidth = torsoWidth * 0.9;
+    const headWidth = torsoWidth;
     const legHeight = torsoHeight * 0.65;
     const footHeight = torsoHeight * 0.35;
-    const footWidth = legWidth;
+    const footWidth = legWidth * 1.5;
 
-    const canvasExportTransparentProps = {
+    // Common canvas export properties
+    const canvasProps = {
         canvasColor: 'rgba(0,0,0,0)',          
         exportWithBackgroundImage: false,      
         svgStyle: { background: 'transparent'} ,
         strokeWidth: 2,
         strokeColor: "black"
     };
-
-    function sanitizeExportedSvg(svgString) {
-        try {
-            if (typeof window === 'undefined' || !window.DOMParser) return svgString;
-
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(svgString, 'image/svg+xml');
-            const svg = doc.querySelector('svg');
-            if (!svg) return svgString;
-
-            // Remove background styles on the root svg
-            svg.removeAttribute('style');
-
-            // Remove first full-size rect if it looks like a background
-            const rects = Array.from(svg.querySelectorAll('rect'));
-            for (const r of rects) {
-            const w = (r.getAttribute('width') || '').trim();
-            const h = (r.getAttribute('height') || '').trim();
-            const fill = (r.getAttribute('fill') || '').trim().toLowerCase();
-            const style = (r.getAttribute('style') || '').toLowerCase();
-
-            const isFullSize =
-                w === '100%' || w === '100' || w === '100.0' || w === '' ||
-                w === svg.getAttribute('width'); // sometimes blank width/height
-
-            const isFullHeight =
-                h === '100%' || h === '100' || h === '100.0' || h === '' ||
-                h === svg.getAttribute('height');
-
-            const looksWhite =
-                fill === '#fff' ||
-                fill === '#ffffff' ||
-                fill === 'white' ||
-                fill.startsWith('rgb(255') ||
-                style.includes('fill:#fff') ||
-                style.includes('fill:#ffffff') ||
-                style.includes('fill:white') ||
-                style.includes('fill:rgb(255');
-
-            if (isFullSize && isFullHeight && looksWhite) {
-                r.remove();
-                break;
-            }
-            }
-
-            return new XMLSerializer().serializeToString(doc);
-        } catch {
-            return svgString;
-        }
-        }
 
     const clearAll = () => {
         headRef.current?.clearCanvas();
@@ -134,7 +89,6 @@ const DrawWeb = () => {
             for (const [key, ref] of Object.entries(refs)) {
                 if (ref.current && ref.current.exportSvg) {
                     let svg = await ref.current.exportSvg();
-                    svg = sanitizeExportedSvg(svg); // <-- Remove white rect if present
                     svgs[key] = svg;
                 } else {
                     console.warn(`No stroke found or ref not ready for ${key}`);
@@ -171,6 +125,11 @@ const DrawWeb = () => {
 
     return (
         <View style={styles.container}>
+            <View style={styles.controls}>
+                <Button title="Clear"onPress={clearAll}/>
+                <Button title="Save" onPress={saveAll} />
+                <Button title="Open Camera" onPress={goToDetectPose} />
+            </View>
             {/* Head */}
             <View style={[styles.canvasWrapper, { width: headWidth, height: headHeight}]}>
                 <ReactSketchCanvas
@@ -178,7 +137,7 @@ const DrawWeb = () => {
                 style={styles.canvas}
                 width={headWidth}
                 height={headHeight}
-                {...canvasExportTransparentProps}
+                {...canvasProps}
                 />
             </View>
             {/* Arms and Torso */}
@@ -191,7 +150,7 @@ const DrawWeb = () => {
                             style={styles.canvas}
                             width={armWidth}
                             height={armHeight2}
-                            {...canvasExportTransparentProps}
+                            {...canvasProps}
                         />
                     </View>
                     <View style={[styles.canvasWrapper, { width: armWidth, height: armHeight1 }]}>
@@ -200,7 +159,7 @@ const DrawWeb = () => {
                             style={styles.canvas}
                             width={armWidth}
                             height={armHeight1}
-                            {...canvasExportTransparentProps}
+                            {...canvasProps}
                         />
                     </View>
                 </View>
@@ -212,7 +171,7 @@ const DrawWeb = () => {
                             style={styles.canvas}
                             width={torsoWidth}
                             height={torsoHeight}
-                            {...canvasExportTransparentProps}
+                            {...canvasProps}
                         />
                     </View>
                     {/* Legs */}
@@ -225,7 +184,7 @@ const DrawWeb = () => {
                                 style={styles.canvas}
                                 width={legWidth}
                                 height={legHeight}
-                                {...canvasExportTransparentProps}
+                                {...canvasProps}
                                 />
                             </View>
                             <View style={[styles.canvasWrapper, { width: legWidth, height: legHeight }]}>
@@ -234,7 +193,7 @@ const DrawWeb = () => {
                                 style={styles.canvas}
                                 width={legWidth}
                                 height={legHeight}
-                                {...canvasExportTransparentProps}
+                                {...canvasProps}
                                 />
                             </View>
                             
@@ -247,7 +206,7 @@ const DrawWeb = () => {
                                 style={styles.canvas}
                                 width={legWidth}
                                 height={legHeight}
-                                {...canvasExportTransparentProps}
+                                {...canvasProps}
                                 />
                             </View>
                             <View style={[styles.canvasWrapper, { width: legWidth, height: legHeight }]}>
@@ -256,7 +215,7 @@ const DrawWeb = () => {
                                 style={styles.canvas}
                                 width={legWidth}
                                 height={legHeight}
-                                {...canvasExportTransparentProps}
+                                {...canvasProps}
                                 />
                             </View>
                         </View>
@@ -270,7 +229,7 @@ const DrawWeb = () => {
                             style={{ backgroundColor: 'transparent' }}
                             width={armWidth}
                             height={armHeight1}
-                            {...canvasExportTransparentProps}
+                            {...canvasProps}
                         />
                     </View>
                     <View style={[styles.canvasWrapper, { width: armWidth, height: armHeight2 }]}>
@@ -279,7 +238,7 @@ const DrawWeb = () => {
                         style={styles.canvas}
                         width={armWidth}
                         height={armHeight2}
-                        {...canvasExportTransparentProps}
+                        {...canvasProps}
                         />
                     </View>
                 </View>              
@@ -292,7 +251,7 @@ const DrawWeb = () => {
                         style={styles.canvas}
                         width={footWidth}
                         height={footHeight}
-                        {...canvasExportTransparentProps}
+                        {...canvasProps}
                     />
                 </View>
                 <View style={[styles.canvasWrapper, { width: footWidth, height: footHeight}]}>
@@ -301,14 +260,9 @@ const DrawWeb = () => {
                         style={styles.canvas}
                         width={footWidth}
                         height={footHeight}
-                        {...canvasExportTransparentProps}
+                        {...canvasProps}
                     />
                 </View>
-            </View>
-            <View style={styles.controls}>
-                <Button title="Clear"onPress={clearAll}/>
-                <Button title="Save" onPress={saveAll} />
-                <Button title="Open Camera" onPress={goToDetectPose} />
             </View>
         </View>
     );
@@ -322,16 +276,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 16,
-        backgroundColor: '#dededeff',
+        backgroundColor: '#363636ff',
         gap: 2, 
     },
 
     controls: {
         flexDirection: 'row',
-        justifyContent: 'center',
+        justifyContent: 'flex-end',
         alignItems: 'center',
         width: '100%',
-        marginTop: 16,
         gap: 8,
     },
 

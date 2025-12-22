@@ -1,3 +1,5 @@
+/* Landmark indices based on a standard pose estimation model 
+------------------------------------------------------------------------------*/
 export const LANDMARKS = {
     nose: 0,
     leftEye: 1,
@@ -18,27 +20,37 @@ export const LANDMARKS = {
     rightAnkle: 16,
 };
 
+/* Connections between pose landmark indices
+------------------------------------------------------------------------------*/
 export const CONNECTED_KEYPOINTS = [
-  [5, 6], [11, 12],
-  [5, 7], [7, 9],
-  [6, 8], [8, 10],
-  [11, 13], [13, 15],
-  [12, 14], [14, 16],
-  [5, 11], [6, 12],
+  [5, 6],    // Shoulders
+  [11, 12],  // Hips
+  [5, 7],    // Left Arm
+  [7, 9],    // Left Forearm
+  [6, 8],    // Right Arm
+  [8, 10],   // Right Forearm
+  [11, 13],  // Left Thigh
+  [13, 15],  // Left Calf
+  [12, 14],  // Right Thigh
+  [14, 16],  // Right Calf
+  [5, 11],   // Left Side Torso
+  [6, 12],   // Right Side Torso
 ];
 
+/* Mapping of body parts to landmark indices for canvas rendering
+------------------------------------------------------------------------------*/
 export const CANVAS_LANDMARK_MAP = {
-    // Screen-left arm (your left on screen) = rightShoulder/rightElbow/rightWrist
+
     leftUpperArm: { 
         rightCenter: LANDMARKS.rightShoulder, 
         leftCenter: LANDMARKS.rightElbow 
     },
+
     leftLowerArm: { 
         rightCenter: LANDMARKS.rightElbow, 
         leftCenter: LANDMARKS.rightWrist 
     },
 
-    // Screen-right arm (your right on screen) = leftShoulder/leftElbow/leftWrist
     rightUpperArm: { 
         leftCenter: LANDMARKS.leftShoulder, 
         rightCenter: LANDMARKS.leftElbow 
@@ -50,17 +62,25 @@ export const CANVAS_LANDMARK_MAP = {
     },
     
     rightUpperLeg: {
-        topRight: LANDMARKS.leftHip,
-        bottomLeft: LANDMARKS.leftKnee},
+        start: LANDMARKS.leftHip,
+        end: LANDMARKS.leftKnee
+    },
+
     rightLowerLeg: {
-        topRight: LANDMARKS.leftKnee,
-        bottomLeft: LANDMARKS.leftAnkle},
+        start: LANDMARKS.leftKnee,
+        end: LANDMARKS.leftAnkle
+    },
+
     leftUpperLeg: {
-        topLeft: LANDMARKS.rightHip,
-        bottomRight: LANDMARKS.rightKnee},
+        start: LANDMARKS.rightHip,
+        end: LANDMARKS.rightKnee
+    },
+
     leftLowerLeg: {
-        topLeft: LANDMARKS.rightKnee,
-        bottomRight: LANDMARKS.rightAnkle},
+        start: LANDMARKS.rightKnee,
+        end: LANDMARKS.rightAnkle
+    },
+
     torso: {
         topRight: LANDMARKS.leftShoulder,
         topLeft: LANDMARKS.rightShoulder,
@@ -69,10 +89,12 @@ export const CANVAS_LANDMARK_MAP = {
         shoulderAnchorLeft: LANDMARKS.leftShoulder,
         shoulderAnchorRight: LANDMARKS.rightShoulder,
     },
+
     head: {
         rightAnchor: LANDMARKS.leftEar,
         leftAnchor: LANDMARKS.rightEar,
     },
+
     leftFoot: {center: LANDMARKS.leftAnkle},
     rightFoot: {center: LANDMARKS.rightAnkle},
 
