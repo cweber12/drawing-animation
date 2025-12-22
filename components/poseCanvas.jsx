@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 
-import { LANDMARKS, CONNECTED_KEYPOINTS } from '../constants/landmarkData';
+import { LANDMARKS, CONNECTED_KEYPOINTS } from '../constants/LandmarkData';
 
 // Define connections between keypoints (for MoveNet/BlazePose)
 
@@ -364,11 +364,11 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
   return (
     <canvas
         ref={canvasRef}
-        width={640}
-        height={480}
+        width={1024}
+        height={768}
         style={{
-            width: 640,
-            height: 480,
+            width: 1024,
+            height: 768,
             pointerEvents: 'none',
             backgroundColor: 'white', 
         }}

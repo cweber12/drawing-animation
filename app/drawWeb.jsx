@@ -1,22 +1,19 @@
-import { useRef } from 'react';
+import React, { useRef, useState, useContext, useEffect, useCallback} from 'react';
 import { View, StyleSheet, Dimensions, Button } from 'react-native';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { CANVAS_LANDMARK_MAP } from '../constants/landmarkData';
+import { useRouter, useNavigation } from 'expo-router';
+import { CANVAS_LANDMARK_MAP } from '../constants/LandmarkData';
+import ThemedView from '../components/ThemedView';
+
 
 const { width, height } = Dimensions.get('window');
 
 const DrawWeb = () => {
-    // Router for navigation
     const router = useRouter();
-    
-    // State to trigger re-render when SVGs are saved
+    const navigation = useNavigation();
     const [bodySvgs, setBodySvgs] = useState({});
-
-    // Ref to store saved SVGs
     const bodySvgsRef = useRef({});
-    
+
     // Refs for all canvases
     const headRef = useRef(null);
     const torsoRef = useRef(null);
@@ -32,19 +29,20 @@ const DrawWeb = () => {
     const leftUpperLegRef = useRef(null);
     const leftLowerLegRef = useRef(null);
     const leftFootRef = useRef(null);
-   
+
     // SVG dimensions
-    const torsoWidth = width * 0.12;
-    const torsoHeight = height * 0.24;
+    const torsoWidth = width * 0.15;
+    const torsoHeight = height * 0.25;
     const legWidth = (torsoWidth * 0.5) - 1;
+    const legHeight = torsoHeight * 0.65;
     const armWidth = torsoWidth * 0.65;
     const armHeight1 = (torsoHeight * 0.45) - 1;
     const armHeight2 = (torsoHeight * 0.45) - 1;
     const handHeight = armHeight1 * 4;
     const handWidth = armWidth * 2;
-    const headHeight = torsoHeight * 0.65;
+    const handOffsetY = armHeight1 + armHeight1 / 2;
+    const headHeight = torsoHeight * 0.75;
     const headWidth = torsoWidth;
-    const legHeight = torsoHeight * 0.65;
     const footHeight = torsoHeight * 0.35;
     const footWidth = legWidth * 1.5;
 
@@ -57,7 +55,7 @@ const DrawWeb = () => {
         strokeColor: "black"
     };
 
-    const clearAll = () => {
+    const clearAll = useCallback(() => {
         headRef.current?.clearCanvas();
         torsoRef.current?.clearCanvas();
         rightUpperArmRef.current?.clearCanvas();
@@ -72,9 +70,9 @@ const DrawWeb = () => {
         leftUpperLegRef.current?.clearCanvas();
         leftLowerLegRef.current?.clearCanvas();
         leftFootRef.current?.clearCanvas();
-    };
+    }, []);
 
-    const saveAll = async () => {
+    const saveAll = useCallback(async () => {
         try {
             const refs = {
                 head: headRef,
@@ -111,9 +109,9 @@ const DrawWeb = () => {
             console.error('Error saving SVGs:', e);
             return null;
         }
-    };
+    }, []);
 
-    const goToDetectPose = async () => {
+    const goToDetectPose = useCallback(async () => {
         const svgsToSend =
             Object.keys(bodySvgsRef.current || {}).length > 0
             ? bodySvgsRef.current
@@ -124,22 +122,25 @@ const DrawWeb = () => {
         router.push({
             pathname: '/detectPose',
             params: {
-            svgs: JSON.stringify(svgsToSend),
-            mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
+                svgs: JSON.stringify(svgsToSend),
+                mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
             },
         });
-    };
+    }, [router, saveAll]);
 
+    useEffect(() => {
+        navigation.setParams({
+            onClear: clearAll,
+            onSave: saveAll,
+            onOpenCamera: goToDetectPose,
+        });
+    }, [navigation, clearAll, saveAll, goToDetectPose]);
 
     return (
-        <View style={styles.container}>
-            <View style={styles.controls}>
-                <Button title="Clear"onPress={clearAll}/>
-                <Button title="Save" onPress={saveAll} />
-                <Button title="Open Camera" onPress={goToDetectPose} />
-            </View>
+
+        <ThemedView style={styles.container}>
             {/* Head */}
-            <View style={[styles.canvasWrapper, { width: headWidth, height: headHeight}]}>
+            <View style={[styles.canvasWrapper, styles.head, { width: headWidth, height: headHeight}]}>
                 <ReactSketchCanvas
                 ref={headRef}
                 style={styles.canvas}
@@ -152,7 +153,10 @@ const DrawWeb = () => {
             <View style={styles.armTorsoRow}>
                 {/* Left Arm (upper + lower) */}
                 <View style={styles.armRow}>
-                    <View style={[styles.canvasWrapper, { width: handWidth, height: handHeight, marginTop: -armHeight1 - armHeight1/2}]}>
+                    <View 
+                    style={[styles.canvasWrapper, styles.hand,
+                        { width: handWidth, height: handHeight, marginTop: -handOffsetY}
+                    ]}>
                         <ReactSketchCanvas
                             ref={rightHandRef}
                             style={styles.canvas}
@@ -258,7 +262,8 @@ const DrawWeb = () => {
                         {...canvasProps}
                         />
                     </View>
-                    <View style={[styles.canvasWrapper, { width: handWidth, height: handHeight, marginTop: -armHeight1 - armHeight1/2}]}>
+                    <View style={[styles.canvasWrapper, styles.hand,
+                        { width: handWidth, height: handHeight, marginTop: -handOffsetY}]}>
                         <ReactSketchCanvas
                             ref={leftHandRef}
                             style={styles.canvas}
@@ -290,7 +295,7 @@ const DrawWeb = () => {
                     />
                 </View>
             </View>
-        </View>
+        </ThemedView>
     );
 };
 
@@ -301,28 +306,30 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'flex-start',
-        padding: 16,
-        backgroundColor: '#363636ff',
+        padding: 24,
         gap: 2, 
     },
 
     controls: {
         flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: '100%',
         gap: 8,
-        marginBottom: 12,
+        marginBottom: 8,
     },
 
     canvasWrapper: {
         backgroundColor: 'white',
         alignItems: 'center',
         justifyContent: 'center',
+        borderRadius: 10,
+        overflow: 'hidden',
     },
 
     canvas: {
         backgroundColor: 'transparent',
+    },
+
+    head: {
+        borderRadius: 50,
     },
 
     armTorsoRow: {
@@ -337,6 +344,10 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         justifyContent: 'center',
         gap: 2, 
+    },
+
+    hand: {
+        borderRadius: 50,
     },
 
     legColumn: {
