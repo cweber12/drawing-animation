@@ -1,4 +1,4 @@
-import { StyleSheet, Button, useColorScheme } from 'react-native'
+import { StyleSheet, Button, Text, useColorScheme, TouchableOpacity } from 'react-native'
 import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native-web'
@@ -6,13 +6,22 @@ import { Colors } from '../constants/Colors'
 import DrawWebHeaderButtons from '../components/DrawWebHeaderButtons';
 
 
-const HomeButton = () => {
 
+const HomeButton = () => {
     const router = useRouter();
+    const colorScheme = useColorScheme()
+    const theme = Colors[colorScheme] ?? Colors.light
 
     return (
-        <View style={{ marginRight: 10, flexShrink: 0 }}>
-            <Button title="Home" onPress={() => router.replace('/')} />
+        <View style={{ marginRight: 24, flexShrink: 0 }}>
+            <TouchableOpacity 
+                style={[styles.button, { backgroundColor: theme.button }]} 
+                onPress={() => router.replace('/')}
+            >
+                <Text style={[styles.buttonText, { color: theme.buttonText }]}>
+                    Home
+                </Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -20,7 +29,6 @@ const HomeButton = () => {
 const RootLayout = () => {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
-    
     return (
         <>
             <StatusBar style="auto"/>
@@ -33,6 +41,10 @@ const RootLayout = () => {
                         shadowOpacity: 0, // remove shadow on iOS
                 },
                 headerTintColor: theme.title,
+                headerTitleStyle: {
+                    fontSize: 32, 
+                    fontWeight: 'bold', 
+                },
                 }}>
                 <Stack.Screen name="index" options={{ title: 'Home' }}/>
                 <Stack.Screen
@@ -48,12 +60,12 @@ const RootLayout = () => {
                         title: 'Sketch',
                         headerRight: () => (
                             <>
-                                <HomeButton />
                                 <DrawWebHeaderButtons
                                     onClear={route.params?.onClear}
                                     onSave={route.params?.onSave}
                                     onOpenCamera={route.params?.onOpenCamera}
                                 />
+                                <HomeButton />
                             </>
                         ),
                     })}
@@ -73,4 +85,15 @@ const RootLayout = () => {
 export default RootLayout
 
 const styles = StyleSheet.create({
+    button: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    marginHorizontal: 2,
+  },
+
+  buttonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 })

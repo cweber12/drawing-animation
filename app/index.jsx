@@ -1,13 +1,23 @@
-import { StyleSheet, View} from 'react-native'
+import { StyleSheet, useColorScheme} from 'react-native'
 import React from 'react'
 import { Link } from 'expo-router'
+import ThemedView from '../components/ThemedView';
+import { Colors } from '../constants/Colors';
 
 const Home = () => {
 
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme] ?? Colors.light;
+    
     return (
-        <View style={styles.container}>
-            <Link href="/drawWeb" style={styles.link}>Draw</Link>
-        </View>
+        <ThemedView style={styles.container}>
+            <Link 
+                href="/drawWeb" 
+                style={[styles.link, { backgroundColor: theme.button, color: theme.buttonText }]}
+            >
+                Draw
+            </Link>
+        </ThemedView>
     )
 }
 
@@ -22,9 +32,7 @@ const styles = StyleSheet.create({
 
     link: {
         fontSize: 20,
-        color: 'white',
         padding: 10,
-        backgroundColor: '#007AFF',
         borderRadius: 5,
         marginBottom: 10,
         width: '40%',

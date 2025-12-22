@@ -6,8 +6,8 @@ import { Colors } from '../constants/Colors'
 // - light mode: background light, stroke dark
 // - dark mode: background dark, stroke light
 const ThemedCanvasWrapper = () => {
-    const colorScheme = useColorScheme()
-    const theme = Colors[colorScheme] ?? Colors.light
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme] ?? Colors.light;
 
     return (
         <View>
