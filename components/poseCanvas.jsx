@@ -52,6 +52,8 @@ function svgStringToImage(svgString) {
   });
 }
 
+/* Get SVG image size
+------------------------------------------------------------------------------*/
 function getSvgSize(img) {
   // SVG images can report 0 width/height in some browsers; natural* is safer.
   const w = img?.naturalWidth || img?.width || DEFAULT_SVG_SIZE.width;
@@ -59,6 +61,8 @@ function getSvgSize(img) {
   return { w, h };
 }
 
+/* Draw head SVG scaled and rotated between left and right ears
+------------------------------------------------------------------------------*/
 function drawHeadSvg(ctx, img, leftEar, rightEar) {
   const { w: svgW, h: svgH } = getSvgSize(img);
 
@@ -82,6 +86,8 @@ function drawHeadSvg(ctx, img, leftEar, rightEar) {
   ctx.restore();
 }
 
+/* Draw segment SVG rotated to align from 'from' to 'to' (arms)
+------------------------------------------------------------------------------*/
 function drawHorizontalSegmentSvg(ctx, img, from, to) {
   const { w: svgW, h: svgH } = getSvgSize(img);
   const dx = to.x - from.x;
@@ -98,7 +104,38 @@ function drawHorizontalSegmentSvg(ctx, img, from, to) {
   ctx.restore();
 }
 
-// Generic segment (top center at start)
+/* Draw left hand SVG rotated to match wrist-elbow angle
+------------------------------------------------------------------------------*/
+function drawLeftHandSvg(ctx, img, wrist, elbow) {
+    const { w: svgW, h: svgH } = getSvgSize(img);
+    const dx = wrist.x - elbow.x;
+    const dy = wrist.y - elbow.y;
+    const angle = Math.atan2(dy, dx);
+
+    ctx.save();
+    ctx.translate(wrist.x, wrist.y);
+    ctx.rotate(angle);
+    ctx.drawImage(img, 0, -svgH / 2, svgW, svgH);
+    ctx.restore();
+}
+
+/* Draw right hand SVG rotated to match wrist-elbow angle
+------------------------------------------------------------------------------*/
+function drawRightHandSvg(ctx, img, wrist, elbow) {
+    const { w: svgW, h: svgH } = getSvgSize(img);
+    const dx = wrist.x - elbow.x;
+    const dy = wrist.y - elbow.y;
+    const angle = Math.atan2(dy, dx);
+
+    ctx.save();
+    ctx.translate(wrist.x, wrist.y);
+    ctx.rotate(angle + Math.PI);
+    ctx.drawImage(img, -svgW, -svgH / 2, svgW, svgH);
+    ctx.restore();
+}
+
+/* Generic segment drawing (for legs, feet, etc.)
+------------------------------------------------------------------------------*/
 function drawSegmentSvg(ctx, img, from, to) {
   const { w: svgW, h: svgH } = getSvgSize(img);
   const dx = to.x - from.x;
@@ -116,12 +153,12 @@ function drawSegmentSvg(ctx, img, from, to) {
 }
 
 const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
+  // Refs for canvas and cached images
   const canvasRef = useRef(null);
-
-  // Cache: part -> HTMLImageElement
   const imagesRef = useRef({});
 
-  // 1) Preload SVG images only when `svgs` changes
+  /* Cache SVG images when svgs prop changes
+  ----------------------------------------------------------------------------*/
   useEffect(() => {
     let cancelled = false;
 
@@ -147,7 +184,8 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
     };
   }, [svgs]);
 
-  // 2) Draw per-frame (sync) whenever landmarks update
+  /* Draw pose and SVGs on canvas when landmarks change
+  ----------------------------------------------------------------------------*/
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -157,7 +195,8 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
 
     if (!landmarks || landmarks.length === 0) return;
 
-    // Draw pose lines
+    /* Draw pose skeleton
+    --------------------------------------------------------------------------*/
     ctx.strokeStyle = 'transparent';
     ctx.lineWidth = 2;
     CONNECTED_KEYPOINTS.forEach(([i, j]) => {
@@ -171,7 +210,8 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
       }
     });
 
-    // Draw keypoints
+    /* Draw keypoints
+    --------------------------------------------------------------------------*/
     ctx.fillStyle = 'transparent';
     landmarks.forEach((kp) => {
       if (kp && kp.score > 0.3) {
@@ -181,7 +221,8 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
       }
     });
 
-    // Draw cached SVGs
+    /* Draw SVGs for body parts
+    --------------------------------------------------------------------------*/
     const images = imagesRef.current;
 
     for (const [part, img] of Object.entries(images)) {
@@ -190,7 +231,8 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
 
         const { w: svgW, h: svgH } = getSvgSize(img);
 
-        // ---- 1) 4-corner affine (torso) ----
+        /* TORSO 
+        ----------------------------------------------------------------------*/
         if (
         map.topLeft !== undefined &&
         map.topRight !== undefined &&
@@ -202,23 +244,10 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
         const bl = landmarks[map.bottomLeft];
         const br = landmarks[map.bottomRight];
 
+        // Ensure all four corners are present and have sufficient score
         if (!tl || !tr || !bl || !br) continue;
         if (tl.score < 0.3 || tr.score < 0.3 || bl.score < 0.3 || br.score < 0.3) continue;
-
-        // --- ADD THIS BLOCK HERE ---
-        // Calculate virtual anchor points on the SVG
-        const svgShoulderLeft = { x: 0, y: svgH * 0.25 };
-        const svgShoulderRight = { x: svgW, y: svgH * 0.25 };
-
-        // Landmarks
-        const leftShoulder = landmarks[LANDMARKS.leftShoulder];
-        const rightShoulder = landmarks[LANDMARKS.rightShoulder];
-        // --- END BLOCK ---
-
-        // (You can now use svgShoulderLeft, svgShoulderRight, leftShoulder, rightShoulder
-        //  for a custom transform if you want to align the SVG's "shoulder" points to the pose shoulders.)
-
-        // ...existing affine transform code...
+        
         const M = affineFrom3Points(
             { x: 0, y: 0 },
             { x: svgW, y: 0 },
@@ -237,7 +266,6 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
         continue;
         }
 
-        // ---- 2) Center-only parts: { center } ----
         if (map.center !== undefined) {
             const center = landmarks[map.center];
             if (!center || center.score < 0.3) continue;
@@ -249,6 +277,8 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
             continue;
         }
 
+        /* HEAD 
+        ----------------------------------------------------------------------*/
         if (
             part === 'head' &&
             map.leftAnchor !== undefined &&
@@ -262,6 +292,8 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
             continue;
         }
 
+        /* ARMS 
+        ----------------------------------------------------------------------*/
         if (
             (part === 'leftUpperArm' || part === 'rightUpperArm' ||
             part === 'leftLowerArm' || part === 'rightLowerArm') &&
@@ -275,7 +307,32 @@ const PoseCanvas = ({ width, height, landmarks, svgs = {}, mapping = {} }) => {
             continue;
         }
 
-        // ---- 5) Other segments: generic ----
+        /* HANDS
+        ----------------------------------------------------------------------*/
+        if (part === 'leftHand' &&
+            map.wrist !== undefined &&
+            map.elbow !== undefined
+        ) {
+            const wrist = landmarks[map.wrist];
+            const elbow = landmarks[map.elbow];
+            if (!wrist || !elbow || wrist.score < 0.3 || elbow.score < 0.3) continue;
+            drawLeftHandSvg(ctx, img, wrist, elbow);
+            continue;
+        }
+
+        if (part === 'rightHand' &&
+            map.wrist !== undefined &&
+            map.elbow !== undefined
+        ) {
+            const wrist = landmarks[map.wrist];
+            const elbow = landmarks[map.elbow];
+            if (!wrist || !elbow || wrist.score < 0.3 || elbow.score < 0.3) continue;
+            drawRightHandSvg(ctx, img, wrist, elbow);
+            continue;
+        }
+
+        /* LEGS / FEET
+        ----------------------------------------------------------------------*/
         let fromIdx = null;
         let toIdx = null;
         if (map.start !== undefined && map.end !== undefined) {
