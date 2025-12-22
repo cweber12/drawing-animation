@@ -20,16 +20,18 @@ const DrawWeb = () => {
     // Refs for all canvases
     const headRef = useRef(null);
     const torsoRef = useRef(null);
-    const leftUpperArmRef = useRef(null);
-    const leftLowerArmRef = useRef(null);
     const rightUpperArmRef = useRef(null);
     const rightLowerArmRef = useRef(null);
-    const leftUpperLegRef = useRef(null);
-    const leftLowerLegRef = useRef(null);
-    const leftFootRef = useRef(null);
+    const rightHandRef = useRef(null);
+    const leftUpperArmRef = useRef(null);
+    const leftLowerArmRef = useRef(null);
+    const leftHandRef = useRef(null);
     const rightUpperLegRef = useRef(null);
     const rightLowerLegRef = useRef(null);
     const rightFootRef = useRef(null);
+    const leftUpperLegRef = useRef(null);
+    const leftLowerLegRef = useRef(null);
+    const leftFootRef = useRef(null);
    
     // SVG dimensions
     const torsoWidth = width * 0.12;
@@ -38,6 +40,8 @@ const DrawWeb = () => {
     const armWidth = torsoWidth * 0.65;
     const armHeight1 = (torsoHeight * 0.45) - 1;
     const armHeight2 = (torsoHeight * 0.45) - 1;
+    const handHeight = armHeight1 * 4;
+    const handWidth = armWidth * 2;
     const headHeight = torsoHeight * 0.65;
     const headWidth = torsoWidth;
     const legHeight = torsoHeight * 0.65;
@@ -56,16 +60,18 @@ const DrawWeb = () => {
     const clearAll = () => {
         headRef.current?.clearCanvas();
         torsoRef.current?.clearCanvas();
-        leftUpperArmRef.current?.clearCanvas();
-        leftLowerArmRef.current?.clearCanvas();
         rightUpperArmRef.current?.clearCanvas();
         rightLowerArmRef.current?.clearCanvas();
-        leftUpperLegRef.current?.clearCanvas();
-        leftLowerLegRef.current?.clearCanvas();
-        leftFootRef.current?.clearCanvas();
+        rightHandRef.current?.clearCanvas();
+        leftUpperArmRef.current?.clearCanvas();
+        leftLowerArmRef.current?.clearCanvas();
+        leftHandRef.current?.clearCanvas();
         rightUpperLegRef.current?.clearCanvas();
         rightLowerLegRef.current?.clearCanvas();
         rightFootRef.current?.clearCanvas();
+        leftUpperLegRef.current?.clearCanvas();
+        leftLowerLegRef.current?.clearCanvas();
+        leftFootRef.current?.clearCanvas();
     };
 
     const saveAll = async () => {
@@ -73,16 +79,18 @@ const DrawWeb = () => {
             const refs = {
                 head: headRef,
                 torso: torsoRef,
-                leftUpperArm: leftUpperArmRef,
-                leftLowerArm: leftLowerArmRef,
                 rightUpperArm: rightUpperArmRef,
                 rightLowerArm: rightLowerArmRef,
-                leftUpperLeg: leftUpperLegRef,
-                leftLowerLeg: leftLowerLegRef,
-                leftFoot: leftFootRef,
+                rightHand: rightHandRef,
+                leftUpperArm: leftUpperArmRef,
+                leftLowerArm: leftLowerArmRef,
+                leftHand: leftHandRef,
                 rightUpperLeg: rightUpperLegRef,
                 rightLowerLeg: rightLowerLegRef,
                 rightFoot: rightFootRef,
+                leftUpperLeg: leftUpperLegRef,
+                leftLowerLeg: leftLowerLegRef,
+                leftFoot: leftFootRef,
             };
 
             const svgs = {};
@@ -144,9 +152,18 @@ const DrawWeb = () => {
             <View style={styles.armTorsoRow}>
                 {/* Left Arm (upper + lower) */}
                 <View style={styles.armRow}>
+                    <View style={[styles.canvasWrapper, { width: handWidth, height: handHeight, marginTop: -armHeight1 - armHeight1/2}]}>
+                        <ReactSketchCanvas
+                            ref={rightHandRef}
+                            style={styles.canvas}
+                            width={handWidth}
+                            height={handHeight}
+                            {...canvasProps}
+                        />
+                    </View>
                     <View style={[styles.canvasWrapper, { width: armWidth, height: armHeight2 }]}>
                         <ReactSketchCanvas
-                            ref={leftLowerArmRef}
+                            ref={rightLowerArmRef}
                             style={styles.canvas}
                             width={armWidth}
                             height={armHeight2}
@@ -155,7 +172,7 @@ const DrawWeb = () => {
                     </View>
                     <View style={[styles.canvasWrapper, { width: armWidth, height: armHeight1 }]}>
                         <ReactSketchCanvas
-                            ref={leftUpperArmRef}
+                            ref={rightUpperArmRef}
                             style={styles.canvas}
                             width={armWidth}
                             height={armHeight1}
@@ -176,30 +193,8 @@ const DrawWeb = () => {
                     </View>
                     {/* Legs */}
                     <View style={styles.legsRow}>
-                        {/* Left Leg (upper + lower) */}
-                        <View style={[styles.legColumn, {alignItems: "flex-end"}]}>
-                            <View style={[styles.canvasWrapper, { width: legWidth, height: legHeight }]}>
-                                <ReactSketchCanvas
-                                ref={leftUpperLegRef}
-                                style={styles.canvas}
-                                width={legWidth}
-                                height={legHeight}
-                                {...canvasProps}
-                                />
-                            </View>
-                            <View style={[styles.canvasWrapper, { width: legWidth, height: legHeight }]}>
-                                <ReactSketchCanvas
-                                ref={leftLowerLegRef}
-                                style={styles.canvas}
-                                width={legWidth}
-                                height={legHeight}
-                                {...canvasProps}
-                                />
-                            </View>
-                            
-                        </View>
                         {/* Right Leg (upper + lower) */}
-                        <View style={[styles.legColumn, {alignItems: "flex-start"}]}>
+                        <View style={[styles.legColumn, {alignItems: "flex-end"}]}>
                             <View style={[styles.canvasWrapper, { width: legWidth, height: legHeight }]}>
                                 <ReactSketchCanvas
                                 ref={rightUpperLegRef}
@@ -218,14 +213,36 @@ const DrawWeb = () => {
                                 {...canvasProps}
                                 />
                             </View>
+                            
+                        </View>
+                        {/* Left Leg (upper + lower) */}
+                        <View style={[styles.legColumn, {alignItems: "flex-start"}]}>
+                            <View style={[styles.canvasWrapper, { width: legWidth, height: legHeight }]}>
+                                <ReactSketchCanvas
+                                ref={leftUpperLegRef}
+                                style={styles.canvas}
+                                width={legWidth}
+                                height={legHeight}
+                                {...canvasProps}
+                                />
+                            </View>
+                            <View style={[styles.canvasWrapper, { width: legWidth, height: legHeight }]}>
+                                <ReactSketchCanvas
+                                ref={leftLowerLegRef}
+                                style={styles.canvas}
+                                width={legWidth}
+                                height={legHeight}
+                                {...canvasProps}
+                                />
+                            </View>
                         </View>
                     </View>
                 </View>
-                {/* Right Arm (upper + lower) */}
+                {/* Left Arm (upper + lower) */}
                 <View style={styles.armRow}>
                     <View style={[styles.canvasWrapper, { width: armWidth, height: armHeight1 }]}>
                         <ReactSketchCanvas
-                            ref={rightUpperArmRef}
+                            ref={leftUpperArmRef}
                             style={{ backgroundColor: 'transparent' }}
                             width={armWidth}
                             height={armHeight1}
@@ -234,11 +251,20 @@ const DrawWeb = () => {
                     </View>
                     <View style={[styles.canvasWrapper, { width: armWidth, height: armHeight2 }]}>
                         <ReactSketchCanvas
-                        ref={rightLowerArmRef}
+                        ref={leftLowerArmRef}
                         style={styles.canvas}
                         width={armWidth}
                         height={armHeight2}
                         {...canvasProps}
+                        />
+                    </View>
+                    <View style={[styles.canvasWrapper, { width: handWidth, height: handHeight, marginTop: -armHeight1 - armHeight1/2}]}>
+                        <ReactSketchCanvas
+                            ref={leftHandRef}
+                            style={styles.canvas}
+                            width={handWidth}
+                            height={handHeight}
+                            {...canvasProps}
                         />
                     </View>
                 </View>              
@@ -247,7 +273,7 @@ const DrawWeb = () => {
             <View style={styles.legsRow}>
                 <View style={[styles.canvasWrapper, { width: footWidth, height: footHeight}]}>
                     <ReactSketchCanvas
-                        ref={leftFootRef}
+                        ref={rightFootRef}
                         style={styles.canvas}
                         width={footWidth}
                         height={footHeight}
@@ -256,7 +282,7 @@ const DrawWeb = () => {
                 </View>
                 <View style={[styles.canvasWrapper, { width: footWidth, height: footHeight}]}>
                     <ReactSketchCanvas
-                        ref={rightFootRef}
+                        ref={leftFootRef}
                         style={styles.canvas}
                         width={footWidth}
                         height={footHeight}
@@ -274,7 +300,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         padding: 16,
         backgroundColor: '#363636ff',
         gap: 2, 
@@ -282,10 +308,11 @@ const styles = StyleSheet.create({
 
     controls: {
         flexDirection: 'row',
-        justifyContent: 'flex-end',
+        justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
         gap: 8,
+        marginBottom: 12,
     },
 
     canvasWrapper: {
@@ -307,7 +334,7 @@ const styles = StyleSheet.create({
 
     armRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'center',
         gap: 2, 
     },

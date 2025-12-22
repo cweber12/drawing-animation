@@ -41,42 +41,52 @@ export const CONNECTED_KEYPOINTS = [
 ------------------------------------------------------------------------------*/
 export const CANVAS_LANDMARK_MAP = {
 
-    leftUpperArm: { 
+    rightUpperArm: { 
         rightCenter: LANDMARKS.rightShoulder, 
         leftCenter: LANDMARKS.rightElbow 
     },
 
-    leftLowerArm: { 
+    rightLowerArm: { 
         rightCenter: LANDMARKS.rightElbow, 
         leftCenter: LANDMARKS.rightWrist 
     },
 
-    rightUpperArm: { 
+    rightHand: {
+        wrist: LANDMARKS.rightWrist,
+        elbow: LANDMARKS.rightElbow // used only for rotation
+    },
+
+    leftUpperArm: { 
         leftCenter: LANDMARKS.leftShoulder, 
         rightCenter: LANDMARKS.leftElbow 
     },
 
-    rightLowerArm: { 
+    leftLowerArm: { 
         leftCenter: LANDMARKS.leftElbow, 
         rightCenter: LANDMARKS.leftWrist 
     },
+
+    leftHand: {
+        wrist: LANDMARKS.leftWrist,
+        elbow: LANDMARKS.leftElbow // used only for rotation
+    },
     
-    rightUpperLeg: {
+    leftUpperLeg: {
         start: LANDMARKS.leftHip,
         end: LANDMARKS.leftKnee
     },
 
-    rightLowerLeg: {
+    leftLowerLeg: {
         start: LANDMARKS.leftKnee,
         end: LANDMARKS.leftAnkle
     },
 
-    leftUpperLeg: {
+    rightUpperLeg: {
         start: LANDMARKS.rightHip,
         end: LANDMARKS.rightKnee
     },
 
-    leftLowerLeg: {
+    rightLowerLeg: {
         start: LANDMARKS.rightKnee,
         end: LANDMARKS.rightAnkle
     },
@@ -95,7 +105,7 @@ export const CANVAS_LANDMARK_MAP = {
         leftAnchor: LANDMARKS.rightEar,
     },
 
-    leftFoot: {center: LANDMARKS.leftAnkle},
     rightFoot: {center: LANDMARKS.rightAnkle},
+    leftFoot: {center: LANDMARKS.leftAnkle},
 
 };
