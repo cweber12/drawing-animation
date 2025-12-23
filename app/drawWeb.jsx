@@ -14,8 +14,10 @@ const { width, height } = Dimensions.get('window');
 const DrawWeb = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-    const [selectedColor, setSelectedColor] = useState(theme.svgStrokeColor);
     
+    const [selectedColor, setSelectedColor] = useState(theme.svgStrokeColor);
+    const [strokeWidth, setStrokeWidth] = useState(2);
+    const [showSketchControls, setShowSketchControls] = useState(false);
     const router = useRouter();
     const navigation = useNavigation();
     const [bodySvgs, setBodySvgs] = useState({});
@@ -38,16 +40,16 @@ const DrawWeb = () => {
     const leftFootRef = useRef(null);
 
     // SVG dimensions
-    const torsoWidth = width * 0.15;
+    const torsoWidth = width * 0.12;
     const torsoHeight = height * 0.25;
     const legWidth = (torsoWidth * 0.5) - 1;
     const legHeight = torsoHeight * 0.65;
     const armWidth = torsoWidth * 0.65;
     const armHeight1 = (torsoHeight * 0.45) - 1;
     const armHeight2 = (torsoHeight * 0.45) - 1;
-    const handHeight = armHeight1 * 2;
+    const handHeight = armHeight1 * 1.5;
     const handWidth = armWidth;
-    const handOffsetY = armHeight1 / 2;
+    const handOffsetY = armHeight1 * 0.3;
     const headHeight = torsoHeight * 0.8;
     const headWidth = torsoWidth;
     const footHeight = torsoHeight * 0.35;
@@ -60,9 +62,13 @@ const DrawWeb = () => {
         canvasColor: 'rgba(0,0,0,0)',          
         exportWithBackgroundImage: false,      
         svgStyle: { background: 'transparent'} ,
-        strokeWidth: 2,
+        strokeWidth: strokeWidth,
         strokeColor: selectedColor,
     };
+
+    const toggleSketchControls = useCallback(() => {
+        setShowSketchControls(prev => !prev);
+    }, []);
 
     const clearAll = useCallback(() => {
         headRef.current?.clearCanvas();
@@ -142,13 +148,21 @@ const DrawWeb = () => {
             onClear: clearAll,
             onSave: saveAll,
             onOpenCamera: goToDetectPose,
+            onShowSketchControls: toggleSketchControls,
         });
-    }, [navigation, clearAll, saveAll, goToDetectPose]);
+    }, [navigation, clearAll, saveAll, goToDetectPose, toggleSketchControls]);
 
     return (
 
         <View style={styles.mainContainer}>
-            <SketchControls style={styles.sketchControls} onColorChange={setSelectedColor} />
+            {showSketchControls && (
+                <SketchControls 
+                    style={styles.sketchControls} 
+                    onColorChange={setSelectedColor}
+                    strokeWidth={strokeWidth}
+                    onStrokeWidthChange={setStrokeWidth} 
+                />
+            )}
             <ThemedView style={styles.container}>
                 {/* Head */}
                 <CanvasWrapper style={[styles.canvasWrapper, styles.head, { width: headWidth, height: headHeight}]}>
@@ -339,10 +353,16 @@ const styles = StyleSheet.create({
     },
 
     sketchControls: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
         position: 'absolute',
         top: 0,
         right: 0,
         zIndex: 10,
+        padding: 12, 
+        borderBottomLeftRadius: 8,
     },
 
     canvasWrapper: {
