@@ -8,7 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "predeploy": "expo export --platform web",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages --nojekyll -d dist"
   },
   "dependencies": {
     "@shopify/react-native-skia": "2.2.12",

@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native-web'
 import { Colors } from '../constants/Colors'
 import DrawWebHeaderButtons from '../components/DrawWebHeaderButtons';
-import DetectPoseButtons from '../components/DetectPoseButtons';
+import SvgOverlayButtons from '../components/SvgOverlayButtons';
 import { FaHome } from 'react-icons/fa';
 import { ICON_SIZE } from '../constants/Sizes';
 
@@ -47,12 +47,12 @@ const RootLayout = () => {
                 }}>
                 <Stack.Screen name="index" options={{ title: 'Home' }}/>
                 <Stack.Screen
-                    name="detectPose"
+                    name="svgOverlay"
                     options={({ route }) => ({
                         title: 'Animate Sketch',
                         headerRight: () => (
                             <>
-                                <DetectPoseButtons
+                                <SvgOverlayButtons
                                     onToggleWebcam={route.params?.onToggleWebcam}
                                 />
                                 <HomeButton />

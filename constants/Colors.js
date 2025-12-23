@@ -11,17 +11,23 @@ export const Colors = {
         buttonText: "#071C21", 
         svgStrokeColor: "#ffffffff",
         canvasBackground: "#000000ff",
+        colorPickerDefault: "white",
+        mutedText: "#d8d7d7ff",
+        boxShadowColor: "white",
     },
 
     light: {
         text: "#071C21",
         title: "#153B44",
-        background: "#ffffffff",
-        navBackground: "#ffffff",
-        button: "#2D6E7E",
-        buttonText: "#153B44", 
+        background: "#e6e6e6ff",
+        navBackground: "#f1fabcff",
+        button: "#153B44",
+        buttonText: "black", 
         svgStrokeColor: "black",
         canvasBackground: "#ffffffff",
+        colorPickerDefault: "black",
+        mutedText: "#202020ff",
+        boxShadowColor: "black",
     },
 
 }

@@ -7,5 +7,5 @@ export const CANVAS_HEIGHT = height * 0.9;
 export const WEBCAM_WIDTH = 320;
 export const WEBCAM_HEIGHT = 240;
 
-export const ICON_SIZE = 24;
+export const ICON_SIZE = 32;
 

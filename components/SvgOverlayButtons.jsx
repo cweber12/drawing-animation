@@ -5,7 +5,7 @@ import { Colors } from '../constants/Colors';
 import { FaCamera } from 'react-icons/fa';
 import { ICON_SIZE } from '../constants/Sizes';
 
-const DetectPoseButtons = ({ onToggleWebcam }) => {
+const SvgOverlayButtons = ({ onToggleWebcam }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
   
@@ -19,7 +19,7 @@ const DetectPoseButtons = ({ onToggleWebcam }) => {
     );
 }
 
-export default DetectPoseButtons
+export default SvgOverlayButtons
 
 const styles = StyleSheet.create({
     button: {
