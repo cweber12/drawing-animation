@@ -9,7 +9,7 @@ export const Colors = {
         navBackground: "black",
         button: "#d9ff00ff",
         buttonText: "#071C21", 
-        svgStrokeColor: "#f4ffb4ff",
+        svgStrokeColor: "#ffffffff",
         canvasBackground: "#000000ff",
     },
 

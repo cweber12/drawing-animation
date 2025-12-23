@@ -4,8 +4,9 @@ import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native-web'
 import { Colors } from '../constants/Colors'
 import DrawWebHeaderButtons from '../components/DrawWebHeaderButtons';
-
-
+import DetectPoseButtons from '../components/DetectPoseButtons';
+import { FaHome } from 'react-icons/fa';
+import { ICON_SIZE } from '../constants/Sizes';
 
 const HomeButton = () => {
     const router = useRouter();
@@ -15,12 +16,10 @@ const HomeButton = () => {
     return (
         <View style={{ marginRight: 24, flexShrink: 0 }}>
             <TouchableOpacity 
-                style={[styles.button, { backgroundColor: theme.button }]} 
+                style={styles.button} 
                 onPress={() => router.replace('/')}
             >
-                <Text style={[styles.buttonText, { color: theme.buttonText }]}>
-                    Home
-                </Text>
+                <FaHome size={ICON_SIZE} color={theme.button} />
             </TouchableOpacity>
         </View>
     );
@@ -48,11 +47,18 @@ const RootLayout = () => {
                 }}>
                 <Stack.Screen name="index" options={{ title: 'Home' }}/>
                 <Stack.Screen
-                    name="Animate Sketch"
-                    options={{ 
-                        title: '', 
-                        headerRight: () => <HomeButton />,
-                    }}
+                    name="detectPose"
+                    options={({ route }) => ({
+                        title: 'Animate Sketch',
+                        headerRight: () => (
+                            <>
+                                <DetectPoseButtons
+                                    onToggleWebcam={route.params?.onToggleWebcam}
+                                />
+                                <HomeButton />
+                            </>
+                        ),
+                    })}
                 />  
                 <Stack.Screen
                     name="drawWeb"
@@ -64,6 +70,7 @@ const RootLayout = () => {
                                     onClear={route.params?.onClear}
                                     onSave={route.params?.onSave}
                                     onOpenCamera={route.params?.onOpenCamera}
+                                    onShowSketchControls={route.params?.onShowSketchControls}
                                 />
                                 <HomeButton />
                             </>
@@ -86,11 +93,11 @@ export default RootLayout
 
 const styles = StyleSheet.create({
     button: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-    marginHorizontal: 2,
-  },
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 4,
+        marginHorizontal: 2,
+    },
 
   buttonText: {
     fontSize: 16,

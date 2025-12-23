@@ -1,35 +1,46 @@
 import React from 'react';
 import { View, Button, TouchableOpacity, StyleSheet, Text, useColorScheme } from 'react-native';
 import { Colors } from '../constants/Colors';
-const DrawWebHeaderButtons = ({ onClear, onSave, onOpenCamera }) => {
+import { FaPaintBrush, FaSave, FaTrash, FaCamera} from 'react-icons/fa';
+import { ICON_SIZE } from '../constants/Sizes';
+
+const DrawWebHeaderButtons = ({ 
+  onClear, 
+  onSave, 
+  onOpenCamera, 
+  onShowSketchControls,
+}) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
   
     return (
     <View style={styles.container}>
       <TouchableOpacity 
-        style={[styles.button, { backgroundColor: theme.button }]} 
+        style={styles.button} 
         onPress={onOpenCamera}
       >
-        <Text style={[styles.buttonText, { color: theme.buttonText }]}>
-            Open Camera
-        </Text>
+        <FaCamera size={ICON_SIZE} color={theme.button} />
       </TouchableOpacity>
+
       <TouchableOpacity 
-        style={[styles.button, { backgroundColor: theme.button }]} 
+        style={styles.button} 
         onPress={onClear}
       >
-        <Text style={[styles.buttonText, { color: theme.buttonText }]}>
-            Clear
-        </Text>
+        <FaTrash size={ICON_SIZE} color={theme.button} />
       </TouchableOpacity>
+
       <TouchableOpacity 
-        style={[styles.button, { backgroundColor: theme.button }]} 
+        style={styles.button} 
         onPress={onSave}
+      > 
+        <FaSave size={ICON_SIZE} color={theme.button} />
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.button} 
+        onPress={onShowSketchControls}
       >
-        <Text style={[styles.buttonText, { color: theme.buttonText }]}>
-            Save
-        </Text>
+        <FaPaintBrush size={ICON_SIZE} color={theme.button}  />
       </TouchableOpacity>
     </View>
   );

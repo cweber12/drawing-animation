@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import SvgCanvas from '../components/SvgCanvas';
 import PoseCanvas from '../components/PoseCanvas';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import ThemedView from '../components/ThemedView';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, WEBCAM_WIDTH, WEBCAM_HEIGHT } from '../constants/Sizes';
@@ -17,11 +17,24 @@ const DetectPose = () => {
   const [isTfReady, setIsTfReady] = useState(false);
   const [landmarks, setLandmarks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showWebcam, setShowWebcam] = useState(true);
 
+  const navigation = useNavigation();
   const params = useLocalSearchParams();
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};
   const mapping = params.mapping ? JSON.parse(params.mapping) : {};
 
+  const toggleWebcam = useCallback(() => {
+      setShowWebcam(prev => !prev);
+  }, []);
+
+  useEffect(() => {
+      navigation.setParams({
+          onToggleWebcam: toggleWebcam,
+      });
+  }, [navigation, toggleWebcam]);
+
+  
   /* Load TensorFlow.js and Pose Detection Model
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
