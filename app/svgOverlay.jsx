@@ -12,7 +12,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, WEBCAM_WIDTH, WEBCAM_HEIGHT } from '../con
 
 /* Detect Pose and Overlay SVGs
 --------------------------------------------------------------------------------------------------*/
-const DetectPose = () => {
+const SvgOverlay = () => {
   const webcamRef = useRef(null);
   const [isTfReady, setIsTfReady] = useState(false);
   const [landmarks, setLandmarks] = useState([]);
@@ -158,7 +158,7 @@ const DetectPose = () => {
   );
 };
 
-export default DetectPose;
+export default SvgOverlay;
 
 const styles = StyleSheet.create({
   container: {

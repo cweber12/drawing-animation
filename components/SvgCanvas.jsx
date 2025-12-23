@@ -4,6 +4,8 @@ import { Colors } from '../constants/Colors';
 import { LANDMARKS, CONNECTED_KEYPOINTS } from '../constants/LandmarkData';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
 
+/* Compute affine transform from 3 source points to 3 destination points
+------------------------------------------------------------------------------*/
 function affineFrom3Points(src0, src1, src2, dst0, dst1, dst2) {
   const x0 = src0.x, y0 = src0.y;
   const x1 = src1.x, y1 = src1.y;
@@ -30,7 +32,8 @@ function affineFrom3Points(src0, src1, src2, dst0, dst1, dst2) {
 
 const DEFAULT_SVG_SIZE = { width: 60, height: 120 };
 
-// Helper: Convert SVG string to Image (async ONCE per SVG, not per frame)
+/* Convert SVG string to Image object
+------------------------------------------------------------------------------*/
 function svgStringToImage(svgString) {
   return new Promise((resolve) => {
     if (!svgString || typeof window === 'undefined') return resolve(null);
@@ -75,7 +78,7 @@ function drawHeadSvg(ctx, img, leftEar, rightEar) {
   const midX = (leftEar.x + rightEar.x) / 2;
   const midY = (leftEar.y + rightEar.y) / 2;
   const earDist = Math.hypot(dx, dy);
-  const scale = (earDist / svgW) * 3.0;
+  const scale = (earDist / svgW) * 2.0;
 
   ctx.save();
   ctx.translate(midX, midY);
@@ -134,20 +137,29 @@ function drawRightHandSvg(ctx, img, wrist, elbow) {
     ctx.restore();
 }
 
-/* Generic segment drawing (for legs, feet, etc.)
-------------------------------------------------------------------------------*/
-function drawSegmentSvg(ctx, img, from, to) {
+function drawLegSvg(ctx, img, from, to) {
   const { w: svgW, h: svgH } = getSvgSize(img);
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const angle = Math.atan2(dy, dx);
   const length = Math.hypot(dx, dy);
   const scale = length / Math.max(1, svgH);
-
   ctx.save();
   ctx.translate(from.x, from.y);
-  ctx.rotate(angle - Math.PI / 2);
+  ctx.rotate(angle - Math.PI / 2); // <-- Fix: rotate so SVG height aligns with segment
   ctx.scale(scale, scale);
+  ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
+  ctx.restore();
+}
+
+function drawFootSvg(ctx, img, from, to) {
+  const { w: svgW, h: svgH } = getSvgSize(img);
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const angle = Math.atan2(dy, dx);
+  ctx.save();
+  ctx.translate(from.x, from.y);
+  ctx.rotate(angle);
   ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
   ctx.restore();
 }
@@ -355,35 +367,29 @@ const SvgCanvas = ({
             continue;
         }
 
-        /* LEGS / FEET
+        /* LEGS
         ----------------------------------------------------------------------*/
-        let fromIdx = null;
-        let toIdx = null;
-        if (map.start !== undefined && map.end !== undefined) {
-            fromIdx = map.start;
-            toIdx = map.end;
-        } else if (map.topRight !== undefined && map.bottomLeft !== undefined) {
-            fromIdx = map.topRight;
-            toIdx = map.bottomLeft;
-        } else if (map.topLeft !== undefined && map.bottomRight !== undefined) {
-            fromIdx = map.topLeft;
-            toIdx = map.bottomRight;
-        } else if (map.topLeft !== undefined && map.bottomCenter !== undefined) {
-            fromIdx = map.topLeft;
-            toIdx = map.bottomCenter;
-        } else if (map.topRight !== undefined && map.bottomCenter !== undefined) {
-            fromIdx = map.topRight;
-            toIdx = map.bottomCenter;
-        } else {
+        if ( part === 'leftUpperLeg' || part === 'leftLowerLeg' || part === 'rightUpperLeg' || part === 'rightLowerLeg' ) {
+            if (map.start === undefined || map.end === undefined) continue;
+            const from = scaledLandmarks[map.start];
+            const to = scaledLandmarks[map.end];
+            if (!from || !to || from.score < 0.3 || to.score < 0.3) continue;
+            drawLegSvg(ctx, img, from, to);
             continue;
         }
 
-        const from = scaledLandmarks[fromIdx];
-        const to = scaledLandmarks[toIdx];
-        if (!from || !to || from.score < 0.3 || to.score < 0.3) continue;
-        drawSegmentSvg(ctx, img, from, to);
+        /* FEET
+        ----------------------------------------------------------------------*/
+        if ( part === 'leftFoot' || part === 'rightFoot' ) {
+            if (map.center === undefined) continue;
+            const center = scaledLandmarks[map.center];
+            if (!center || center.score < 0.3) continue;  
+            drawFootSvg(ctx, img, center, { x: center.x + 1, y: center.y }); // slight offset to define angle
+            continue;
+        }
     }
-  }, [landmarks, width, height, mapping]);
+
+  }, [landmarks, width, height, scaleX, scaleY, mapping]);
 
   return (
     <canvas

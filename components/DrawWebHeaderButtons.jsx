@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Button, TouchableOpacity, StyleSheet, Text, useColorScheme } from 'react-native';
 import { Colors } from '../constants/Colors';
-import { FaPaintBrush, FaSave, FaTrash, FaCamera} from 'react-icons/fa';
+import { FaPaintBrush, FaSave, FaTrash, FaRunning} from 'react-icons/fa';
 import { ICON_SIZE } from '../constants/Sizes';
 
 const DrawWebHeaderButtons = ({ 
@@ -19,7 +19,7 @@ const DrawWebHeaderButtons = ({
         style={styles.button} 
         onPress={onOpenCamera}
       >
-        <FaCamera size={ICON_SIZE} color={theme.button} />
+        <FaRunning size={ICON_SIZE} color={theme.button} />
       </TouchableOpacity>
 
       <TouchableOpacity 
