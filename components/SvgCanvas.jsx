@@ -1,4 +1,4 @@
-import React, { useRef, useEffect} from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { Colors } from '../constants/Colors';
 import { LANDMARKS, CONNECTED_KEYPOINTS } from '../constants/LandmarkData';
@@ -32,7 +32,7 @@ function affineFrom3Points(src0, src1, src2, dst0, dst1, dst2) {
 
 const DEFAULT_SVG_SIZE = { width: 60, height: 120 };
 
-/* Convert SVG string to Image object
+/* SVG TO STRING IMAGE CONVERSION
 ------------------------------------------------------------------------------*/
 function svgStringToImage(svgString) {
   return new Promise((resolve) => {
@@ -55,7 +55,7 @@ function svgStringToImage(svgString) {
   });
 }
 
-/* Get SVG image size
+/* GET SVG SIZE
 ------------------------------------------------------------------------------*/
 function getSvgSize(img) {
   // SVG images can report 0 width/height in some browsers; natural* is safer.
@@ -64,7 +64,9 @@ function getSvgSize(img) {
   return { w, h };
 }
 
-/* Draw head SVG scaled and rotated between left and right ears
+/* DRAW HEAD SVG
+--------------------------------------------------------------------------------
+Draw head SVG scaled and rotated between left and right ears
 ------------------------------------------------------------------------------*/
 function drawHeadSvg(ctx, img, leftEar, rightEar) {
   const { w: svgW, h: svgH } = getSvgSize(img);
@@ -78,7 +80,7 @@ function drawHeadSvg(ctx, img, leftEar, rightEar) {
   const midX = (leftEar.x + rightEar.x) / 2;
   const midY = (leftEar.y + rightEar.y) / 2;
   const earDist = Math.hypot(dx, dy);
-  const scale = (earDist / svgW) * 2.0;
+  const scale = (earDist / svgW) * 3.0;
 
   ctx.save();
   ctx.translate(midX, midY);
@@ -89,7 +91,7 @@ function drawHeadSvg(ctx, img, leftEar, rightEar) {
   ctx.restore();
 }
 
-/* Draw segment SVG rotated to align from 'from' to 'to' (arms)
+/* DRAW ARMS SVG
 ------------------------------------------------------------------------------*/
 function drawHorizontalSegmentSvg(ctx, img, from, to) {
   const { w: svgW, h: svgH } = getSvgSize(img);
@@ -100,7 +102,7 @@ function drawHorizontalSegmentSvg(ctx, img, from, to) {
   const scale = length / Math.max(1, svgW);
 
   ctx.save();
-  ctx.translate(from.x, from.y); // Move to shoulder/elbow
+  ctx.translate(from.x, from.y + svgH / 2); // Move to shoulder/elbow
   ctx.rotate(angle); // Rotate to point toward elbow/wrist
   ctx.scale(scale, scale); // Scale so SVG width matches segment length
   ctx.drawImage(img, 0, -svgH / 2, svgW, svgH); // left center at from, right center at to
@@ -137,6 +139,8 @@ function drawRightHandSvg(ctx, img, wrist, elbow) {
     ctx.restore();
 }
 
+/* Draw leg SVG rotated to align with segment
+------------------------------------------------------------------------------*/
 function drawLegSvg(ctx, img, from, to) {
   const { w: svgW, h: svgH } = getSvgSize(img);
   const dx = to.x - from.x;
@@ -152,6 +156,8 @@ function drawLegSvg(ctx, img, from, to) {
   ctx.restore();
 }
 
+/* Draw foot SVG rotated to align with segment
+------------------------------------------------------------------------------*/
 function drawFootSvg(ctx, img, from, to) {
   const { w: svgW, h: svgH } = getSvgSize(img);
   const dx = to.x - from.x;
@@ -164,14 +170,20 @@ function drawFootSvg(ctx, img, from, to) {
   ctx.restore();
 }
 
+/* SvgCanvas: Draw pose and SVG overlays, animate using savedLandmarks in pose mode
+------------------------------------------------------------------------------*/
 const SvgCanvas = ({ 
   width, 
   height, 
   webcamWidth, 
   webcamHeight,
   landmarks, 
+  savedLandmarks = [],
+  viewMode,
+  replay, 
   svgs = {}, 
-  mapping = {} 
+  mapping = {}, 
+  style
 }) => {
   // Refs for canvas and cached images
   const canvasRef = useRef(null);
@@ -182,6 +194,29 @@ const SvgCanvas = ({
 
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
+
+  // Animation frame state for pose replay
+  const [frame, setFrame] = useState(0);
+
+  /* Animate through savedLandmarks in pose mode
+  ----------------------------------------------------------------------------*/
+  useEffect(() => {
+    if (replay && savedLandmarks.length > 0) {
+      setFrame(0);
+      const interval = setInterval(() => {
+        setFrame(prev => (prev + 1) % savedLandmarks.length);
+      }, 1000 / 30);
+      return () => clearInterval(interval);
+    }
+    setFrame(0);
+  }, [replay, savedLandmarks.length]);
+
+  /* Choose which landmarks to use for drawing
+  ----------------------------------------------------------------------------*/
+  const displayLandmarks =
+    replay && savedLandmarks.length > 0
+      ? savedLandmarks[frame]
+      : landmarks;
 
   /* Cache SVG images when svgs prop changes
   ----------------------------------------------------------------------------*/
@@ -210,7 +245,7 @@ const SvgCanvas = ({
     };
   }, [svgs]);
 
-  /* Draw pose and SVGs on canvas when landmarks change
+  /* Draw pose and SVGs on canvas when displayLandmarks change
   ----------------------------------------------------------------------------*/
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -219,15 +254,15 @@ const SvgCanvas = ({
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, width, height);
 
-    if (!landmarks || landmarks.length === 0) return;
+    if (!displayLandmarks || displayLandmarks.length === 0) return;
 
     /* Draw pose skeleton
     --------------------------------------------------------------------------*/
-    ctx.strokeStyle = 'lime';
+    ctx.strokeStyle = 'transparent';
     ctx.lineWidth = 2;
     CONNECTED_KEYPOINTS.forEach(([i, j]) => {
-      const kp1 = landmarks[i];
-      const kp2 = landmarks[j];
+      const kp1 = displayLandmarks[i];
+      const kp2 = displayLandmarks[j];
       if (kp1 && kp2 && kp1.score > 0.3 && kp2.score > 0.3) {
         ctx.beginPath();
         ctx.moveTo(kp1.x, kp1.y);
@@ -238,8 +273,8 @@ const SvgCanvas = ({
 
     /* Draw keypoints
     --------------------------------------------------------------------------*/
-    ctx.fillStyle = 'red';
-    landmarks.forEach((kp) => {
+    ctx.fillStyle = 'transparent';
+    displayLandmarks.forEach((kp) => {
       if (kp && kp.score > 0.3) {
         ctx.beginPath();
         ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
@@ -251,15 +286,23 @@ const SvgCanvas = ({
     --------------------------------------------------------------------------*/
     const images = imagesRef.current;
 
-    const scaledLandmarks = landmarks.map(kp =>
-      kp
-        ? {
-            ...kp,
-            x: kp.x * scaleX,
-            y: kp.y * scaleY,
-          }
-        : kp
-    );
+    // Conditionally scale landmarks for replay vs live
+    // - replay: landmarks are already in canvas coords
+    // - live: landmarks are in smaller webcam coords, need scaling
+    let scaledLandmarks = null;
+    if (replay) {
+      scaledLandmarks = displayLandmarks; 
+    } else {
+      scaledLandmarks = displayLandmarks.map(kp =>
+        kp
+          ? {
+              ...kp,
+              x: kp.x * scaleX,
+              y: kp.y * scaleY,
+            }
+          : kp
+      );
+    } 
 
     for (const [part, img] of Object.entries(images)) {
         const map = mapping?.[part];
@@ -303,7 +346,7 @@ const SvgCanvas = ({
         }
 
         if (map.center !== undefined) {
-            const center = landmarks[map.center];
+            const center = scaledLandmarks[map.center];
             if (!center || center.score < 0.3) continue;
 
             ctx.save();
@@ -389,7 +432,7 @@ const SvgCanvas = ({
         }
     }
 
-  }, [landmarks, width, height, scaleX, scaleY, mapping]);
+  }, [displayLandmarks, width, height, scaleX, scaleY, mapping, svgs]);
 
   return (
     <canvas
@@ -401,6 +444,7 @@ const SvgCanvas = ({
             height: CANVAS_HEIGHT,
             pointerEvents: 'none',
             backgroundColor: 'transparent', 
+            ...style,
         }}
     />
   );
