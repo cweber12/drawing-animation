@@ -3,8 +3,8 @@ import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native-web'
 import { Colors } from '../constants/Colors'
-import DrawWebHeaderButtons from '../components/DrawWebHeaderButtons';
-import SvgOverlayButtons from '../components/SvgOverlayButtons';
+import DrawWebHeaderButtons from '../components/controls/DrawWebHeaderButtons';
+import SvgOverlayButtons from '../components/controls/SvgOverlayButtons';
 import { FaHome } from 'react-icons/fa';
 import { ICON_SIZE } from '../constants/Sizes';
 

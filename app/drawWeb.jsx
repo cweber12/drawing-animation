@@ -3,29 +3,33 @@ import { View, StyleSheet, Dimensions, useColorScheme } from 'react-native';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 import { useRouter, useNavigation } from 'expo-router';
 import { CANVAS_LANDMARK_MAP } from '../constants/LandmarkData';
-import ThemedView from '../components/ThemedView';
+import ThemedView from '../components/themed_elements/ThemedView';
 import { Colors } from '../constants/Colors';
-import CanvasWrapper from '../components/CanvasWrapper';
-import SketchControls from '../components/SketchControls';
+import CanvasWrapper from '../components/themed_elements/ThemedCanvasWrapper';
+import SketchControls from '../components/controls/SketchControls';
 
 
 const { width, height } = Dimensions.get('window');
 
 const DrawWeb = () => {
+    // Navigation and routing
+    const router = useRouter();
+    const navigation = useNavigation();
+    
+    // Theme colora
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     const boxShadowColor = `${theme.boxShadowColor} 0px 0px 6px -1px, ${theme.boxShadowColor} 0px 0px 4px -1px`;
-
     
+    // State variables
     const [selectedColor, setSelectedColor] = useState(theme.svgStrokeColor);
     const [strokeWidth, setStrokeWidth] = useState(2);
     const [showSketchControls, setShowSketchControls] = useState(false);
-    const router = useRouter();
-    const navigation = useNavigation();
     const [bodySvgs, setBodySvgs] = useState({});
-    const bodySvgsRef = useRef({});
-
+    const [viewMode, setViewMode] = useState(null);
+    
     // Refs for all canvases
+    const bodySvgsRef = useRef({}); // Holds all saved svgs
     const headRef = useRef(null);
     const torsoRef = useRef(null);
     const rightUpperArmRef = useRef(null);
@@ -56,8 +60,6 @@ const DrawWeb = () => {
     const headWidth = torsoWidth;
     const footHeight = torsoHeight * 0.35;
     const footWidth = legWidth * 1.5;
-
-    const [viewMode, setViewMode] = useState(null);
     
     // Common canvas export properties
     const canvasProps = {
@@ -250,7 +252,7 @@ const DrawWeb = () => {
                                 { 
                                     width: torsoWidth, 
                                     height: torsoHeight, 
-                                    boxShadow: boxShadowColor
+                                    boxShadow: boxShadowColor 
                                 }
                             ]}>
                             <ReactSketchCanvas
@@ -271,7 +273,7 @@ const DrawWeb = () => {
                                         { 
                                             width: legWidth, 
                                             height: legHeight, 
-                                            boxShadow: boxShadowColor
+                                            boxShadow: boxShadowColor 
                                         }
                                     ]}>
                                     <ReactSketchCanvas
@@ -325,7 +327,7 @@ const DrawWeb = () => {
                                         styles.canvasWrapper, 
                                         { 
                                             width: legWidth, 
-                                            height: legHeight,
+                                            height: legHeight, 
                                             boxShadow: boxShadowColor 
                                         }
                                     ]}>
@@ -347,8 +349,8 @@ const DrawWeb = () => {
                                 styles.canvasWrapper, 
                                 { 
                                     width: armWidth, 
-                                    height: armHeight1,
-                                    boxShadow: boxShadowColor
+                                    height: armHeight1, 
+                                    boxShadow: boxShadowColor 
                                 }
                             ]}>
                             <ReactSketchCanvas
@@ -362,11 +364,7 @@ const DrawWeb = () => {
                         <CanvasWrapper 
                             style={[
                                 styles.canvasWrapper, 
-                                { 
-                                    width: armWidth, 
-                                    height: armHeight2, 
-                                    boxShadow: boxShadowColor
-                                }
+                                { width: armWidth, height: armHeight2, boxShadow: boxShadowColor }
                             ]}>
                             <ReactSketchCanvas
                             ref={leftLowerArmRef}
@@ -384,7 +382,7 @@ const DrawWeb = () => {
                                     width: handWidth, 
                                     height: handHeight, 
                                     marginTop: -handOffsetY, 
-                                    boxShadow: boxShadowColor
+                                    boxShadow: boxShadowColor 
                                 }
                             ]}>
                             <ReactSketchCanvas
@@ -402,11 +400,7 @@ const DrawWeb = () => {
                     <CanvasWrapper 
                         style={[
                             styles.canvasWrapper, 
-                            { 
-                                width: footWidth, 
-                                height: footHeight, 
-                                boxShadow: boxShadowColor
-                            }
+                            { width: footWidth, height: footHeight, boxShadow: boxShadowColor}
                         ]}>
                         <ReactSketchCanvas
                             ref={rightFootRef}
@@ -419,11 +413,7 @@ const DrawWeb = () => {
                     <CanvasWrapper 
                         style={[
                             styles.canvasWrapper, 
-                            { 
-                                width: footWidth, 
-                                height: footHeight, 
-                                boxShadow: boxShadowColor
-                            }
+                            { width: footWidth, height: footHeight, boxShadow: boxShadowColor}
                         ]}>
                         <ReactSketchCanvas
                             ref={leftFootRef}

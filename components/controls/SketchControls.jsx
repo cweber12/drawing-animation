@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { ChromePicker } from 'react-color'
-import { Colors} from '../constants/Colors'
+import { Colors} from '../../constants/Colors'
 import { useColorScheme } from 'react-native'
 import '../styles/SketchControls.css';
 

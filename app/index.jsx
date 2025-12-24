@@ -1,7 +1,7 @@
 import { StyleSheet, useColorScheme} from 'react-native'
 import React from 'react'
 import { Link } from 'expo-router'
-import ThemedView from '../components/ThemedView';
+import ThemedView from '../components/themed_elements/ThemedView';
 import { Colors } from '../constants/Colors';
 
 const Home = () => {

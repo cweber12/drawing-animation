@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, useColorScheme } from 'react-native'
 import React from 'react'
-import { Colors } from '../constants/Colors';
+import { Colors } from '../../constants/Colors';
 
 
 const CanvasWrapper = ({ style, children }) => {

@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { TouchableOpacity, useColorScheme } from 'react-native';
-import { Colors } from '../constants/Colors';
+import { Colors } from '../../constants/Colors';
 import { FaCamera, FaStopCircle } from 'react-icons/fa';
 import { BsRecordCircleFill } from "react-icons/bs";
-import { ICON_SIZE } from '../constants/Sizes';
+import { ICON_SIZE } from '../../constants/Sizes';
 
 const SvgOverlayButtons = ({ 
     onToggleWebcam, 

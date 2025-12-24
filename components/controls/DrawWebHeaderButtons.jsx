@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Button, TouchableOpacity, StyleSheet, Text, useColorScheme } from 'react-native';
-import { Colors } from '../constants/Colors';
+import { Colors } from '../../constants/Colors';
 import { 
   FaPaintBrush, 
   FaSave, 
@@ -8,7 +8,7 @@ import {
   FaRunning, 
   FaVideo
 } from 'react-icons/fa';
-import { ICON_SIZE } from '../constants/Sizes';
+import { ICON_SIZE } from '../../constants/Sizes';
 import { set } from 'lodash';
 
 const DrawWebHeaderButtons = ({ 

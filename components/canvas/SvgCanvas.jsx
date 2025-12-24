@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
-import { Colors } from '../constants/Colors';
-import { LANDMARKS, CONNECTED_KEYPOINTS } from '../constants/LandmarkData';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
+import { Colors } from '../../constants/Colors';
+import { LANDMARKS, CONNECTED_KEYPOINTS } from '../../constants/LandmarkData';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants/Sizes';
 import {
   affineFrom3Points,
   DEFAULT_SVG_SIZE,
@@ -14,7 +14,7 @@ import {
   drawRightHandSvg,
   drawLegSvg,
   drawFootSvg,
-} from '../utils/svgUtils';
+} from '../../utils/svgUtils';
 
 /* SvgCanvas: Draw pose and SVG overlays, animate using savedLandmarks in pose mode
 ------------------------------------------------------------------------------*/
@@ -31,13 +31,14 @@ const SvgCanvas = ({
   mapping = {}, 
   style
 }) => {
+  
   // Refs for canvas and cached images
   const canvasRef = useRef(null);
   const imagesRef = useRef({});
-
+  // Scaling factors from webcam to canvas size
   const scaleX = width / webcamWidth;
   const scaleY = height / webcamHeight;
-
+  // Theme colors 
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
 
