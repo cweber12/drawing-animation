@@ -71,6 +71,8 @@ const RootLayout = () => {
                                     onSave={route.params?.onSave}
                                     onOpenCamera={route.params?.onOpenCamera}
                                     onShowSketchControls={route.params?.onShowSketchControls}
+                                    setPoseView={route.params?.setPoseView}
+                                    setSvgView={route.params?.setSvgView}
                                 />
                                 <HomeButton />
                             </>

@@ -23,6 +23,7 @@ const SvgOverlay = () => {
   const params = useLocalSearchParams();
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};
   const mapping = params.mapping ? JSON.parse(params.mapping) : {};
+  const viewMode = params.viewMode || 'pose';
 
   const toggleWebcam = useCallback(() => {
       setShowWebcam(prev => !prev);
@@ -107,52 +108,57 @@ const SvgOverlay = () => {
   return (
      <ThemedView style={styles.container}>
       <div style={{ position: 'relative', width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}>
-        <SvgCanvas
-          width={CANVAS_WIDTH}
-          height={CANVAS_HEIGHT}
-          webcamWidth={WEBCAM_WIDTH}
-          webcamHeight={WEBCAM_HEIGHT}
-          landmarks={landmarks}
-          svgs={svgs}
-          mapping={mapping}
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            zIndex: 1,
-            width: CANVAS_WIDTH,
-            height: CANVAS_HEIGHT,
-          }}
-        />
-        <Webcam
-          ref={webcamRef}
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            zIndex: 2,
-            width: WEBCAM_WIDTH,
-            height: WEBCAM_HEIGHT,
-          }}
-          videoConstraints={{
-            width: WEBCAM_WIDTH,
-            height: WEBCAM_HEIGHT,
-            facingMode: 'user',
-          }}
-        />
+        {viewMode === 'svg' && (
+          <SvgCanvas
+            width={CANVAS_WIDTH}
+            height={CANVAS_HEIGHT}
+            webcamWidth={WEBCAM_WIDTH}
+            webcamHeight={WEBCAM_HEIGHT}
+            landmarks={landmarks}
+            svgs={svgs}
+            mapping={mapping}
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              zIndex: 1,
+              width: CANVAS_WIDTH,
+              height: CANVAS_HEIGHT,
+            }}
+          />
+        )}
+        {showWebcam && (
+ 
+          <Webcam
+            ref={webcamRef}
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              zIndex: 2,
+              width: viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH,
+              height: viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT,
+            }}
+            videoConstraints={{
+              width: viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH,
+              height: viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT,
+              facingMode: 'user',
+            }}
+          />
+        )}
         <PoseCanvas
-          width={WEBCAM_WIDTH}
-          height={WEBCAM_HEIGHT}
+          width={viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH}
+          height={viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT}
           landmarks={landmarks}
           style={{
             position: 'absolute',
             left: 0,
             top: 0,
             zIndex: 3,
-            width: WEBCAM_WIDTH,
-            height: WEBCAM_HEIGHT,
+            width: viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH,
+            height: viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT,
           }}
-        />
+        />  
       </div>
     </ThemedView>
   );
@@ -163,7 +169,8 @@ export default SvgOverlay;
 const styles = StyleSheet.create({
   container: {
     display: 'flex',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 20,
     alignItems: 'center',
     width: '100vw',
     height: '100vh',
