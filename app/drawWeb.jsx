@@ -1,6 +1,6 @@
-import React, { useRef, useState, useContext, useEffect, useCallback} from 'react';
-import { View, StyleSheet, Dimensions, Button, useColorScheme } from 'react-native';
-import { Canvas, ReactSketchCanvas } from 'react-sketch-canvas';
+import React, { useRef, useState, useEffect, useCallback} from 'react';
+import { View, StyleSheet, Dimensions, useColorScheme } from 'react-native';
+import { ReactSketchCanvas } from 'react-sketch-canvas';
 import { useRouter, useNavigation } from 'expo-router';
 import { CANVAS_LANDMARK_MAP } from '../constants/LandmarkData';
 import ThemedView from '../components/ThemedView';
@@ -57,7 +57,7 @@ const DrawWeb = () => {
     const footHeight = torsoHeight * 0.35;
     const footWidth = legWidth * 1.5;
 
-    
+    const [viewMode, setViewMode] = useState(null);
     
     // Common canvas export properties
     const canvasProps = {
@@ -141,9 +141,10 @@ const DrawWeb = () => {
             params: {
                 svgs: JSON.stringify(svgsToSend),
                 mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
+                viewMode: viewMode,
             },
         });
-    }, [router, saveAll]);
+    }, [router, saveAll, viewMode]);
 
     useEffect(() => {
         navigation.setParams({
@@ -151,6 +152,8 @@ const DrawWeb = () => {
             onSave: saveAll,
             onOpenCamera: goToSvgOverlay,
             onShowSketchControls: toggleSketchControls,
+            setPoseView: () => setViewMode('pose'),
+            setSvgView: () => setViewMode('svg'),
         });
     }, [navigation, clearAll, saveAll, goToSvgOverlay, toggleSketchControls]);
 
