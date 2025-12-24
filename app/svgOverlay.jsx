@@ -14,23 +14,36 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, WEBCAM_WIDTH, WEBCAM_HEIGHT } from '../con
 --------------------------------------------------------------------------------------------------*/
 const SvgOverlay = () => {
   const webcamRef = useRef(null);
+  const navigation = useNavigation();
+  const params = useLocalSearchParams();
+
+  const svgs = params.svgs ? JSON.parse(params.svgs) : {};
+  const mapping = params.mapping ? JSON.parse(params.mapping) : {};
+
+  // Normalize viewMode param (works with react native or web)
+  const viewModeParam = Array.isArray(params.viewMode) ? params.viewMode[0] : params.viewMode;
+  const viewMode = viewModeParam || 'svg';
+  
   const [isTfReady, setIsTfReady] = useState(false);
   const [landmarks, setLandmarks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showWebcam, setShowWebcam] = useState(true);
-  const [isDetecting, setIsDetecting] = useState(true);
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [savedLandmarks, setSavedLandmarks] = useState([]);
+  
+  // State to control viewing of saved landmarks after detection stops in pose mode
+  const [viewSavedLandmarks, setViewSavedLandmarks] = useState(false);
+  const firstStartRef = useRef(true);
 
-
-  const navigation = useNavigation();
-  const params = useLocalSearchParams();
-  const svgs = params.svgs ? JSON.parse(params.svgs) : {};
-  const mapping = params.mapping ? JSON.parse(params.mapping) : {};
-  const viewMode = params.viewMode || 'pose';
-
-  // Ensure detection is always running for 'svg' view mode
+  /* Update isDetecting based on viewMode
+     - pose mode: not detecting initially, detect when start button pressed
+     - svg mode: always detecting
+  ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     if (viewMode === 'pose') {
       setIsDetecting(false);
+    } else if (viewMode === 'svg') {
+      setIsDetecting(true);
     }
   }, [viewMode]);
 
@@ -38,15 +51,23 @@ const SvgOverlay = () => {
       setShowWebcam(prev => !prev);
   }, []);
 
-     
-
+  /* Set Navigation Params for Header Buttons
+  ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
-      navigation.setParams({
-        onToggleWebcam: toggleWebcam,
-        onDetectionStarted: () => setIsDetecting(true),
-        onDetectionStopped: () => setIsDetecting(false),
-        viewMode,
-      });
+    navigation.setParams({
+      onToggleWebcam: toggleWebcam,
+      onDetectionStarted: () => {
+        firstStartRef.current = false;
+        setSavedLandmarks([]);
+        setViewSavedLandmarks(false);
+        setIsDetecting(true);
+      },
+      onDetectionStopped: () => {
+        setIsDetecting(false);
+        if (!firstStartRef.current) setViewSavedLandmarks(true);
+      },
+      viewMode,
+    });
   }, [navigation, toggleWebcam, viewMode]);
 
   
@@ -64,6 +85,16 @@ const SvgOverlay = () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (isDetecting) {
+      setSavedLandmarks([]);
+      setViewSavedLandmarks(false);
+      firstStartRef.current = false;
+    } else if (!firstStartRef.current) {
+      setViewSavedLandmarks(true);
+    }
+  }, [isDetecting, viewMode]);
 
   /* Detect Pose from Webcam Feed and Update Landmarks
   ------------------------------------------------------------------------------------------------*/
@@ -87,7 +118,11 @@ const SvgOverlay = () => {
         try {
           if (isDetecting) {
             const poses = await detector.estimatePoses(video, { flipHorizontal: true });
-            setLandmarks(poses?.[0]?.keypoints ?? []);
+            const currentLandmarks = poses?.[0]?.keypoints ?? [];
+            setLandmarks(currentLandmarks);
+            if (viewMode === 'pose') {
+              setSavedLandmarks(prev => [...prev, JSON.parse(JSON.stringify(currentLandmarks))]);
+            }
           }
         } catch (e) {
           console.error('estimatePoses error:', e);
@@ -124,13 +159,16 @@ const SvgOverlay = () => {
   return (
      <ThemedView style={styles.container}>
       <div style={{ position: 'relative', width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}>
-        {viewMode === 'svg' && (
+        {(viewMode === 'svg' || viewSavedLandmarks) && (
           <SvgCanvas
             width={CANVAS_WIDTH}
             height={CANVAS_HEIGHT}
             webcamWidth={WEBCAM_WIDTH}
             webcamHeight={WEBCAM_HEIGHT}
             landmarks={landmarks}
+            savedLandmarks={savedLandmarks}
+            viewMode={viewMode}
+            replay={viewSavedLandmarks}
             svgs={svgs}
             mapping={mapping}
             style={{
@@ -143,36 +181,42 @@ const SvgOverlay = () => {
             }}
           />
         )}
-          <Webcam
-            ref={webcamRef}
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              zIndex: 2,
-              visibility: showWebcam ? 'visible' : 'hidden',
-              width: viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH,
-              height: viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT,
-            }}
-            videoConstraints={{
-              width: viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH,
-              height: viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT,
-              facingMode: 'user',
-            }}
-          />
-        <PoseCanvas
-          width={viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH}
-          height={viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT}
-          landmarks={landmarks}
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            zIndex: 3,
-            width: viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH,
-            height: viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT,
-          }}
-        />  
+        {(viewMode === 'svg' || (viewMode === 'pose' && !viewSavedLandmarks)) && (
+          <>
+            <Webcam
+              ref={webcamRef}
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                zIndex: 2,
+                visibility: showWebcam ? 'visible' : 'hidden',
+                width: viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH,
+                height: viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT,
+              }}
+              videoConstraints={{
+                width: viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH,
+                height: viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT,
+                facingMode: 'user',
+              }}
+            />
+
+            <PoseCanvas
+              width={viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH}
+              height={viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT}
+              landmarks={landmarks}
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                zIndex: 3,
+                width: viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH,
+                height: viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT,
+              }}
+            />
+          </>
+        )}
+        
       </div>
     </ThemedView>
   );
