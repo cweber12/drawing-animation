@@ -53,7 +53,10 @@ const RootLayout = () => {
                         headerRight: () => (
                             <>
                                 <SvgOverlayButtons
-                                    onToggleWebcam={route.params?.onToggleWebcam}
+                                    viewMode={route.params?.viewMode}
+                                    onToggleWebcam={route.params?.onToggleWebcam} 
+                                    onDetectionStarted={route.params?.onDetectionStarted}
+                                    onDetectionStopped={route.params?.onDetectionStopped}
                                 />
                                 <HomeButton />
                             </>
@@ -80,7 +83,7 @@ const RootLayout = () => {
                     })}
                 />
                 <Stack.Screen
-                    name="savedDrawings"
+                    name="savedSketches"
                     options={{ 
                         title: 'Saved Sketches', 
                         headerRight: () => <HomeButton />, 

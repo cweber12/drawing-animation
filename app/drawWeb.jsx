@@ -128,7 +128,7 @@ const DrawWeb = () => {
         }
     }, []);
 
-    const goToSvgOverlay = useCallback(async () => {
+    const goToSvgOverlay = useCallback(async (mode) => {
         const svgsToSend =
             Object.keys(bodySvgsRef.current || {}).length > 0
             ? bodySvgsRef.current
@@ -141,21 +141,21 @@ const DrawWeb = () => {
             params: {
                 svgs: JSON.stringify(svgsToSend),
                 mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
-                viewMode: viewMode,
+                viewMode: mode,
             },
         });
-    }, [router, saveAll, viewMode]);
+    }, [router, saveAll]);
 
     useEffect(() => {
         navigation.setParams({
             onClear: clearAll,
             onSave: saveAll,
-            onOpenCamera: goToSvgOverlay,
+            onOpenCamera: () => goToSvgOverlay(viewMode),
             onShowSketchControls: toggleSketchControls,
             setPoseView: () => setViewMode('pose'),
             setSvgView: () => setViewMode('svg'),
         });
-    }, [navigation, clearAll, saveAll, goToSvgOverlay, toggleSketchControls]);
+    }, [navigation, clearAll, saveAll, goToSvgOverlay, toggleSketchControls, viewMode]);
 
     return (
 

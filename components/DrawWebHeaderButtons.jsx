@@ -23,11 +23,9 @@ const DrawWebHeaderButtons = ({
     const theme = Colors[colorScheme] ?? Colors.light;
   
     return (
-    <View style={styles.container}>
-      
-      
+    <View style={styles.container}>    
       <TouchableOpacity 
-        style={styles.button} 
+        style={styles.button}
         onPress={() => {
           setPoseView && setPoseView();
           onOpenCamera && onOpenCamera();
@@ -89,6 +87,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  
 });
 
 export default DrawWebHeaderButtons;

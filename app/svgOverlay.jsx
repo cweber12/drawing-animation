@@ -18,6 +18,8 @@ const SvgOverlay = () => {
   const [landmarks, setLandmarks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showWebcam, setShowWebcam] = useState(true);
+  const [isDetecting, setIsDetecting] = useState(true);
+
 
   const navigation = useNavigation();
   const params = useLocalSearchParams();
@@ -25,15 +27,27 @@ const SvgOverlay = () => {
   const mapping = params.mapping ? JSON.parse(params.mapping) : {};
   const viewMode = params.viewMode || 'pose';
 
+  // Ensure detection is always running for 'svg' view mode
+  useEffect(() => {
+    if (viewMode === 'pose') {
+      setIsDetecting(false);
+    }
+  }, [viewMode]);
+
   const toggleWebcam = useCallback(() => {
       setShowWebcam(prev => !prev);
   }, []);
 
+     
+
   useEffect(() => {
       navigation.setParams({
-          onToggleWebcam: toggleWebcam,
+        onToggleWebcam: toggleWebcam,
+        onDetectionStarted: () => setIsDetecting(true),
+        onDetectionStopped: () => setIsDetecting(false),
+        viewMode,
       });
-  }, [navigation, toggleWebcam]);
+  }, [navigation, toggleWebcam, viewMode]);
 
   
   /* Load TensorFlow.js and Pose Detection Model
@@ -71,8 +85,10 @@ const SvgOverlay = () => {
           return;
         }
         try {
-          const poses = await detector.estimatePoses(video, { flipHorizontal: true });
-          setLandmarks(poses?.[0]?.keypoints ?? []);
+          if (isDetecting) {
+            const poses = await detector.estimatePoses(video, { flipHorizontal: true });
+            setLandmarks(poses?.[0]?.keypoints ?? []);
+          }
         } catch (e) {
           console.error('estimatePoses error:', e);
         }
@@ -91,7 +107,7 @@ const SvgOverlay = () => {
         detector?.dispose?.();
       } catch {}
     };
-  }, [isTfReady]);
+  }, [isTfReady, isDetecting]);
 
   if (!isTfReady || loading) {
     return (
@@ -127,8 +143,6 @@ const SvgOverlay = () => {
             }}
           />
         )}
-        {showWebcam && (
- 
           <Webcam
             ref={webcamRef}
             style={{
@@ -136,6 +150,7 @@ const SvgOverlay = () => {
               left: 0,
               top: 0,
               zIndex: 2,
+              visibility: showWebcam ? 'visible' : 'hidden',
               width: viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH,
               height: viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT,
             }}
@@ -145,7 +160,6 @@ const SvgOverlay = () => {
               facingMode: 'user',
             }}
           />
-        )}
         <PoseCanvas
           width={viewMode === 'pose' ? CANVAS_WIDTH : WEBCAM_WIDTH}
           height={viewMode === 'pose' ? CANVAS_HEIGHT : WEBCAM_HEIGHT}
