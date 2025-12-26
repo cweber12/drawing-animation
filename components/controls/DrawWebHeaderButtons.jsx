@@ -28,7 +28,7 @@ const DrawWebHeaderButtons = ({
         style={styles.button}
         onPress={() => {
           setPoseView && setPoseView();
-          onOpenCamera && onOpenCamera();
+          //onOpenCamera && onOpenCamera();
         }}
       >
         <FaRunning size={ICON_SIZE} color={theme.button} />
@@ -38,7 +38,7 @@ const DrawWebHeaderButtons = ({
         style={styles.button} 
         onPress={() => {
           setSvgView && setSvgView();
-          onOpenCamera && onOpenCamera();
+          //onOpenCamera && onOpenCamera();
         }}
       >
         <FaVideo size={ICON_SIZE} color={theme.button} />

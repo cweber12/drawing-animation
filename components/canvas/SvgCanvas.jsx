@@ -15,6 +15,7 @@ import {
   drawLegSvg,
   drawFootSvg,
 } from '../../utils/svgUtils';
+import { smoothLandmarks } from '../../utils/poseUtils';
 
 /* SvgCanvas: Draw pose and SVG overlays, animate using savedLandmarks in pose mode
 ------------------------------------------------------------------------------*/

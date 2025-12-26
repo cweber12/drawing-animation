@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { TouchableOpacity, useColorScheme } from 'react-native';
 import { Colors } from '../../constants/Colors';
-import { FaCamera, FaStopCircle } from 'react-icons/fa';
+import { FaCamera, FaStopCircle, FaFileExport } from 'react-icons/fa';
 import { BsRecordCircleFill } from "react-icons/bs";
 import { ICON_SIZE } from '../../constants/Sizes';
 
@@ -10,10 +10,13 @@ const SvgOverlayButtons = ({
     onToggleWebcam, 
     onDetectionStarted, 
     onDetectionStopped, 
+    onExport,
     viewMode
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
+    // hides buttons that are not fully implemented yet
+    const todo = true; 
   
     return (
         <View style={styles.container}>
@@ -37,6 +40,14 @@ const SvgOverlayButtons = ({
                     >
                         <FaStopCircle size={ICON_SIZE} color={theme.button} />
                     </TouchableOpacity>
+                    {!todo && (   
+                        <TouchableOpacity 
+                            style={styles.button} 
+                            onPress={onExport}
+                        >
+                            <FaFileExport size={ICON_SIZE} color={theme.button} />
+                        </TouchableOpacity>
+                    )}
                 </>
             )}
         </View>

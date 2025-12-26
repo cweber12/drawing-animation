@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Webcam from 'react-webcam';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
@@ -9,10 +9,12 @@ import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import ThemedView from '../components/themed_elements/ThemedView';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, WEBCAM_WIDTH, WEBCAM_HEIGHT } from '../constants/Sizes';
+import { smoothLandmarks } from '../utils/poseUtils';
+import { uploadJsonToS3 } from '../utils/s3Utils';
 
 /* Detect Pose and Overlay SVGs
 --------------------------------------------------------------------------------------------------*/
-const SvgOverlay = () => {
+const DetectPose = () => {
   const webcamRef = useRef(null);
   const navigation = useNavigation();
   const params = useLocalSearchParams();
@@ -30,14 +32,43 @@ const SvgOverlay = () => {
   const [showWebcam, setShowWebcam] = useState(true);
   const [isDetecting, setIsDetecting] = useState(false);
   const [savedLandmarks, setSavedLandmarks] = useState([]);
+  const [exportLandmarks, setExportLandmarks] = useState([]);
   
   // State to control viewing of saved landmarks after detection stops in pose mode
   const [viewSavedLandmarks, setViewSavedLandmarks] = useState(false);
   const firstStartRef = useRef(true);
 
+  // Smooth savedLandmarks only for replay of recorded pose animation
+  const smoothedSavedLandmarks = useMemo(() => (
+    viewSavedLandmarks && savedLandmarks.length > 0
+      ? smoothLandmarks(savedLandmarks, 5)
+      : savedLandmarks
+  ), [viewSavedLandmarks, savedLandmarks]);
+
+  /* Handle Export of Saved Landmarks to S3
+     - GEtting maximum update depth exceeded error when trying to upload
+     - not implemented yet
+  ------------------------------------------------------------------------------------------------*/
+  const handleExport = useCallback(async () => {
+    console.log('savedLandmarks:', savedLandmarks);
+    console.log('viewSavedLandmarks:', viewSavedLandmarks);
+    console.log('smoothedSavedLandmarks:', smoothedSavedLandmarks);
+    if (!smoothedSavedLandmarks || smoothedSavedLandmarks.length === 0) {
+      alert('No landmarks to export.');
+      return;
+    }
+    const key = `pose-animation-${new Date().toISOString()}.json`;
+    try {
+      await uploadJsonToS3(key, smoothedSavedLandmarks);
+      alert('Exported to S3 as ' + key);
+    } catch (err) {
+      alert('Failed to export: ' + err.message);
+    }
+  }, [savedLandmarks, viewSavedLandmarks, smoothedSavedLandmarks]);
+  
   /* Update isDetecting based on viewMode
-     - pose mode: not detecting initially, detect when start button pressed
-     - svg mode: always detecting
+  - pose mode: not detecting initially, detect when start button pressed
+  - svg mode: always detecting
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     if (viewMode === 'pose') {
@@ -66,9 +97,15 @@ const SvgOverlay = () => {
         setIsDetecting(false);
         if (!firstStartRef.current) setViewSavedLandmarks(true);
       },
+      onExport: handleExport,
       viewMode,
     });
-  }, [navigation, toggleWebcam, viewMode]);
+  }, [
+    navigation,
+    toggleWebcam,
+    viewMode,
+    handleExport 
+  ]);
 
   
   /* Load TensorFlow.js and Pose Detection Model
@@ -166,7 +203,7 @@ const SvgOverlay = () => {
             webcamWidth={WEBCAM_WIDTH}
             webcamHeight={WEBCAM_HEIGHT}
             landmarks={landmarks}
-            savedLandmarks={savedLandmarks}
+            savedLandmarks={smoothedSavedLandmarks}
             viewMode={viewMode}
             replay={viewSavedLandmarks}
             svgs={svgs}
@@ -222,7 +259,7 @@ const SvgOverlay = () => {
   );
 };
 
-export default SvgOverlay;
+export default DetectPose;
 
 const styles = StyleSheet.create({
   container: {

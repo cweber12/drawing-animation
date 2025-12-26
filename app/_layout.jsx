@@ -47,9 +47,9 @@ const RootLayout = () => {
                 }}>
                 <Stack.Screen name="index" options={{ title: 'Home' }}/>
                 <Stack.Screen
-                    name="svgOverlay"
+                    name="detectPose"
                     options={({ route }) => ({
-                        title: 'Animate Sketch',
+                        title: route.params?.viewMode === 'svg' ? 'Live Animation' : 'Create Animation',
                         headerRight: () => (
                             <>
                                 <SvgOverlayButtons
@@ -57,6 +57,7 @@ const RootLayout = () => {
                                     onToggleWebcam={route.params?.onToggleWebcam} 
                                     onDetectionStarted={route.params?.onDetectionStarted}
                                     onDetectionStopped={route.params?.onDetectionStopped}
+                                    onExport={route.params?.onExport}
                                 />
                                 <HomeButton />
                             </>

@@ -130,7 +130,7 @@ const DrawWeb = () => {
         }
     }, []);
 
-    const goToSvgOverlay = useCallback(async (mode) => {
+    const goToDetectPose = useCallback(async (mode) => {
         const svgsToSend =
             Object.keys(bodySvgsRef.current || {}).length > 0
             ? bodySvgsRef.current
@@ -139,7 +139,7 @@ const DrawWeb = () => {
         if (!svgsToSend) return;
 
         router.push({
-            pathname: '/svgOverlay',
+            pathname: '/detectPose',
             params: {
                 svgs: JSON.stringify(svgsToSend),
                 mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
@@ -152,12 +152,12 @@ const DrawWeb = () => {
         navigation.setParams({
             onClear: clearAll,
             onSave: saveAll,
-            onOpenCamera: () => goToSvgOverlay(viewMode),
+            //onOpenCamera: () => goToDetectPose(viewMode),
             onShowSketchControls: toggleSketchControls,
-            setPoseView: () => setViewMode('pose'),
-            setSvgView: () => setViewMode('svg'),
+            setPoseView: () => goToDetectPose('pose'),
+            setSvgView: () => goToDetectPose('svg'),
         });
-    }, [navigation, clearAll, saveAll, goToSvgOverlay, toggleSketchControls, viewMode]);
+    }, [navigation, clearAll, saveAll, goToDetectPose, toggleSketchControls, viewMode]);
 
     return (
 
