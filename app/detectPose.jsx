@@ -57,12 +57,31 @@ const DetectPose = () => {
       alert('No landmarks to export.');
       return;
     }
+    // Filter out frames with invalid keypoints
+    const filtered = smoothedSavedLandmarks
+      .filter(frame => Array.isArray(frame) && frame.length > 0)
+      .map(frame =>
+        frame.filter(
+          point =>
+            point &&
+            typeof point.x === 'number' &&
+            typeof point.y === 'number'
+        )
+      )
+      .filter(frame => frame.length > 0);
+
+    if (filtered.length === 0) {
+      alert('No valid landmarks to export.');
+      return;
+    }
+
     const key = `pose-animation-${new Date().toISOString()}.json`;
     try {
-      await uploadJsonToS3(key, smoothedSavedLandmarks);
+      await uploadJsonToS3(key, filtered);
       alert('Exported to S3 as ' + key);
     } catch (err) {
-      alert('Failed to export: ' + err.message);
+      console.error('Export error:', err); // Add this line
+      alert('Failed to export: ' + (err?.message || JSON.stringify(err)));
     }
   }, [savedLandmarks, viewSavedLandmarks, smoothedSavedLandmarks]);
   
@@ -99,6 +118,7 @@ const DetectPose = () => {
       },
       onExport: handleExport,
       viewMode,
+      viewSavedLandmarks,
     });
   }, [
     navigation,

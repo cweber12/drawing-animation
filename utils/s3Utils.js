@@ -17,12 +17,18 @@ const s3 = new S3Client({
 });
 
 export async function uploadJsonToS3(key, data) {
-  const fileContent = JSON.stringify(data, null, 2);
-  const command = new PutObjectCommand({
-    Bucket: S3_BUCKET_NAME,
-    Key: key,
-    Body: fileContent,
-    ContentType: 'application/json',
-  });
-  return s3.send(command);
+    console.log('S3 ENV:', {
+        AWS_ACCESS_KEY_ID,
+        AWS_SECRET_ACCESS_KEY,
+        AWS_REGION,
+        S3_BUCKET_NAME
+    });
+    const fileContent = JSON.stringify(data, null, 2);
+    const command = new PutObjectCommand({
+        Bucket: S3_BUCKET_NAME,
+        Key: key,
+        Body: fileContent,
+        ContentType: 'application/json',
+    });
+    return s3.send(command);
 }

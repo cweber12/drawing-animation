@@ -198,7 +198,7 @@ const DrawWeb = () => {
                                 width: handWidth, 
                                 height: handHeight, 
                                 marginTop: -handOffsetY, 
-                                boxShadow: boxShadowColor
+                                boxShadow: boxShadowColor,
                             }
                         ]}>
                             <ReactSketchCanvas
@@ -367,11 +367,11 @@ const DrawWeb = () => {
                                 { width: armWidth, height: armHeight2, boxShadow: boxShadowColor }
                             ]}>
                             <ReactSketchCanvas
-                            ref={leftLowerArmRef}
-                            style={styles.canvas}
-                            width={armWidth}
-                            height={armHeight2}
-                            {...canvasProps}
+                                ref={leftLowerArmRef}
+                                style={styles.canvas}
+                                width={armWidth}
+                                height={armHeight2}
+                                {...canvasProps}
                             />
                         </CanvasWrapper>
                         <CanvasWrapper 
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     canvasWrapper: {
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 8,
+        borderRadius: 50,
         overflow: 'hidden',
     },
 
@@ -480,10 +480,11 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
         width: '100%',
         height: '100%',
+        borderRadius: '0.25rem',
     },
 
     head: {
-        borderRadius: 10,
+        borderRadius: 50,
     },
 
     armTorsoRow: {
@@ -498,10 +499,6 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         justifyContent: 'center',
         gap: 2, 
-    },
-
-    hand: {
-        borderRadius: 10,
     },
 
     legColumn: {

@@ -5,7 +5,6 @@ import { LANDMARKS, CONNECTED_KEYPOINTS } from '../../constants/LandmarkData';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants/Sizes';
 import {
   affineFrom3Points,
-  DEFAULT_SVG_SIZE,
   svgStringToImage,
   getSvgSize,
   drawHeadSvg,
@@ -14,6 +13,8 @@ import {
   drawRightHandSvg,
   drawLegSvg,
   drawFootSvg,
+  addSvgClipPath,
+  getSvgDimensions,
 } from '../../utils/svgUtils';
 import { smoothLandmarks } from '../../utils/poseUtils';
 
@@ -74,7 +75,14 @@ const SvgCanvas = ({
     (async () => {
       const entries = await Promise.all(
         Object.entries(svgs).map(async ([part, svgString]) => {
-          const img = await svgStringToImage(svgString);
+          const { width: svgW, height: svgH } = getSvgDimensions(svgString);
+          const svgStringClipped = addSvgClipPath(
+            svgString,
+            svgW,
+            svgH,
+            16
+          );
+          const img = await svgStringToImage(svgStringClipped);
           return [part, img];
         })
       );

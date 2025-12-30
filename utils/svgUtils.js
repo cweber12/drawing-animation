@@ -161,3 +161,37 @@ export function drawFootSvg(ctx, img, from, to) {
   ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
   ctx.restore();
 }
+
+/* Add SVG Clip Path for Rounded Corners
+------------------------------------------------------------------------------*/
+export function addSvgClipPath(svgString, width, height, radius) {
+  // Insert <defs> and <clipPath>
+  const clipDef = `
+    <defs>
+      <clipPath id="roundedClip">
+        <rect x="0" y="0" width="${width}" height="${height}" rx="${radius}" ry="${radius}" />
+      </clipPath>
+    </defs>
+  `;
+  // Insert clip def after <svg ...>
+  svgString = svgString.replace(/<svg([^>]*)>/, `<svg$1>${clipDef}`);
+
+  // Wrap all <path> (and possibly <g>) elements in a <g clip-path="url(#roundedClip)">
+  svgString = svgString.replace(
+    /(<svg[^>]*>)([\s\S]*)(<\/svg>)/,
+    (match, open, content, close) => {
+      return `${open}<g clip-path="url(#roundedClip)">${content}</g>${close}`;
+    }
+  );
+  return svgString;
+}
+
+export function getSvgDimensions(svgString) {
+  const dimensions = svgString.match(/<svg[^>]*\swidth="([^"]+)"[^>]*\sheight="([^"]+)"[^>]*>/);
+  if (dimensions) {
+    return {
+      width: parseFloat(dimensions[1]),
+      height: parseFloat(dimensions[2]),
+    };
+  }
+}

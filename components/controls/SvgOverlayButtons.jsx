@@ -11,7 +11,8 @@ const SvgOverlayButtons = ({
     onDetectionStarted, 
     onDetectionStopped, 
     onExport,
-    viewMode
+    viewMode, 
+    viewSavedLandmarks,
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
@@ -40,7 +41,7 @@ const SvgOverlayButtons = ({
                     >
                         <FaStopCircle size={ICON_SIZE} color={theme.button} />
                     </TouchableOpacity>
-                    {!todo && (   
+                    {viewSavedLandmarks && (   
                         <TouchableOpacity 
                             style={styles.button} 
                             onPress={onExport}

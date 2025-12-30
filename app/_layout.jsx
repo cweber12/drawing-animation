@@ -54,6 +54,7 @@ const RootLayout = () => {
                             <>
                                 <SvgOverlayButtons
                                     viewMode={route.params?.viewMode}
+                                    viewSavedLandmarks={route.params?.viewSavedLandmarks}
                                     onToggleWebcam={route.params?.onToggleWebcam} 
                                     onDetectionStarted={route.params?.onDetectionStarted}
                                     onDetectionStopped={route.params?.onDetectionStopped}
