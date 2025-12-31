@@ -253,8 +253,15 @@ const SvgCanvas = ({
         ) {
             const from = scaledLandmarks[map.leftCenter];
             const to = scaledLandmarks[map.rightCenter];
-            if (!from || !to || from.score < 0.3 || to.score < 0.3) continue;
-            drawHorizontalSegmentSvg(ctx, img, from, to);
+            
+            if (
+              !from || 
+              !to || 
+              from.score < 0.3 || 
+              to.score < 0.3 ||
+              (from.x === to.x && from.y === to.y)
+            ) continue;
+            drawHorizontalSegmentSvg(ctx, img, from, to, part);
             continue;
         }
 
