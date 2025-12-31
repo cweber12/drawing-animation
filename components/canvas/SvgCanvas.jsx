@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { LANDMARKS, CONNECTED_KEYPOINTS } from '../../constants/LandmarkData';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants/Sizes';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BORDER_RADIUS } from '../../constants/Sizes';
 import {
   affineFrom3Points,
   svgStringToImage,
@@ -80,7 +80,7 @@ const SvgCanvas = ({
             svgString,
             svgW,
             svgH,
-            16
+            CANVAS_BORDER_RADIUS
           );
           const img = await svgStringToImage(svgStringClipped);
           return [part, img];
@@ -183,19 +183,35 @@ const SvgCanvas = ({
         if (!tl || !tr || !bl || !br) continue;
         if (tl.score < 0.3 || tr.score < 0.3 || bl.score < 0.3 || br.score < 0.3) continue;
         
+        // Calculate hip center and shoulder width
+        const hipCenter = {
+          x: (bl.x + br.x) / 2,
+          y: (bl.y + br.y) / 2,
+        };
+        const shoulderWidth = Math.abs(tr.x - tl.x);
+        const offset = shoulderWidth / 2;
+
+        // Use the offset to define the third point (left side shown)
+        const thirdPoint = {
+          x: hipCenter.x - offset,
+          y: hipCenter.y,
+        };
+
+        // Use thirdPoint in the affine transform
         const M = affineFrom3Points(
             { x: 0, y: 0 },
             { x: svgW, y: 0 },
             { x: 0, y: svgH },
             { x: tl.x, y: tl.y },
             { x: tr.x, y: tr.y },
-            { x: bl.x, y: bl.y }
+            thirdPoint
         );
 
         if (!M) continue;
 
         ctx.save();
         ctx.setTransform(M.a, M.b, M.c, M.d, M.e, M.f);
+        ctx.scale(1, 1.2); // Slightly reduce width to fit torso better
         ctx.drawImage(img, 0, 0, svgW, svgH);
         ctx.restore();
         continue;

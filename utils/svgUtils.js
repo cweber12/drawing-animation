@@ -70,14 +70,14 @@ export function drawHeadSvg(ctx, img, leftEar, rightEar) {
 
   // Midpoint between ears
   const midX = (leftEar.x + rightEar.x) / 2;
-  const midY = (leftEar.y + rightEar.y) / 2;
+  const midY = ((leftEar.y + rightEar.y) / 2);
   const earDist = Math.hypot(dx, dy);
-  const scale = (earDist / svgW) * 3.0;
+  const scale = (earDist / svgW) * 1.5;
 
   ctx.save();
   ctx.translate(midX, midY);
   ctx.rotate(angle); // Ensure upright orientation
-  ctx.scale(scale, scale);
+  ctx.scale(scale, 1);
   // Draw SVG so its center is at the midpoint between ears
   ctx.drawImage(img, -svgW / 2, -svgH / 2, svgW, svgH);
   ctx.restore();
@@ -96,7 +96,7 @@ export function drawHorizontalSegmentSvg(ctx, img, from, to) {
   ctx.save();
   ctx.translate(from.x, from.y + svgH / 2); // Move to shoulder/elbow
   ctx.rotate(angle); // Rotate to point toward elbow/wrist
-  ctx.scale(scale, scale); // Scale so SVG width matches segment length
+  ctx.scale(scale, 1); // Scale so SVG width matches segment length
   ctx.drawImage(img, 0, -svgH / 2, svgW, svgH); // left center at from, right center at to
   ctx.restore();
 }
@@ -143,7 +143,7 @@ export function drawLegSvg(ctx, img, from, to) {
   ctx.save();
   ctx.translate(from.x, from.y);
   ctx.rotate(angle - Math.PI / 2); // <-- Fix: rotate so SVG height aligns with segment
-  ctx.scale(scale, scale);
+  ctx.scale(1, scale);
   ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
   ctx.restore();
 }

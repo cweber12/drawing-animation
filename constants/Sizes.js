@@ -4,6 +4,7 @@ const { width, height } = Dimensions.get('window');
 
 export const CANVAS_WIDTH = width * 0.9;
 export const CANVAS_HEIGHT = height * 0.88;
+export const CANVAS_BORDER_RADIUS = 30;
 export const WEBCAM_WIDTH = 320;
 export const WEBCAM_HEIGHT = 240;
 

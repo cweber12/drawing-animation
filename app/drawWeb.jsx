@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react';
-import { View, StyleSheet, Dimensions, useColorScheme } from 'react-native';
+import { View, StyleSheet, Dimensions, useColorScheme, ScrollView } from 'react-native';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 import { useRouter, useNavigation } from 'expo-router';
 import { CANVAS_LANDMARK_MAP } from '../constants/LandmarkData';
@@ -45,23 +45,26 @@ const DrawWeb = () => {
     const leftLowerLegRef = useRef(null);
     const leftFootRef = useRef(null);
 
-    // SVG dimensions
-    const torsoWidth = width * 0.12;
+    /* Body part dimensions based on overall canvas width
+    https://www.researchgate.net/figure/Dimensions-of-average-male-human-being-23_fig1_283532449
+    --------------------------------------------------------------------------*/
+    const torsoWidth = width * 0.075;
     const torsoHeight = torsoWidth * 1.5;
     const legWidth = (torsoWidth * 0.5) - 1;
     const legHeight = torsoHeight * 0.76;
-    const armWidth = torsoWidth * 0.75;
+    const armWidth = torsoWidth * 0.9;
     const forearmWidth = armWidth * 0.9;
-    const armHeight = (torsoHeight * 0.45) - 1;
+    const armHeight = (torsoHeight * 0.35) - 1;
     const handHeight = armHeight * 1.5;
     const handWidth = armWidth;
     const handOffsetY = armHeight * 0.3;
     const headHeight = torsoHeight * 0.8;
     const headWidth = torsoWidth;
     const footHeight = torsoHeight * 0.35;
-    const footWidth = legWidth * 1.5;
+    const footWidth = legWidth * 2;
     
-    // Common canvas export properties
+    /* Common canvas props
+    --------------------------------------------------------------------------*/
     const canvasProps = {
         canvasColor: 'rgba(0,0,0,0)',          
         exportWithBackgroundImage: false,      
@@ -70,10 +73,14 @@ const DrawWeb = () => {
         strokeColor: selectedColor,
     };
 
+    /* Toggle display of sketch controls
+    --------------------------------------------------------------------------*/
     const toggleSketchControls = useCallback(() => {
         setShowSketchControls(prev => !prev);
     }, []);
 
+    /* Clear all canvases
+    --------------------------------------------------------------------------*/
     const clearAll = useCallback(() => {
         headRef.current?.clearCanvas();
         torsoRef.current?.clearCanvas();
@@ -91,6 +98,8 @@ const DrawWeb = () => {
         leftFootRef.current?.clearCanvas();
     }, []);
 
+    /* Save all canvases as SVGs
+    --------------------------------------------------------------------------*/
     const saveAll = useCallback(async () => {
         try {
             const refs = {
@@ -130,6 +139,8 @@ const DrawWeb = () => {
         }
     }, []);
 
+    /* Navigate to Detect Pose screen with SVGs
+    --------------------------------------------------------------------------*/
     const goToDetectPose = useCallback(async (mode) => {
         const svgsToSend =
             Object.keys(bodySvgsRef.current || {}).length > 0
@@ -148,6 +159,8 @@ const DrawWeb = () => {
         });
     }, [router, saveAll]);
 
+    /* Set navigation params for header buttons
+    --------------------------------------------------------------------------*/
     useEffect(() => {
         navigation.setParams({
             onClear: clearAll,
@@ -159,8 +172,9 @@ const DrawWeb = () => {
         });
     }, [navigation, clearAll, saveAll, goToDetectPose, toggleSketchControls, viewMode]);
 
-    return (
-
+    /* Render component
+    --------------------------------------------------------------------------*/
+    return (       
         <View style={styles.mainContainer}>
             {showSketchControls && (
                 <SketchControls 
@@ -221,7 +235,7 @@ const DrawWeb = () => {
                             <ReactSketchCanvas
                                 ref={rightLowerArmRef}
                                 style={styles.canvas}
-                                width={armWidth}
+                                width={forearmWidth}
                                 height={armHeight}
                                 {...canvasProps}
                             />
@@ -369,7 +383,7 @@ const DrawWeb = () => {
                             <ReactSketchCanvas
                                 ref={leftLowerArmRef}
                                 style={styles.canvas}
-                                width={armWidth}
+                                width={forearmWidth}
                                 height={armHeight}
                                 {...canvasProps}
                             />
@@ -424,8 +438,8 @@ const DrawWeb = () => {
                         />
                     </CanvasWrapper>
                 </View>
-            </ThemedView>
-        </View>
+            </ThemedView>            
+        </View>        
     );
 };
 
@@ -450,6 +464,12 @@ const styles = StyleSheet.create({
         gap: 2, 
     },
 
+    scrollView: {
+        flexGrow: 1,
+        width : '100%',
+        height: '100%',
+    },
+
     controls: {
         flexDirection: 'row',
         gap: 8,
@@ -472,7 +492,7 @@ const styles = StyleSheet.create({
     canvasWrapper: {
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 50,
+        borderRadius: 30,
         overflow: 'hidden',
     },
 
