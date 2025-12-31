@@ -71,14 +71,13 @@ export function drawHeadSvg(ctx, img, leftEar, rightEar) {
 
     // Midpoint between ears
     const midX = (leftEar.x + rightEar.x) / 2;
-    const midY = ((leftEar.y + rightEar.y) / 2) + svgH * 0.15; // Adjust upward for better fit
+    const midY = ((leftEar.y + rightEar.y) / 2) + svgH * 0.15; 
     const earDist = Math.hypot(dx, dy);
     const scale = (earDist / svgW) * 1.5; 
     ctx.save();
     ctx.translate(midX, midY);
-    ctx.rotate(angle); // Ensure upright orientation
+    ctx.rotate(angle); 
     ctx.scale(scale, scale);
-    // Draw SVG so its center is at the midpoint between ears
     ctx.drawImage(img, -svgW / 2, -svgH / 2, svgW, svgH);
     ctx.restore();
 }

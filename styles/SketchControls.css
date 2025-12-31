@@ -19,34 +19,29 @@
 .color-picker{
   border: none;
   padding: 0;
-  margin-left: 8px;
   cursor: pointer;
   background-color: transparent;
   font-family: 'segoe ui';
   min-width: 100%; 
   max-width: 100%;
   box-sizing: border-box;
+  border-bottom-left-radius: 4px !important;
+  border-bottom-right-radius: 4px !important;
 }
 
 .chrome-picker {
-  background: #f5f5f5 !important; /* Replace with your desired color */
-  border-radius: 8px !important;
+  background: #f5f5f5 !important; 
+  border-bottom-left-radius: 4px !important;
+  border-bottom-right-radius: 4px !important;
 }
 
 .selected-color{
-  width: 100px; 
-  height: 20px;
-  border-radius: 20;
+  width: 100%; 
+  height: 40px;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  margin-bottom: -1px; 
+  z-index: 2; 
+  
 }
 
-.selected-color-row {
-  display: flex;
-  flex-direction: row; 
-  align-items: center;
-  width: 100%;
-  justify-content: space-between; 
-  margin-bottom: 12px; 
-  gap: 8px;
-  font-family: 'segoe ui';
-  font-weight: 'bold';
-}

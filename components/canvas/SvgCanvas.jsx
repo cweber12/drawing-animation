@@ -211,7 +211,7 @@ const SvgCanvas = ({
 
         ctx.save();
         ctx.setTransform(M.a, M.b, M.c, M.d, M.e, M.f);
-        ctx.scale(1, 1.2); // Slightly reduce width to fit torso better
+        ctx.scale(1, 1); 
         ctx.drawImage(img, 0, 0, svgW, svgH);
         ctx.restore();
         continue;

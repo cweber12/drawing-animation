@@ -75,7 +75,8 @@ const RootLayout = () => {
                                     onClear={route.params?.onClear}
                                     onSave={route.params?.onSave}
                                     onOpenCamera={route.params?.onOpenCamera}
-                                    onShowSketchControls={route.params?.onShowSketchControls}
+                                    onShowBrushSizeSlider={route.params?.onShowBrushSizeSlider}
+                                    onShowColorPicker={route.params?.onShowColorPicker}
                                     setPoseView={route.params?.setPoseView}
                                     setSvgView={route.params?.setSvgView}
                                 />

@@ -3,6 +3,7 @@ import { View, Button, TouchableOpacity, StyleSheet, Text, useColorScheme } from
 import { Colors } from '../../constants/Colors';
 import { 
   FaPaintBrush, 
+  FaPalette,
   FaSave, 
   FaTrashAlt, 
   FaRunning, 
@@ -15,7 +16,8 @@ const DrawWebHeaderButtons = ({
   onClear, 
   onSave, 
   onOpenCamera, 
-  onShowSketchControls,
+  onShowBrushSizeSlider,
+  onShowColorPicker,
   setPoseView,
   setSvgView,
 }) => {
@@ -60,10 +62,18 @@ const DrawWebHeaderButtons = ({
 
       <TouchableOpacity 
         style={styles.button} 
-        onPress={onShowSketchControls}
+        onPress={onShowBrushSizeSlider}
       >
         <FaPaintBrush size={ICON_SIZE} color={theme.button}  />
       </TouchableOpacity>
+      <TouchableOpacity 
+        style={styles.button} 
+        onPress={onShowColorPicker}
+      >
+        <FaPalette size={ICON_SIZE} color={theme.button}  />
+      </TouchableOpacity>
+
+
     </View>
   );
 };

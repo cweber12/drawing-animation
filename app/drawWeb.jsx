@@ -6,8 +6,8 @@ import { CANVAS_LANDMARK_MAP } from '../constants/LandmarkData';
 import ThemedView from '../components/themed_elements/ThemedView';
 import { Colors } from '../constants/Colors';
 import CanvasWrapper from '../components/themed_elements/ThemedCanvasWrapper';
-import SketchControls from '../components/controls/SketchControls';
-
+import BrushSizeSlider from '../components/controls/BrushSizeSlider';
+import ColorPicker from '../components/controls/ColorPicker';
 
 const { width, height } = Dimensions.get('window');
 
@@ -24,7 +24,8 @@ const DrawWeb = () => {
     // State variables
     const [selectedColor, setSelectedColor] = useState(theme.svgStrokeColor);
     const [strokeWidth, setStrokeWidth] = useState(2);
-    const [showSketchControls, setShowSketchControls] = useState(false);
+    const [showBrushSizeSlider, setShowBrushSizeSlider] = useState(false);
+    const [showColorPicker, setShowColorPicker] = useState(false);
     const [bodySvgs, setBodySvgs] = useState({});
     const [viewMode, setViewMode] = useState(null);
     
@@ -75,8 +76,14 @@ const DrawWeb = () => {
 
     /* Toggle display of sketch controls
     --------------------------------------------------------------------------*/
-    const toggleSketchControls = useCallback(() => {
-        setShowSketchControls(prev => !prev);
+    const toggleBrushSizeSlider = useCallback(() => {
+        setShowBrushSizeSlider(prev => !prev);
+        
+    }, []);
+
+    const toggleColorPicker = useCallback(() => {
+        setShowColorPicker(prev => !prev);
+        
     }, []);
 
     /* Clear all canvases
@@ -166,22 +173,29 @@ const DrawWeb = () => {
             onClear: clearAll,
             onSave: saveAll,
             //onOpenCamera: () => goToDetectPose(viewMode),
-            onShowSketchControls: toggleSketchControls,
+            onShowBrushSizeSlider: toggleBrushSizeSlider,
+            onShowColorPicker: toggleColorPicker,
             setPoseView: () => goToDetectPose('pose'),
             setSvgView: () => goToDetectPose('svg'),
         });
-    }, [navigation, clearAll, saveAll, goToDetectPose, toggleSketchControls, viewMode]);
-
+    }, [navigation, clearAll, saveAll, goToDetectPose, toggleBrushSizeSlider, viewMode]);
     /* Render component
     --------------------------------------------------------------------------*/
     return (       
         <View style={styles.mainContainer}>
-            {showSketchControls && (
-                <SketchControls 
+            {showBrushSizeSlider && (
+                <BrushSizeSlider 
                     style={styles.sketchControls} 
                     onColorChange={setSelectedColor}
                     strokeWidth={strokeWidth}
                     onStrokeWidthChange={setStrokeWidth} 
+                />
+            )}
+            {showColorPicker && (
+                <ColorPicker 
+                    style={styles.sketchControls}
+                    selectedColor={selectedColor}
+                    onColorChange={setSelectedColor}
                 />
             )}
             <ThemedView style={styles.container}>
