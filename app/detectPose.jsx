@@ -38,12 +38,21 @@ const DetectPose = () => {
   const [viewSavedLandmarks, setViewSavedLandmarks] = useState(false);
   const firstStartRef = useRef(true);
 
+  // Filter out low-confidence keypoints from savedLandmarks
+  const filteredLandmarks = useMemo(() =>
+    savedLandmarks.map(frame =>
+      frame.map(point =>
+        point && point.score > 0.3 ? point : null
+      )
+    ),
+    [savedLandmarks]
+  );
   // Smooth savedLandmarks only for replay of recorded pose animation
   const smoothedSavedLandmarks = useMemo(() => (
-    viewSavedLandmarks && savedLandmarks.length > 0
-      ? smoothLandmarks(savedLandmarks, 5)
-      : savedLandmarks
-  ), [viewSavedLandmarks, savedLandmarks]);
+    viewSavedLandmarks && filteredLandmarks.length > 0
+      ? smoothLandmarks(filteredLandmarks, 5)
+      : filteredLandmarks
+  ), [viewSavedLandmarks, filteredLandmarks]);
 
   /* Handle Export of Saved Landmarks to S3
      - GEtting maximum update depth exceeded error when trying to upload
@@ -124,7 +133,8 @@ const DetectPose = () => {
     navigation,
     toggleWebcam,
     viewMode,
-    handleExport 
+    handleExport, 
+    viewSavedLandmarks,
   ]);
 
   

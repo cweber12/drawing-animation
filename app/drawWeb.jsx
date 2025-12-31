@@ -47,15 +47,15 @@ const DrawWeb = () => {
 
     // SVG dimensions
     const torsoWidth = width * 0.12;
-    const torsoHeight = height * 0.25;
+    const torsoHeight = torsoWidth * 1.5;
     const legWidth = (torsoWidth * 0.5) - 1;
-    const legHeight = torsoHeight * 0.65;
-    const armWidth = torsoWidth * 0.65;
-    const armHeight1 = (torsoHeight * 0.45) - 1;
-    const armHeight2 = (torsoHeight * 0.45) - 1;
-    const handHeight = armHeight1 * 1.5;
+    const legHeight = torsoHeight * 0.76;
+    const armWidth = torsoWidth * 0.75;
+    const forearmWidth = armWidth * 0.9;
+    const armHeight = (torsoHeight * 0.45) - 1;
+    const handHeight = armHeight * 1.5;
     const handWidth = armWidth;
-    const handOffsetY = armHeight1 * 0.3;
+    const handOffsetY = armHeight * 0.3;
     const headHeight = torsoHeight * 0.8;
     const headWidth = torsoWidth;
     const footHeight = torsoHeight * 0.35;
@@ -214,7 +214,7 @@ const DrawWeb = () => {
                                 styles.canvasWrapper, 
                                 { 
                                     width: armWidth, 
-                                    height: armHeight2,
+                                    height: armHeight,
                                     boxShadow: boxShadowColor
                                 }
                             ]}>
@@ -222,7 +222,7 @@ const DrawWeb = () => {
                                 ref={rightLowerArmRef}
                                 style={styles.canvas}
                                 width={armWidth}
-                                height={armHeight2}
+                                height={armHeight}
                                 {...canvasProps}
                             />
                         </CanvasWrapper>
@@ -231,7 +231,7 @@ const DrawWeb = () => {
                                 styles.canvasWrapper, 
                                 { 
                                     width: armWidth, 
-                                    height: armHeight1, 
+                                    height: armHeight, 
                                     boxShadow: boxShadowColor
                                 }
                             ]}>
@@ -239,7 +239,7 @@ const DrawWeb = () => {
                                 ref={rightUpperArmRef}
                                 style={styles.canvas}
                                 width={armWidth}
-                                height={armHeight1}
+                                height={armHeight}
                                 {...canvasProps}
                             />
                         </CanvasWrapper>
@@ -349,7 +349,7 @@ const DrawWeb = () => {
                                 styles.canvasWrapper, 
                                 { 
                                     width: armWidth, 
-                                    height: armHeight1, 
+                                    height: armHeight, 
                                     boxShadow: boxShadowColor 
                                 }
                             ]}>
@@ -357,20 +357,20 @@ const DrawWeb = () => {
                                 ref={leftUpperArmRef}
                                 style={{ backgroundColor: 'transparent' }}
                                 width={armWidth}
-                                height={armHeight1}
+                                height={armHeight}
                                 {...canvasProps}
                             />
                         </CanvasWrapper>
                         <CanvasWrapper 
                             style={[
                                 styles.canvasWrapper, 
-                                { width: armWidth, height: armHeight2, boxShadow: boxShadowColor }
+                                { width: armWidth, height: armHeight, boxShadow: boxShadowColor }
                             ]}>
                             <ReactSketchCanvas
                                 ref={leftLowerArmRef}
                                 style={styles.canvas}
                                 width={armWidth}
-                                height={armHeight2}
+                                height={armHeight}
                                 {...canvasProps}
                             />
                         </CanvasWrapper>
