@@ -13,6 +13,14 @@ import { smoothLandmarks } from '../utils/poseUtils';
 import { uploadJsonToS3 } from '../utils/s3Utils';
 
 /* Detect Pose and Overlay SVGs
+----------------------------------------------------------------------------------------------------
+This page uses TensorFlow.js to detect human poses from the webcam feed and uses detected pose
+landmarks to overlay SVGs sketched in the drawWeb page. It supports two view modes:
+
+- 'svg': Live animation mode where SVGs are animated in real-time based on detected poses.
+- 'pose': Pose recording mode where detected poses are recorded and can be replayed as an animation.
+
+
 --------------------------------------------------------------------------------------------------*/
 const DetectPose = () => {
   const webcamRef = useRef(null);

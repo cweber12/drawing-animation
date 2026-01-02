@@ -6,7 +6,7 @@ import { FaCamera, FaStopCircle, FaFileExport } from 'react-icons/fa';
 import { BsRecordCircleFill } from "react-icons/bs";
 import { ICON_SIZE } from '../../constants/Sizes';
 
-const SvgOverlayButtons = ({ 
+const DetectPoseButtons = ({ 
     onToggleWebcam, 
     onDetectionStarted, 
     onDetectionStopped, 
@@ -55,7 +55,7 @@ const SvgOverlayButtons = ({
     );
 }
 
-export default SvgOverlayButtons
+export default DetectPoseButtons;
 
 const styles = StyleSheet.create({
     container: {

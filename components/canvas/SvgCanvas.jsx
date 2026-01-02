@@ -114,7 +114,7 @@ const SvgCanvas = ({
 
     /* Draw pose skeleton
     --------------------------------------------------------------------------*/
-    ctx.strokeStyle = 'transparent';
+    ctx.strokeStyle = 'lime';
     ctx.lineWidth = 2;
     CONNECTED_KEYPOINTS.forEach(([i, j]) => {
       const kp1 = displayLandmarks[i];
@@ -129,7 +129,7 @@ const SvgCanvas = ({
 
     /* Draw keypoints
     --------------------------------------------------------------------------*/
-    ctx.fillStyle = 'transparent';
+    ctx.fillStyle = 'red';
     displayLandmarks.forEach((kp) => {
       if (kp && kp.score > 0.3) {
         ctx.beginPath();
@@ -164,6 +164,26 @@ const SvgCanvas = ({
         const map = mapping?.[part];
         if (!map || !img) continue;
 
+        /* Ensure all anchor landmarks are valid for current svg being drawn
+        ----------------------------------------------------------------------*/
+        // Gather anchor landmark indices for this part
+        const anchorIndices = Object.values(map).filter(idx => typeof idx === 'number');
+        // Get anchor landmarks
+        const anchors = anchorIndices.map(idx => scaledLandmarks[idx]);
+        // Check for invalid anchors (missing, NaN, or out of bounds)
+        const hasInvalidAnchor = anchors.some(lm =>
+            !lm ||
+            typeof lm.x !== 'number' ||
+            typeof lm.y !== 'number' ||
+            isNaN(lm.x) ||
+            isNaN(lm.y) ||
+            lm.x < 0 ||
+            lm.y < 0 ||
+            lm.x > width ||
+            lm.y > height
+        );
+        if (hasInvalidAnchor) continue;
+        
         const { w: svgW, h: svgH } = getSvgSize(img);
 
         /* TORSO 
@@ -296,7 +316,7 @@ const SvgCanvas = ({
             const from = scaledLandmarks[map.start];
             const to = scaledLandmarks[map.end];
             if (!from || !to || from.score < 0.3 || to.score < 0.3) continue;
-            drawLegSvg(ctx, img, from, to);
+            drawLegSvg(ctx, img, from, to, part);
             continue;
         }
 

@@ -111,7 +111,6 @@ const DrawWeb = () => {
         try {
             const refs = {
                 head: headRef,
-                torso: torsoRef,
                 rightUpperArm: rightUpperArmRef,
                 rightLowerArm: rightLowerArmRef,
                 rightHand: rightHandRef,
@@ -124,6 +123,7 @@ const DrawWeb = () => {
                 leftUpperLeg: leftUpperLegRef,
                 leftLowerLeg: leftLowerLegRef,
                 leftFoot: leftFootRef,
+                torso: torsoRef,
             };
 
             const svgs = {};
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
     canvasWrapper: {
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 30,
+        borderRadius: 24,
         overflow: 'hidden',
     },
 

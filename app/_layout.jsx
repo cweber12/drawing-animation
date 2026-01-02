@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native-web'
 import { Colors } from '../constants/Colors'
 import DrawWebHeaderButtons from '../components/controls/DrawWebHeaderButtons';
-import SvgOverlayButtons from '../components/controls/SvgOverlayButtons';
+import DetectPoseButtons from '../components/controls/detectPoseButtons';
 import { FaHome } from 'react-icons/fa';
 import { ICON_SIZE } from '../constants/Sizes';
 
@@ -52,7 +52,7 @@ const RootLayout = () => {
                         title: route.params?.viewMode === 'svg' ? 'Live Animation' : 'Create Animation',
                         headerRight: () => (
                             <>
-                                <SvgOverlayButtons
+                                <DetectPoseButtons
                                     viewMode={route.params?.viewMode}
                                     viewSavedLandmarks={route.params?.viewSavedLandmarks}
                                     onToggleWebcam={route.params?.onToggleWebcam} 

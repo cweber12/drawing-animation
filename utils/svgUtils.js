@@ -91,7 +91,7 @@ export function drawHorizontalSegmentSvg(ctx, img, from, to, part) {
     if ( part === 'leftUpperArm' ) {
         fromOffset = {
             x: from.x - CANVAS_BORDER_RADIUS * 2,
-            y: from.y + svgH,
+            y: from.y + svgH / 2,
         };
         toOffset = {x: to.x , y: to.y ,};
     } else if ( part === 'rightUpperArm' ) {
@@ -99,7 +99,7 @@ export function drawHorizontalSegmentSvg(ctx, img, from, to, part) {
         };
         toOffset = {
             x: to.x + CANVAS_BORDER_RADIUS * 2,
-            y: to.y + svgH,
+            y: to.y + svgH / 2,
         };
     } else {
         fromOffset = { x: from.x, y: from.y };
@@ -152,15 +152,17 @@ export function drawRightHandSvg(ctx, img, wrist, elbow) {
 
 /* Draw leg SVG rotated to align with segment
 ------------------------------------------------------------------------------*/
-export function drawLegSvg(ctx, img, from, to) {
+export function drawLegSvg(ctx, img, from, to, part) {
   const { w: svgW, h: svgH } = getSvgSize(img);
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
+  const fromOffset = {x: from.x, y: from.y - svgH / 4,};
+  const toOffset = {x: to.x , y: to.y - svgH / 4 ,};
+  const dx = toOffset.x - fromOffset.x;
+  const dy = toOffset.y - fromOffset.y;
   const angle = Math.atan2(dy, dx);
   const length = Math.hypot(dx, dy);
   const scale = length / Math.max(1, svgH);
   ctx.save();
-  ctx.translate(from.x, from.y);
+  ctx.translate(fromOffset.x, fromOffset.y);
   ctx.rotate(angle - Math.PI / 2); // <-- Fix: rotate so SVG height aligns with segment
   ctx.scale(1, scale);
   ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
@@ -205,6 +207,8 @@ export function addSvgClipPath(svgString, width, height, radius) {
   return svgString;
 }
 
+/* Get SVG Dimensions from SVG String
+------------------------------------------------------------------------------*/
 export function getSvgDimensions(svgString) {
   const dimensions = svgString.match(/<svg[^>]*\swidth="([^"]+)"[^>]*\sheight="([^"]+)"[^>]*>/);
   if (dimensions) {
