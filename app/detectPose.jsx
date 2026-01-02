@@ -15,18 +15,18 @@ import { uploadJsonToS3 } from '../utils/s3Utils';
 /* Detect Pose and Overlay SVGs
 ----------------------------------------------------------------------------------------------------
 This page uses TensorFlow.js to detect human poses from the webcam feed and uses detected pose
-landmarks to overlay SVGs sketched in the drawWeb page. It supports two view modes:
+landmarks as anchors to overlay SVGs body parts sketched in the drawWeb page. It supports two view 
+modes:
 
 - 'svg': Live animation mode where SVGs are animated in real-time based on detected poses.
 - 'pose': Pose recording mode where detected poses are recorded and can be replayed as an animation.
-
-
 --------------------------------------------------------------------------------------------------*/
 const DetectPose = () => {
-  const webcamRef = useRef(null);
-  const navigation = useNavigation();
-  const params = useLocalSearchParams();
-
+  const webcamRef = useRef(null); // Reference to the webcam component
+  const navigation = useNavigation(); // Navigation object for setting params
+  const params = useLocalSearchParams(); // Get URL params
+  
+  // Parse svgs and mapping from URL params
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};
   const mapping = params.mapping ? JSON.parse(params.mapping) : {};
 
@@ -34,19 +34,28 @@ const DetectPose = () => {
   const viewModeParam = Array.isArray(params.viewMode) ? params.viewMode[0] : params.viewMode;
   const viewMode = viewModeParam || 'svg';
   
-  const [isTfReady, setIsTfReady] = useState(false);
-  const [landmarks, setLandmarks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showWebcam, setShowWebcam] = useState(true);
-  const [isDetecting, setIsDetecting] = useState(false);
-  const [savedLandmarks, setSavedLandmarks] = useState([]);
-  const [exportLandmarks, setExportLandmarks] = useState([]);
+  /* State Variables for Pose Detection
+  ------------------------------------------------------------------------------------------------*/
+  const [isTfReady, setIsTfReady] = useState(false); // TensorFlow.js readiness (for pose detection)
+  const [loading, setLoading] = useState(true); // Loading state for pose model
+  const [landmarks, setLandmarks] = useState([]); // Current detected pose landmarks
+  const [isDetecting, setIsDetecting] = useState(false); // Are poses currently being detected
+  const [savedLandmarks, setSavedLandmarks] = useState([]); // Saved landmarks (for pose mode)
+
+  /* State Variables to Toggle Webcam and Pose Animation
+  ------------------------------------------------------------------------------------------------*/
+  const [showWebcam, setShowWebcam] = useState(true); 
+  const [showPoseAnimation, setShowPoseAnimation] = useState(false); 
   
-  // State to control viewing of saved landmarks after detection stops in pose mode
-  const [viewSavedLandmarks, setViewSavedLandmarks] = useState(false);
+  /* Ref to Track First Start of Detection
+  -  Pose animation displays after detection has stopped. Without this ref, the animation would show
+     immediately on first load since isDetecting is false initially.
+  -  After first start, the animation shows every time detection stops.
+  ------------------------------------------------------------------------------------------------*/
   const firstStartRef = useRef(true);
 
-  // Filter out low-confidence keypoints from savedLandmarks
+  /* Filter Saved Landmarks to Remove Low-Confidence Points ( < 0.3 )
+  ------------------------------------------------------------------------------------------------*/
   const filteredLandmarks = useMemo(() =>
     savedLandmarks.map(frame =>
       frame.map(point =>
@@ -55,52 +64,16 @@ const DetectPose = () => {
     ),
     [savedLandmarks]
   );
-  // Smooth savedLandmarks only for replay of recorded pose animation
+  
+  /* Smooth Saved Landmarks 
+  -  Apply moving average smoothing if showPoseAnimation is true
+  -  Reduces jitter and flickering in the replayed animation 
+  ------------------------------------------------------------------------------------------------*/
   const smoothedSavedLandmarks = useMemo(() => (
-    viewSavedLandmarks && filteredLandmarks.length > 0
+    showPoseAnimation && filteredLandmarks.length > 0
       ? smoothLandmarks(filteredLandmarks, 5)
       : filteredLandmarks
-  ), [viewSavedLandmarks, filteredLandmarks]);
-
-  /* Handle Export of Saved Landmarks to S3
-     - GEtting maximum update depth exceeded error when trying to upload
-     - not implemented yet
-  ------------------------------------------------------------------------------------------------*/
-  const handleExport = useCallback(async () => {
-    console.log('savedLandmarks:', savedLandmarks);
-    console.log('viewSavedLandmarks:', viewSavedLandmarks);
-    console.log('smoothedSavedLandmarks:', smoothedSavedLandmarks);
-    if (!smoothedSavedLandmarks || smoothedSavedLandmarks.length === 0) {
-      alert('No landmarks to export.');
-      return;
-    }
-    // Filter out frames with invalid keypoints
-    const filtered = smoothedSavedLandmarks
-      .filter(frame => Array.isArray(frame) && frame.length > 0)
-      .map(frame =>
-        frame.filter(
-          point =>
-            point &&
-            typeof point.x === 'number' &&
-            typeof point.y === 'number'
-        )
-      )
-      .filter(frame => frame.length > 0);
-
-    if (filtered.length === 0) {
-      alert('No valid landmarks to export.');
-      return;
-    }
-
-    const key = `pose-animation-${new Date().toISOString()}.json`;
-    try {
-      await uploadJsonToS3(key, filtered);
-      alert('Exported to S3 as ' + key);
-    } catch (err) {
-      console.error('Export error:', err); // Add this line
-      alert('Failed to export: ' + (err?.message || JSON.stringify(err)));
-    }
-  }, [savedLandmarks, viewSavedLandmarks, smoothedSavedLandmarks]);
+  ), [showPoseAnimation, filteredLandmarks]);
   
   /* Update isDetecting based on viewMode
   - pose mode: not detecting initially, detect when start button pressed
@@ -126,23 +99,21 @@ const DetectPose = () => {
       onDetectionStarted: () => {
         firstStartRef.current = false;
         setSavedLandmarks([]);
-        setViewSavedLandmarks(false);
+        setShowPoseAnimation(false);
         setIsDetecting(true);
       },
       onDetectionStopped: () => {
         setIsDetecting(false);
-        if (!firstStartRef.current) setViewSavedLandmarks(true);
+        if (!firstStartRef.current) setShowPoseAnimation(true);
       },
-      onExport: handleExport,
       viewMode,
-      viewSavedLandmarks,
+      showPoseAnimation,
     });
   }, [
     navigation,
     toggleWebcam,
     viewMode,
-    handleExport, 
-    viewSavedLandmarks,
+    showPoseAnimation,
   ]);
 
   
@@ -164,10 +135,10 @@ const DetectPose = () => {
   useEffect(() => {
     if (isDetecting) {
       setSavedLandmarks([]);
-      setViewSavedLandmarks(false);
+      setShowPoseAnimation(false);
       firstStartRef.current = false;
     } else if (!firstStartRef.current) {
-      setViewSavedLandmarks(true);
+      setShowPoseAnimation(true);
     }
   }, [isDetecting, viewMode]);
 
@@ -234,7 +205,7 @@ const DetectPose = () => {
   return (
      <ThemedView style={styles.container}>
       <div style={{ position: 'relative', width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}>
-        {(viewMode === 'svg' || viewSavedLandmarks) && (
+        {(viewMode === 'svg' || showPoseAnimation) && (
           <SvgCanvas
             width={CANVAS_WIDTH}
             height={CANVAS_HEIGHT}
@@ -243,7 +214,7 @@ const DetectPose = () => {
             landmarks={landmarks}
             savedLandmarks={smoothedSavedLandmarks}
             viewMode={viewMode}
-            replay={viewSavedLandmarks}
+            replay={showPoseAnimation}
             svgs={svgs}
             mapping={mapping}
             style={{
@@ -256,7 +227,7 @@ const DetectPose = () => {
             }}
           />
         )}
-        {(viewMode === 'svg' || (viewMode === 'pose' && !viewSavedLandmarks)) && (
+        {(viewMode === 'svg' || (viewMode === 'pose' && !showPoseAnimation)) && (
           <>
             <Webcam
               ref={webcamRef}

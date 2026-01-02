@@ -1,4 +1,4 @@
-import { StyleSheet, Button, Text, useColorScheme, TouchableOpacity } from 'react-native'
+import { StyleSheet, useColorScheme, TouchableOpacity } from 'react-native'
 import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native-web'
@@ -8,6 +8,8 @@ import DetectPoseButtons from '../components/controls/detectPoseButtons';
 import { FaHome } from 'react-icons/fa';
 import { ICON_SIZE } from '../constants/Sizes';
 
+/* Home Button in Header
+------------------------------------------------------------------------------*/
 const HomeButton = () => {
     const router = useRouter();
     const colorScheme = useColorScheme()
@@ -54,11 +56,10 @@ const RootLayout = () => {
                             <>
                                 <DetectPoseButtons
                                     viewMode={route.params?.viewMode}
-                                    viewSavedLandmarks={route.params?.viewSavedLandmarks}
+                                    showPoseAnimation={route.params?.showPoseAnimation}
                                     onToggleWebcam={route.params?.onToggleWebcam} 
                                     onDetectionStarted={route.params?.onDetectionStarted}
                                     onDetectionStopped={route.params?.onDetectionStopped}
-                                    onExport={route.params?.onExport}
                                 />
                                 <HomeButton />
                             </>

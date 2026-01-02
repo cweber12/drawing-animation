@@ -77,11 +77,13 @@ const DrawWeb = () => {
     /* Toggle display of sketch controls
     --------------------------------------------------------------------------*/
     const toggleBrushSizeSlider = useCallback(() => {
+        setShowColorPicker(false);
         setShowBrushSizeSlider(prev => !prev);
         
     }, []);
 
     const toggleColorPicker = useCallback(() => {
+        setShowBrushSizeSlider(false);
         setShowColorPicker(prev => !prev);
         
     }, []);
@@ -186,7 +188,6 @@ const DrawWeb = () => {
             {showBrushSizeSlider && (
                 <BrushSizeSlider 
                     style={styles.sketchControls} 
-                    onColorChange={setSelectedColor}
                     strokeWidth={strokeWidth}
                     onStrokeWidthChange={setStrokeWidth} 
                 />

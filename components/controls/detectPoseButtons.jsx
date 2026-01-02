@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { TouchableOpacity, useColorScheme } from 'react-native';
 import { Colors } from '../../constants/Colors';
-import { FaCamera, FaStopCircle, FaFileExport } from 'react-icons/fa';
+import { FaCamera, FaStopCircle } from 'react-icons/fa';
 import { BsRecordCircleFill } from "react-icons/bs";
 import { ICON_SIZE } from '../../constants/Sizes';
 
@@ -10,9 +10,8 @@ const DetectPoseButtons = ({
     onToggleWebcam, 
     onDetectionStarted, 
     onDetectionStopped, 
-    onExport,
     viewMode, 
-    viewSavedLandmarks,
+    showPoseAnimation,
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
@@ -41,14 +40,6 @@ const DetectPoseButtons = ({
                     >
                         <FaStopCircle size={ICON_SIZE} color={theme.button} />
                     </TouchableOpacity>
-                    {viewSavedLandmarks && (   
-                        <TouchableOpacity 
-                            style={styles.button} 
-                            onPress={onExport}
-                        >
-                            <FaFileExport size={ICON_SIZE} color={theme.button} />
-                        </TouchableOpacity>
-                    )}
                 </>
             )}
         </View>
