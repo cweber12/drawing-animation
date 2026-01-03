@@ -1,21 +1,21 @@
-import React from 'react';
-import { View, Button, TouchableOpacity, StyleSheet, Text, useColorScheme } from 'react-native';
+import { 
+  View, 
+  TouchableOpacity, 
+  StyleSheet, 
+  useColorScheme,
+} from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { 
   FaPaintBrush, 
   FaPalette,
-  FaSave, 
   FaTrashAlt, 
   FaRunning, 
   FaVideo
 } from 'react-icons/fa';
-import { ICON_SIZE } from '../../constants/Sizes';
-import { set } from 'lodash';
+import { getIconSize } from '../../constants/Sizes';
 
 const DrawWebHeaderButtons = ({ 
   onClear, 
-  onSave, 
-  onOpenCamera, 
   onShowBrushSizeSlider,
   onShowColorPicker,
   setPoseView,
@@ -27,50 +27,38 @@ const DrawWebHeaderButtons = ({
     return (
     <View style={styles.container}>    
       <TouchableOpacity 
-        style={styles.button}
         onPress={() => {
           setPoseView && setPoseView();
           //onOpenCamera && onOpenCamera();
         }}
       >
-        <FaRunning size={ICON_SIZE} color={theme.button} />
+        <FaRunning size={getIconSize()} color={theme.button} />
       </TouchableOpacity>
 
       <TouchableOpacity 
-        style={styles.button} 
         onPress={() => {
           setSvgView && setSvgView();
           //onOpenCamera && onOpenCamera();
         }}
       >
-        <FaVideo size={ICON_SIZE} color={theme.button} />
+        <FaVideo size={getIconSize()} color={theme.button} />
       </TouchableOpacity>
 
       <TouchableOpacity 
-        style={styles.button} 
         onPress={onClear}
       >
-        <FaTrashAlt size={ICON_SIZE} color={theme.button} />
+        <FaTrashAlt size={getIconSize()} color={theme.button} />
       </TouchableOpacity>
 
       <TouchableOpacity 
-        style={styles.button} 
-        onPress={onSave}
-      > 
-        <FaSave size={ICON_SIZE} color={theme.button} />
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={styles.button} 
         onPress={onShowBrushSizeSlider}
       >
-        <FaPaintBrush size={ICON_SIZE} color={theme.button}  />
+        <FaPaintBrush size={getIconSize()} color={theme.button}  />
       </TouchableOpacity>
       <TouchableOpacity 
-        style={styles.button} 
         onPress={onShowColorPicker}
       >
-        <FaPalette size={ICON_SIZE} color={theme.button}  />
+        <FaPalette size={getIconSize()} color={theme.button}  />
       </TouchableOpacity>
 
 
@@ -80,16 +68,16 @@ const DrawWebHeaderButtons = ({
 
 const styles = StyleSheet.create({
   container: {
+    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginRight: 8,
+    marginRight: 24,
+    gap: 24,
   },
 
   button: {
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 4,
     marginHorizontal: 2,
   },
 

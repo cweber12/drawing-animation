@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react';
-import { View, StyleSheet, Dimensions, useColorScheme, ScrollView } from 'react-native';
+import { View, StyleSheet, useWindowDimensions, useColorScheme, ScrollView } from 'react-native';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 import { useRouter, useNavigation } from 'expo-router';
 import { CANVAS_LANDMARK_MAP } from '../constants/LandmarkData';
@@ -8,30 +8,42 @@ import { Colors } from '../constants/Colors';
 import CanvasWrapper from '../components/themed_elements/ThemedCanvasWrapper';
 import BrushSizeSlider from '../components/controls/BrushSizeSlider';
 import ColorPicker from '../components/controls/ColorPicker';
-
-const { width, height } = Dimensions.get('window');
+import Head from '../components/canvas/body_parts/Head';
 
 const DrawWeb = () => {
-    // Navigation and routing
+    /* Navigation and routing for screen transitions
+    --------------------------------------------------------------------------*/
     const router = useRouter();
     const navigation = useNavigation();
+
+    const { width, height } = useWindowDimensions();
+    const isSmallScreen = width < 600;
     
-    // Theme colora
+    /* Theme and color scheme
+    --------------------------------------------------------------------------*/
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-    const boxShadowColor = `${theme.boxShadowColor} 0px 0px 6px -1px, ${theme.boxShadowColor} 0px 0px 4px -1px`;
+    const boxShadowColor = `${theme.boxShadowColor} 0px 0px 6px -1px, 
+                            ${theme.boxShadowColor} 0px 0px 4px -1px`;
     
-    // State variables
+    /* State variables brush size and color settings
+    --------------------------------------------------------------------------*/
     const [selectedColor, setSelectedColor] = useState(theme.svgStrokeColor);
     const [strokeWidth, setStrokeWidth] = useState(2);
     const [showBrushSizeSlider, setShowBrushSizeSlider] = useState(false);
     const [showColorPicker, setShowColorPicker] = useState(false);
+    
+    /* Other state variables
+    - bodySvgs: holds the saved SVGs for each body part
+    - viewMode: 'pose' or 'svg' for detectPose display mode
+    --------------------------------------------------------------------------*/
     const [bodySvgs, setBodySvgs] = useState({});
     const [viewMode, setViewMode] = useState(null);
     
-    // Refs for all canvases
+    /* Refs for each body part canvas
+    --------------------------------------------------------------------------*/
     const bodySvgsRef = useRef({}); // Holds all saved svgs
-    const headRef = useRef(null);
+    //const headRef = useRef(null);
     const torsoRef = useRef(null);
     const rightUpperArmRef = useRef(null);
     const rightLowerArmRef = useRef(null);
@@ -47,16 +59,15 @@ const DrawWeb = () => {
     const leftFootRef = useRef(null);
 
     /* Body part dimensions based on overall canvas width
-    https://www.researchgate.net/figure/Dimensions-of-average-male-human-being-23_fig1_283532449
     --------------------------------------------------------------------------*/
-    const torsoWidth = width * 0.075;
+    const torsoWidth = isSmallScreen ? width * 0.35 : width * 0.075;
     const torsoHeight = torsoWidth * 1.5;
     const legWidth = (torsoWidth * 0.5) - 1;
-    const legHeight = torsoHeight * 0.76;
+    const legHeight = torsoHeight * 0.75;
     const armWidth = torsoWidth * 0.9;
     const forearmWidth = armWidth * 0.9;
-    const armHeight = (torsoHeight * 0.35) - 1;
-    const handHeight = armHeight * 1.5;
+    const armHeight = (torsoHeight * 0.4) - 1;
+    const handHeight = armHeight;
     const handWidth = armWidth;
     const handOffsetY = armHeight * 0.3;
     const headHeight = torsoHeight * 0.8;
@@ -88,7 +99,7 @@ const DrawWeb = () => {
         
     }, []);
 
-    /* Clear all canvases
+    /* Clear all canvases (reset) 
     --------------------------------------------------------------------------*/
     const clearAll = useCallback(() => {
         headRef.current?.clearCanvas();
@@ -173,15 +184,14 @@ const DrawWeb = () => {
     useEffect(() => {
         navigation.setParams({
             onClear: clearAll,
-            onSave: saveAll,
-            //onOpenCamera: () => goToDetectPose(viewMode),
             onShowBrushSizeSlider: toggleBrushSizeSlider,
             onShowColorPicker: toggleColorPicker,
             setPoseView: () => goToDetectPose('pose'),
             setSvgView: () => goToDetectPose('svg'),
         });
-    }, [navigation, clearAll, saveAll, goToDetectPose, toggleBrushSizeSlider, viewMode]);
-    /* Render component
+    }, [navigation, clearAll, goToDetectPose, toggleBrushSizeSlider, viewMode]);
+    
+    /* Render page
     --------------------------------------------------------------------------*/
     return (       
         <View style={styles.mainContainer}>
@@ -200,58 +210,59 @@ const DrawWeb = () => {
                 />
             )}
             <ThemedView style={styles.container}>
-                {/* Head */}
-                <CanvasWrapper 
-                    style={[
-                        styles.canvasWrapper, 
-                        styles.head, 
-                        { width: headWidth, height: headHeight, boxShadow: boxShadowColor }
-                    ]}>
-                    <ReactSketchCanvas
-                    ref={headRef}
-                    style={styles.canvas}
-                    width={headWidth}
-                    height={headHeight}
-                    {...canvasProps}
-                    />
-                </CanvasWrapper>
+                
+                <Head 
+                 canvasProps={canvasProps} 
+                /> 
+                
                 {/* Arms and Torso */}
                 <View style={styles.armTorsoRow}>
                     {/* Left Arm (upper + lower) */}
-                    <View style={styles.armRow}>
+                    <View style={isSmallScreen ? styles.armColumn : styles.armRow}>
                         <CanvasWrapper 
-                        style={[
-                            styles.canvasWrapper, 
-                            styles.hand,
-                            { 
-                                width: handWidth, 
-                                height: handHeight, 
-                                marginTop: -handOffsetY, 
-                                boxShadow: boxShadowColor,
-                            }
-                        ]}>
-                            <ReactSketchCanvas
-                                ref={rightHandRef}
-                                style={styles.canvas}
-                                width={handWidth}
-                                height={handHeight}
-                                {...canvasProps}
-                            />
+                            style={[
+                                styles.canvasWrapper, 
+                                styles.hand,
+                                { 
+                                    width: isSmallScreen ? armHeight : handWidth, 
+                                    height: isSmallScreen ? armWidth : handHeight, 
+                                    marginTop: isSmallScreen ? null : -handOffsetY, 
+                                    boxShadow: boxShadowColor,
+                                }
+                            ]}>
+                            {isSmallScreen ? (
+                                <ReactSketchCanvas
+                                    ref={rightUpperArmRef}
+                                    style={styles.canvas}
+                                    width={armHeight}
+                                    height={armWidth}
+                                    {...canvasProps}
+                                />
+                            ) : (
+                                
+                                <ReactSketchCanvas
+                                    ref={rightHandRef}
+                                    style={styles.canvas}
+                                    width={handWidth}
+                                    height={handHeight}
+                                    {...canvasProps}
+                                />
+                            )}
                         </CanvasWrapper>
                         <CanvasWrapper 
                             style={[
                                 styles.canvasWrapper, 
                                 { 
-                                    width: armWidth, 
-                                    height: armHeight,
+                                    width: isSmallScreen ? armHeight : armWidth, 
+                                    height: isSmallScreen ? forearmWidth : armHeight,
                                     boxShadow: boxShadowColor
                                 }
                             ]}>
                             <ReactSketchCanvas
                                 ref={rightLowerArmRef}
                                 style={styles.canvas}
-                                width={forearmWidth}
-                                height={armHeight}
+                                width={isSmallScreen ? armHeight : forearmWidth}
+                                height={isSmallScreen ? forearmWidth : armHeight}
                                 {...canvasProps}
                             />
                         </CanvasWrapper>
@@ -259,20 +270,31 @@ const DrawWeb = () => {
                             style={[
                                 styles.canvasWrapper, 
                                 { 
-                                    width: armWidth, 
-                                    height: armHeight, 
+                                    width: isSmallScreen ? handHeight : armWidth, 
+                                    height: isSmallScreen ? handWidth : armHeight, 
                                     boxShadow: boxShadowColor
                                 }
                             ]}>
-                            <ReactSketchCanvas
-                                ref={rightUpperArmRef}
-                                style={styles.canvas}
-                                width={armWidth}
-                                height={armHeight}
-                                {...canvasProps}
-                            />
+                            {isSmallScreen ? (
+                                <ReactSketchCanvas
+                                    ref={rightHandRef}
+                                    style={styles.canvas}
+                                    width={handHeight}
+                                    height={handWidth}
+                                    {...canvasProps}
+                                />
+                            ) : (
+                                <ReactSketchCanvas
+                                    ref={rightUpperArmRef}
+                                    style={styles.canvas}
+                                    width={armWidth}
+                                    height={armHeight}
+                                    {...canvasProps}
+                                />
+                            )}
                         </CanvasWrapper>
                     </View>
+                    {/* Torso and Legs */}
                     <View style={styles.legColumn}>
                         {/* Torso */}
                         <CanvasWrapper 
@@ -372,33 +394,36 @@ const DrawWeb = () => {
                         </View>
                     </View>
                     {/* Left Arm (upper + lower) */}
-                    <View style={styles.armRow}>
+                    <View style={isSmallScreen ? styles.armColumn : styles.armRow}>
                         <CanvasWrapper 
                             style={[
                                 styles.canvasWrapper, 
                                 { 
-                                    width: armWidth, 
-                                    height: armHeight, 
+                                    width: isSmallScreen ? armHeight : armWidth, 
+                                    height: isSmallScreen ? armWidth : armHeight, 
                                     boxShadow: boxShadowColor 
                                 }
                             ]}>
                             <ReactSketchCanvas
                                 ref={leftUpperArmRef}
                                 style={{ backgroundColor: 'transparent' }}
-                                width={armWidth}
-                                height={armHeight}
+                                width={isSmallScreen ? armHeight : armWidth}
+                                height={isSmallScreen ? armWidth : armHeight}
                                 {...canvasProps}
                             />
                         </CanvasWrapper>
                         <CanvasWrapper 
                             style={[
                                 styles.canvasWrapper, 
-                                { width: armWidth, height: armHeight, boxShadow: boxShadowColor }
+                                { 
+                                    width: isSmallScreen ? armHeight : armWidth, 
+                                    height: isSmallScreen ? forearmWidth : armHeight, 
+                                    boxShadow: boxShadowColor }
                             ]}>
                             <ReactSketchCanvas
                                 ref={leftLowerArmRef}
                                 style={styles.canvas}
-                                width={forearmWidth}
+                                width={isSmallScreen ? forearmWidth : armHeight}
                                 height={armHeight}
                                 {...canvasProps}
                             />
@@ -408,17 +433,17 @@ const DrawWeb = () => {
                                 styles.canvasWrapper, 
                                 styles.hand,
                                 { 
-                                    width: handWidth, 
-                                    height: handHeight, 
-                                    marginTop: -handOffsetY, 
+                                    width: isSmallScreen ? handHeight : handWidth, 
+                                    height: isSmallScreen ? handWidth : handHeight, 
+                                    marginTop: isSmallScreen ? 0 : -handOffsetY, 
                                     boxShadow: boxShadowColor 
                                 }
                             ]}>
                             <ReactSketchCanvas
                                 ref={leftHandRef}
                                 style={styles.canvas}
-                                width={handWidth}
-                                height={handHeight}
+                                width={isSmallScreen ? handHeight : handWidth}
+                                height={isSmallScreen ? handWidth : handHeight}
                                 {...canvasProps}
                             />
                         </CanvasWrapper>
@@ -532,6 +557,13 @@ const styles = StyleSheet.create({
     armRow: {
         flexDirection: 'row',
         alignItems: 'flex-start',
+        justifyContent: 'center',
+        gap: 2, 
+    },
+    
+    armColumn: {
+        flexDirection: 'column',
+        alignItems: 'center',
         justifyContent: 'center',
         gap: 2, 
     },

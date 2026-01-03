@@ -1,4 +1,4 @@
-import { StyleSheet, useColorScheme, TouchableOpacity } from 'react-native'
+import { StyleSheet, useColorScheme, TouchableOpacity, useWindowDimensions } from 'react-native'
 import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native-web'
@@ -6,7 +6,7 @@ import { Colors } from '../constants/Colors'
 import DrawWebHeaderButtons from '../components/controls/DrawWebHeaderButtons';
 import DetectPoseButtons from '../components/controls/detectPoseButtons';
 import { FaHome } from 'react-icons/fa';
-import { ICON_SIZE } from '../constants/Sizes';
+import { getIconSize } from '../constants/Sizes';
 
 /* Home Button in Header
 ------------------------------------------------------------------------------*/
@@ -18,32 +18,37 @@ const HomeButton = () => {
     return (
         <View style={{ marginRight: 24, flexShrink: 0 }}>
             <TouchableOpacity 
-                style={styles.button} 
                 onPress={() => router.replace('/')}
             >
-                <FaHome size={ICON_SIZE} color={theme.button} />
+                <FaHome size={getIconSize()} color={theme.button} />
             </TouchableOpacity>
         </View>
     );
 };
 
 const RootLayout = () => {
+    // Get current color scheme and theme
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
+    
+    // Responsive layout based on screen width
+    const { width } = useWindowDimensions();
+    const isSmallScreen = width < 600;
     return (
         <>
             <StatusBar style="auto"/>
             <Stack screenOptions={{ 
-                headerTitleAlign: 'center',
+                headerTitleAlign: isSmallScreen ? 'left' : 'center',
                 headerStyle: { 
                     backgroundColor: theme.navBackground, 
                         borderBottomWidth: 0,
                         elevation: 0, // remove shadow on Android
                         shadowOpacity: 0, // remove shadow on iOS
+                        paddingVertical: isSmallScreen ? 6 : 16,
                 },
                 headerTintColor: theme.title,
                 headerTitleStyle: {
-                    fontSize: 32, 
+                    fontSize: isSmallScreen ? 20 : 32, 
                     fontWeight: 'bold', 
                 },
                 }}>
@@ -74,7 +79,6 @@ const RootLayout = () => {
                             <>
                                 <DrawWebHeaderButtons
                                     onClear={route.params?.onClear}
-                                    onSave={route.params?.onSave}
                                     onOpenCamera={route.params?.onOpenCamera}
                                     onShowBrushSizeSlider={route.params?.onShowBrushSizeSlider}
                                     onShowColorPicker={route.params?.onShowColorPicker}
@@ -108,8 +112,8 @@ const styles = StyleSheet.create({
         marginHorizontal: 2,
     },
 
-  buttonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+    buttonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
 })

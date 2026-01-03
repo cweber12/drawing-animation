@@ -6,11 +6,10 @@ import * as poseDetection from '@tensorflow-models/pose-detection';
 import SvgCanvas from '../components/canvas/SvgCanvas';
 import PoseCanvas from '../components/canvas/PoseCanvas';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions } from 'react-native';
 import ThemedView from '../components/themed_elements/ThemedView';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, WEBCAM_WIDTH, WEBCAM_HEIGHT } from '../constants/Sizes';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, getWebcamDimensions } from '../constants/Sizes';
 import { smoothLandmarks } from '../utils/poseUtils';
-import { uploadJsonToS3 } from '../utils/s3Utils';
 
 /* Detect Pose and Overlay SVGs
 ----------------------------------------------------------------------------------------------------
@@ -25,6 +24,12 @@ const DetectPose = () => {
   const webcamRef = useRef(null); // Reference to the webcam component
   const navigation = useNavigation(); // Navigation object for setting params
   const params = useLocalSearchParams(); // Get URL params
+
+  const { width, height } = useWindowDimensions();
+  const isSmallScreen = width < 600;
+
+  const { width: WEBCAM_WIDTH, height: WEBCAM_HEIGHT } = getWebcamDimensions();
+
   
   // Parse svgs and mapping from URL params
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};

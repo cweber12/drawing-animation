@@ -1,4 +1,6 @@
-import { CANVAS_BORDER_RADIUS } from '../constants/Sizes';
+import { CANVAS_BORDER_RADIUS, isSmallScreen } from '../constants/Sizes';
+
+
 /* Compute affine transform from 3 source points to 3 destination points
 ------------------------------------------------------------------------------*/
 export function affineFrom3Points(src0, src1, src2, dst0, dst1, dst2) {
@@ -110,7 +112,7 @@ export function drawHorizontalSegmentSvg(ctx, img, from, to, part) {
     const dy = toOffset.y - fromOffset.y;
     const angle = Math.atan2(dy, dx);
     const length = Math.hypot(dx, dy);
-    const scaleX = length / Math.max(1, svgW);
+    const scaleX = length / Math.max(1, svgH);
 
     ctx.save(); 
     ctx.translate(fromOffset.x, fromOffset.y);

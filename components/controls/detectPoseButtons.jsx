@@ -4,7 +4,7 @@ import { TouchableOpacity, useColorScheme } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { FaCamera, FaStopCircle } from 'react-icons/fa';
 import { BsRecordCircleFill } from "react-icons/bs";
-import { ICON_SIZE } from '../../constants/Sizes';
+import { getIconSize } from '../../constants/Sizes';
 
 const DetectPoseButtons = ({ 
     onToggleWebcam, 
@@ -24,7 +24,7 @@ const DetectPoseButtons = ({
                 style={styles.button} 
                 onPress={onToggleWebcam}
             >
-                <FaCamera size={ICON_SIZE} color={theme.button} />
+                <FaCamera size={getIconSize()} color={theme.button} />
             </TouchableOpacity>
             {viewMode === 'pose' && (
                 <>
@@ -32,13 +32,13 @@ const DetectPoseButtons = ({
                         style={styles.button} 
                         onPress={onDetectionStarted}
                     >
-                        <BsRecordCircleFill size={ICON_SIZE} color={theme.button} />
+                        <BsRecordCircleFill size={getIconSize()} color={theme.button} />
                     </TouchableOpacity>
                     <TouchableOpacity 
                         style={styles.button} 
                         onPress={onDetectionStopped}
                     >
-                        <FaStopCircle size={ICON_SIZE} color={theme.button} />
+                        <FaStopCircle size={getIconSize()} color={theme.button} />
                     </TouchableOpacity>
                 </>
             )}
