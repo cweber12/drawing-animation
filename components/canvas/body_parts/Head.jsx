@@ -4,16 +4,11 @@ import { ReactSketchCanvas } from 'react-sketch-canvas';
 import { SCREEN_WIDTH, CANVAS_BORDER_RADIUS } from '../../../constants/Sizes';
 import CanvasWrapper from '../../themed_elements/ThemedCanvasWrapper';
 import { Colors } from '../../../constants/Colors';
+import { HEAD_SIZE } from '../../../constants/Sizes';
 
 /* Component for the head drawing canvas
 ------------------------------------------------------------------------------*/
-const Head = ( canvasProps) => {   
-    // Ref for the head canvas
-    const headRef = useRef(null);
-
-    // Determine canvas dimensions based on screen size
-    const smallScreenDimensions = SCREEN_WIDTH * 0.25
-    const largeScreenDimensions = SCREEN_WIDTH * 0.15
+const Head = ( { canvasProps, headRef } ) => {   
 
     // Get current theme colors
     const colorScheme = useColorScheme();
@@ -27,29 +22,24 @@ const Head = ( canvasProps) => {
                 styles.canvasWrapper, 
                 styles.head, 
                 { 
-                    width: SCREEN_WIDTH < 600 ? 
-                        smallScreenDimensions : largeScreenDimensions, 
-                    height: SCREEN_WIDTH < 600 ? 
-                        smallScreenDimensions : largeScreenDimensions, 
+                    width: HEAD_SIZE,
+                    height: HEAD_SIZE,
                     boxShadow: boxShadowColor,
-                    borderRadius: CANVAS_BORDER_RADIUS, 
                 }
             ]}>
 
             <ReactSketchCanvas
             ref={headRef}
             style={styles.canvas}
-            width={SCREEN_WIDTH < 600 ? 
-                smallScreenDimensions : largeScreenDimensions}
-            height={SCREEN_WIDTH < 600 ? 
-                smallScreenDimensions : largeScreenDimensions}
+            width={HEAD_SIZE}
+            height={HEAD_SIZE}w
             {...canvasProps}
             />
         </CanvasWrapper>
     )
 }
 
-export default Head
+export default Head 
 
 const styles = StyleSheet.create({
     canvasWrapper: {
@@ -61,9 +51,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
         width: '100%',
         height: '100%',
-    },
-    head: {
-        borderRadius: 50,
     },
 
 })

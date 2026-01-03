@@ -24,3 +24,33 @@ export function getWebcamDimensions() {
 
 export const isSmallScreen = width < 600;
 
+/* Body Part Dimensions
+------------------------------------------------------------------------------*/
+export const TORSO_WIDTH = isSmallScreen ? 
+    SCREEN_WIDTH * 0.45 : 
+    SCREEN_WIDTH * 0.1;
+
+export const TORSO_HEIGHT = SCREEN_HEIGHT * 0.25;
+
+export const HEAD_SIZE = TORSO_WIDTH; 
+
+export const ARM_LENGTH = TORSO_HEIGHT * 0.65;
+
+
+export const ARM_WIDTH = TORSO_WIDTH * 0.5; 
+
+export const LEG_LENGTH = TORSO_HEIGHT * 0.65;
+
+
+export const LEG_WIDTH = (TORSO_WIDTH * 0.5) - 1; 
+
+
+export const HAND_LENGTH = isSmallScreen ? 
+    ARM_LENGTH * 0.6 : 
+    ARM_LENGTH * 0.6;
+
+export const HAND_WIDTH = ARM_WIDTH; 
+
+export const FOOT_LENGTH = LEG_WIDTH * 2;
+
+export const FOOT_WIDTH = LEG_LENGTH * 0.5;
