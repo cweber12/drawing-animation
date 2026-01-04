@@ -44,7 +44,6 @@ const RootLayout = () => {
                         borderBottomWidth: 0,
                         elevation: 0, // remove shadow on Android
                         shadowOpacity: 0, // remove shadow on iOS
-                        paddingVertical: isSmallScreen ? 6 : 16,
                 },
                 headerTintColor: theme.title,
                 headerTitleStyle: {
@@ -85,6 +84,7 @@ const RootLayout = () => {
                                     onShowColorPicker={route.params?.onShowColorPicker}
                                     setPoseView={route.params?.setPoseView}
                                     setSvgView={route.params?.setSvgView}
+                                    onPickVideo={route.params?.onPickVideo}
                                 />
                                 <HomeButton />
                             </>

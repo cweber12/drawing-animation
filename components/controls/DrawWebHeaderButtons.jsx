@@ -10,8 +10,10 @@ import {
   FaPalette,
   FaTrashAlt, 
   FaRunning, 
-  FaVideo
+  FaVideo,
+  FaFileVideo
 } from 'react-icons/fa';
+import { RiWebcamFill } from "react-icons/ri";
 import { getIconSize } from '../../constants/Sizes';
 
 const DrawWebHeaderButtons = ({ 
@@ -20,12 +22,20 @@ const DrawWebHeaderButtons = ({
   onShowColorPicker,
   setPoseView,
   setSvgView,
+  onPickVideo,
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
   
     return (
     <View style={styles.container}>    
+      <TouchableOpacity  
+        onPress={() => {
+          onPickVideo && onPickVideo();
+        }}>
+        <FaFileVideo size={getIconSize()} color={theme.button} />
+      </TouchableOpacity>
+      
       <TouchableOpacity 
         onPress={() => {
           setPoseView && setPoseView();
@@ -41,7 +51,7 @@ const DrawWebHeaderButtons = ({
           //onOpenCamera && onOpenCamera();
         }}
       >
-        <FaVideo size={getIconSize()} color={theme.button} />
+        <RiWebcamFill size={getIconSize()} color={theme.button} />
       </TouchableOpacity>
 
       <TouchableOpacity 

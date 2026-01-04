@@ -5,6 +5,7 @@ import {
     useWindowDimensions, 
     useColorScheme
 } from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
 import { useRouter, useNavigation } from 'expo-router';
 import { CANVAS_LANDMARK_MAP, getCanvasLandmarkMap } from '../constants/LandmarkData';
 import ThemedView from '../components/themed_elements/ThemedView';
@@ -45,6 +46,7 @@ const SketchPage = () => {
     /* View mode state to pass current viewMode to header buttons
     --------------------------------------------------------------------------*/
     const [viewMode, setViewMode] = useState('svg'); // 'svg' or 'pose'
+    const [poseVideoUri, setPoseVideoUri] = useState(null);
     
     /* Refs for each body part canvas
     --------------------------------------------------------------------------*/
@@ -152,9 +154,20 @@ const SketchPage = () => {
         }
     }, []);
 
+    const handlePickVideo = async () => {
+        const result = await DocumentPicker.getDocumentAsync({
+            type: 'video/*',
+        });
+        if (!result.canceled) {
+            console.log('Picked video:', result);
+            goToDetectPose('pose', result.assets[0].uri);    
+        }
+    };
+
     /* Navigate to Detect Pose screen with SVGs
     --------------------------------------------------------------------------*/
-    const goToDetectPose = useCallback(async (mode) => {
+    const goToDetectPose = useCallback(async (mode, poseVideoUri) => {
+        console.log('videoUri param:', poseVideoUri);
         const svgsToSend =
             Object.keys(bodySvgsRef.current || {}).length > 0
             ? bodySvgsRef.current
@@ -168,10 +181,11 @@ const SketchPage = () => {
                 svgs: JSON.stringify(svgsToSend),
                 mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
                 viewMode: mode,
+                videoUri: poseVideoUri,
                 armOrientation: isSmallScreen ? 'vertical' : 'horizontal',
             },
         });
-    }, [router, saveAll, isSmallScreen]);
+    }, [router, saveAll, isSmallScreen, poseVideoUri]);
     /* Set navigation params for header buttons
     --------------------------------------------------------------------------*/
     useEffect(() => {
@@ -179,8 +193,9 @@ const SketchPage = () => {
             onClear: clearAll,
             onShowBrushSizeSlider: toggleBrushSizeSlider,
             onShowColorPicker: toggleColorPicker,
-            setPoseView: () => goToDetectPose('pose'),
-            setSvgView: () => goToDetectPose('svg'),
+            setPoseView: () => goToDetectPose('pose', null),
+            setSvgView: () => goToDetectPose('svg', null),
+            onPickVideo: handlePickVideo,
             viewMode: viewMode,
         });
     }, [

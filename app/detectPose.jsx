@@ -23,7 +23,8 @@ import { smoothLandmarks } from '../utils/poseUtils';
 
 const DetectPose = () => {
   
-  const webcamRef = useRef(null); 
+  const webcamRef = useRef(null);
+  const videoRef = useRef(null); 
   const navigation = useNavigation(); 
   const params = useLocalSearchParams(); 
 
@@ -41,6 +42,7 @@ const DetectPose = () => {
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};
   const mapping = params.mapping ? JSON.parse(params.mapping) : {};
   const armOrientation = params.armOrientation || (isSmallScreen ? 'vertical' : 'horizontal');
+  const videoUri = params.videoUri || null;
 
   /* Normalize viewMode param so it is always a string (works with web and native)
   ------------------------------------------------------------------------------------------------*/
@@ -58,7 +60,8 @@ const DetectPose = () => {
   /* State Variables to Toggle Webcam and Pose Animation
   ------------------------------------------------------------------------------------------------*/
   const [showWebcam, setShowWebcam] = useState(true); 
-  const [showPoseAnimation, setShowPoseAnimation] = useState(false); 
+  const [showPoseAnimation, setShowPoseAnimation] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
   
   /* Ref to Track First Start of Detection
   --------------------------------------------------------------------------------------------------
@@ -184,7 +187,7 @@ const DetectPose = () => {
 
       const detect = async () => {
         if (cancelled) return;
-        const video = webcamRef.current?.video; // get video element from webcam ref
+        const video = videoUri ? videoRef.current : webcamRef.current?.video;
         if (!video || video.readyState !== 4) { // video not ready
           requestAnimationFrame(detect);
           return;
@@ -261,23 +264,42 @@ const DetectPose = () => {
         )}
         {(viewMode === 'svg' || (viewMode === 'pose' && !showPoseAnimation)) && (
           <>
-            <Webcam
-              ref={webcamRef}
-              style={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                zIndex: 2,
-                visibility: showWebcam ? 'visible' : 'hidden',
-                width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
-                height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
-              }}
-              videoConstraints={{
-                width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
-                height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
-                facingMode: 'user',
-              }}
-            />
+            {videoUri ? (
+              <video
+                ref={videoRef}
+                src={videoUri}
+                controls
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  zIndex: 2,
+                  width: CANVAS_WIDTH,
+                  height: CANVAS_HEIGHT,
+                  background: '#000',
+                  objectFit: 'cover',
+                }}
+                onLoadedMetadata={() => videoRef.current && videoRef.current.play()}
+              />
+            ) : (
+              <Webcam
+                ref={webcamRef}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  zIndex: 2,
+                  visibility: showWebcam ? 'visible' : 'hidden',
+                  width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
+                  height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
+                }}
+                videoConstraints={{
+                  width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
+                  height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
+                  facingMode: 'user',
+                }}
+              />
+            )}
 
             <PoseCanvas
               width={viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth}

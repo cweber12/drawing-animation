@@ -158,14 +158,38 @@ export function drawLegSvg(ctx, img, from, to, part) {
 
 /* Draw foot SVG rotated to align with segment
 ------------------------------------------------------------------------------*/
-export function drawFootSvg(ctx, img, from, to) {
-  const { w: svgW, h: svgH } = getSvgSize(img);
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const angle = Math.atan2(dy, dx);
-  ctx.save();
-  ctx.translate(from.x, from.y);
-  ctx.rotate(angle);
-  ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
-  ctx.restore();
+export function drawFootSvg(ctx, img, from, to, part) {
+    const { w: svgW, h: svgH } = getSvgSize(img);
+    let fromAdjusted, toAdjusted;
+    if (part === 'leftFoot') {
+        fromAdjusted = {
+            x: from.x - svgW / 2, 
+            y: from.y,
+        };
+        toAdjusted = {
+            x: to.x - svgW / 2,  
+            y: to.y, 
+        };
+    } else  {
+        fromAdjusted = {
+            x: from.x + svgW / 2,
+            y: from.y,
+        };
+        toAdjusted = {
+            x: to.x + svgW / 2,  
+            y: to.y, 
+        };
+    }
+    const dx =  toAdjusted.x - fromAdjusted.x;
+    const dy = toAdjusted.y - fromAdjusted.y;
+    const angle = Math.atan2(dy, dx);
+    ctx.save();
+    ctx.translate(fromAdjusted.x, fromAdjusted.y);
+    ctx.rotate(angle);
+    if (part === 'leftFoot') {
+        ctx.drawImage(img, 0, -svgH / 2, svgW, svgH);
+    } else {
+        ctx.drawImage(img, -svgW, -svgH / 2, svgW, svgH);
+    }
+    ctx.restore();
 }

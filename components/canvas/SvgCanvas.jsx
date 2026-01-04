@@ -355,7 +355,7 @@ const SvgCanvas = ({
             if (map.center === undefined) continue;
             const center = scaledLandmarks[map.center];
             if (!center || center.score < 0.3) continue;  
-            drawFootSvg(ctx, img, center, { x: center.x + 1, y: center.y }); 
+            drawFootSvg(ctx, img, center, { x: center.x + 1, y: center.y }, part); 
         }
     }
 
