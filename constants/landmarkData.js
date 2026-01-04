@@ -40,8 +40,6 @@ export const CONNECTED_KEYPOINTS = [
 
 /* Mapping of body parts to landmark indices for canvas rendering
 ------------------------------------------------------------------------------*/
-
-
 export const CANVAS_LANDMARK_MAP = {
 
     rightUpperArm: { 

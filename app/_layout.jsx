@@ -72,12 +72,13 @@ const RootLayout = () => {
                     })}
                 />  
                 <Stack.Screen
-                    name="drawWeb"
+                    name="sketchPage"
                     options={({ route }) => ({
                         title: 'Sketch',
                         headerRight: () => (
                             <>
                                 <DrawWebHeaderButtons
+                                    viewMode={route.params?.viewMode}
                                     onClear={route.params?.onClear}
                                     onOpenCamera={route.params?.onOpenCamera}
                                     onShowBrushSizeSlider={route.params?.onShowBrushSizeSlider}
@@ -89,13 +90,6 @@ const RootLayout = () => {
                             </>
                         ),
                     })}
-                />
-                <Stack.Screen
-                    name="savedSketches"
-                    options={{ 
-                        title: 'Saved Sketches', 
-                        headerRight: () => <HomeButton />, 
-                    }}
                 />
             </Stack>
         </>

@@ -20,7 +20,7 @@ import Feet from '../components/canvas/body_parts/Feet';
 import { getSvgSizes } from '../constants/Sizes';
 import { get } from 'lodash';
 
-const DrawWeb = () => {
+const SketchPage = () => {
     /* Navigation and routing for screen transitions
     --------------------------------------------------------------------------*/
     const router = useRouter();
@@ -41,6 +41,10 @@ const DrawWeb = () => {
     const [strokeWidth, setStrokeWidth] = useState(2);
     const [showBrushSizeSlider, setShowBrushSizeSlider] = useState(false);
     const [showColorPicker, setShowColorPicker] = useState(false);
+
+    /* View mode state to pass current viewMode to header buttons
+    --------------------------------------------------------------------------*/
+    const [viewMode, setViewMode] = useState('svg'); // 'svg' or 'pose'
     
     /* Refs for each body part canvas
     --------------------------------------------------------------------------*/
@@ -141,7 +145,6 @@ const DrawWeb = () => {
 
             // Update state and ref
             bodySvgsRef.current = svgs;
-            setBodySvgs(svgs);
             return svgs;
         } catch (e) {
             console.error('Error saving SVGs:', e);
@@ -178,8 +181,17 @@ const DrawWeb = () => {
             onShowColorPicker: toggleColorPicker,
             setPoseView: () => goToDetectPose('pose'),
             setSvgView: () => goToDetectPose('svg'),
+            viewMode: viewMode,
         });
-    }, [navigation, clearAll, goToDetectPose, toggleBrushSizeSlider]);
+    }, [
+            navigation, 
+            clearAll, 
+            goToDetectPose, 
+            toggleBrushSizeSlider, 
+            toggleColorPicker, 
+            viewMode
+        ]
+);
     
     /* Render page
     --------------------------------------------------------------------------*/
@@ -265,7 +277,7 @@ const DrawWeb = () => {
     );
 };
 
-export default DrawWeb;
+export default SketchPage;
 
 const styles = StyleSheet.create({
     mainContainer: {

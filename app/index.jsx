@@ -12,7 +12,7 @@ const Home = () => {
     return (
         <ThemedView style={styles.container}>
             <Link 
-                href="/drawWeb" 
+                href="/sketchPage" 
                 style={[styles.link, { backgroundColor: theme.button, color: theme.buttonText }]}
             >
                 Draw
