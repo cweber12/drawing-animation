@@ -1,3 +1,9 @@
+/* SvgCanvas.jsx
+  ----------------------------------------------------------------------------
+  Renders a canvas overlay that draws pose landmarks and SVG body parts
+  based on provided landmarks and SVG strings.
+  ----------------------------------------------------------------------------
+*/
 import React, { useRef, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { Colors } from '../../constants/Colors';
@@ -7,19 +13,19 @@ import {
   affineFrom3Points,
   svgStringToImage,
   getSvgSize,
+  addSvgClipPath,
+  getSvgDimensions,
+} from '../../utils/svgUtils';
+import {
   drawHeadSvg,
   drawHorizontalSegmentSvg,
+  drawVerticalSegmentSvg,
   drawLeftHandSvg,
   drawRightHandSvg,
   drawLegSvg,
   drawFootSvg,
-  addSvgClipPath,
-  getSvgDimensions,
-} from '../../utils/svgUtils';
-import { smoothLandmarks } from '../../utils/poseUtils';
+} from '../../utils/drawingUtils';
 
-/* SvgCanvas: Draw pose and SVG overlays, animate using savedLandmarks in pose mode
-------------------------------------------------------------------------------*/
 const SvgCanvas = ({ 
   width, 
   height, 
@@ -27,13 +33,13 @@ const SvgCanvas = ({
   webcamHeight,
   landmarks, 
   savedLandmarks = [],
-  viewMode,
   replay, 
   svgs = {}, 
   mapping = {}, 
+  armOrientation,
   style
 }) => {
-  
+
   // Refs for canvas and cached images
   const canvasRef = useRef(null);
   const imagesRef = useRef({});
@@ -263,16 +269,28 @@ const SvgCanvas = ({
             continue;
         }
 
-        /* ARMS 
+        /* ARMS
         ----------------------------------------------------------------------*/
         if (
             (part === 'leftUpperArm' || part === 'rightUpperArm' ||
             part === 'leftLowerArm' || part === 'rightLowerArm') &&
-            map.leftCenter !== undefined &&
-            map.rightCenter !== undefined
+            map.leftCenter !== undefined && map.rightCenter !== undefined &&
+            map.start !== undefined && map.end !== undefined
         ) {
-            const from = scaledLandmarks[map.leftCenter];
-            const to = scaledLandmarks[map.rightCenter];
+            let from, to;
+            if (armOrientation === 'vertical') {
+              from = scaledLandmarks[map.start];
+              to = scaledLandmarks[map.end];
+            } else {
+              if (part === 'leftUpperArm' || part === 'leftLowerArm') {
+                from = scaledLandmarks[map.leftCenter];
+                to = scaledLandmarks[map.rightCenter];
+              } else {
+                from = scaledLandmarks[map.rightCenter];
+                to = scaledLandmarks[map.leftCenter];
+              }
+
+            }
             
             if (
               !from || 
@@ -281,7 +299,13 @@ const SvgCanvas = ({
               to.score < 0.3 ||
               (from.x === to.x && from.y === to.y)
             ) continue;
-            drawHorizontalSegmentSvg(ctx, img, from, to, part);
+            if (armOrientation === 'vertical') {
+              console.log('drawing vertical arm', part);
+              drawVerticalSegmentSvg(ctx, img, from, to, part);
+            } else {
+              console.log('drawing horizontal arm', part);
+              drawHorizontalSegmentSvg(ctx, img, from, to, part);
+            }
             continue;
         }
 
@@ -294,7 +318,7 @@ const SvgCanvas = ({
             const wrist = scaledLandmarks[map.wrist];
             const elbow = scaledLandmarks[map.elbow];
             if (!wrist || !elbow || wrist.score < 0.3 || elbow.score < 0.3) continue;
-            drawLeftHandSvg(ctx, img, wrist, elbow);
+            drawLeftHandSvg(ctx, img, wrist, elbow, armOrientation);
             continue;
         }
 
@@ -304,14 +328,19 @@ const SvgCanvas = ({
         ) {
             const wrist = scaledLandmarks[map.wrist];
             const elbow = scaledLandmarks[map.elbow];
-            if (!wrist || !elbow || wrist.score < 0.3 || elbow.score < 0.3) continue;
-            drawRightHandSvg(ctx, img, wrist, elbow);
+            if (
+              !wrist || !elbow || wrist.score < 0.3 || 
+              elbow.score < 0.3) continue;
+            drawRightHandSvg(ctx, img, wrist, elbow, armOrientation);
             continue;
         }
 
         /* LEGS
         ----------------------------------------------------------------------*/
-        if ( part === 'leftUpperLeg' || part === 'leftLowerLeg' || part === 'rightUpperLeg' || part === 'rightLowerLeg' ) {
+        if ( 
+          part === 'leftUpperLeg' || part === 'leftLowerLeg' || 
+          part === 'rightUpperLeg' || part === 'rightLowerLeg' 
+        ) {
             if (map.start === undefined || map.end === undefined) continue;
             const from = scaledLandmarks[map.start];
             const to = scaledLandmarks[map.end];
@@ -326,8 +355,7 @@ const SvgCanvas = ({
             if (map.center === undefined) continue;
             const center = scaledLandmarks[map.center];
             if (!center || center.score < 0.3) continue;  
-            drawFootSvg(ctx, img, center, { x: center.x + 1, y: center.y }); // slight offset to define angle
-            continue;
+            drawFootSvg(ctx, img, center, { x: center.x + 1, y: center.y }); 
         }
     }
 

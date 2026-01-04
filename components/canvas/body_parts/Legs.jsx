@@ -14,16 +14,15 @@ const Legs = ( {
     rightUpperLegRef, 
     rightLowerLegRef, 
     leftUpperLegRef, 
-    leftLowerLegRef
+    leftLowerLegRef, 
+    legWidth,
+    legLength,
 } ) => {
 
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     const boxShadowColor = `${theme.boxShadowColor} 0px 0px 6px -1px, 
                             ${theme.boxShadowColor} 0px 0px 4px -1px`;
-
-    const legHeight = LEG_LENGTH;
-    const legWidth = LEG_WIDTH; 
 
     return (
         <View style={styles.legsRow}>
@@ -34,7 +33,7 @@ const Legs = ( {
                         styles.canvasWrapper, 
                         { 
                             width: legWidth, 
-                            height: legHeight, 
+                            height: legLength, 
                             boxShadow: boxShadowColor 
                         }
                     ]}>
@@ -42,7 +41,7 @@ const Legs = ( {
                     ref={rightUpperLegRef}
                     style={styles.canvas}
                     width={legWidth}
-                    height={legHeight}
+                    height={legLength}
                     {...canvasProps}
                     />
                 </CanvasWrapper>
@@ -51,7 +50,7 @@ const Legs = ( {
                         styles.canvasWrapper, 
                         { 
                             width: legWidth, 
-                            height: legHeight, 
+                            height: legLength, 
                             boxShadow: boxShadowColor 
                         }
                     ]}>
@@ -59,7 +58,7 @@ const Legs = ( {
                     ref={rightLowerLegRef}
                     style={styles.canvas}
                     width={legWidth}
-                    height={legHeight}
+                    height={legLength}
                     {...canvasProps}
                     />
                 </CanvasWrapper>
@@ -72,7 +71,7 @@ const Legs = ( {
                         styles.canvasWrapper, 
                         { 
                             width: legWidth, 
-                            height: legHeight, 
+                            height: legLength, 
                             boxShadow: boxShadowColor 
                         }
                     ]}>
@@ -80,7 +79,7 @@ const Legs = ( {
                     ref={leftUpperLegRef}
                     style={styles.canvas}
                     width={legWidth}
-                    height={legHeight}
+                    height={legLength}
                     {...canvasProps}
                     />
                 </CanvasWrapper>
@@ -89,7 +88,7 @@ const Legs = ( {
                         styles.canvasWrapper, 
                         { 
                             width: legWidth, 
-                            height: legHeight, 
+                            height: legLength, 
                             boxShadow: boxShadowColor 
                         }
                     ]}>
@@ -97,7 +96,7 @@ const Legs = ( {
                     ref={leftLowerLegRef}
                     style={styles.canvas}
                     width={legWidth}
-                    height={legHeight}
+                    height={legLength}
                     {...canvasProps}
                     />
                 </CanvasWrapper>

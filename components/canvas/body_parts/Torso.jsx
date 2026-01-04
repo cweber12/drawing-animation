@@ -6,14 +6,12 @@ import CanvasWrapper from '../../themed_elements/ThemedCanvasWrapper';
 import { Colors } from '../../../constants/Colors';
 import { TORSO_WIDTH, TORSO_HEIGHT } from '../../../constants/Sizes';
 
-const Torso = ( { canvasProps, torsoRef } ) => {
-
-    // Determine canvas dimensions based on screen size
-
-    const isSmallScreen = SCREEN_WIDTH < 600;
-    
-    const torsoHeight = TORSO_HEIGHT; 
-    const torsoWidth = TORSO_WIDTH;
+const Torso = ( { 
+    canvasProps, 
+    torsoRef,
+    torsoWidth,
+    torsoHeight
+} ) => {
 
     // Get current theme colors
     const colorScheme = useColorScheme();

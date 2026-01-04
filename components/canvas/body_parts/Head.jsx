@@ -8,7 +8,7 @@ import { HEAD_SIZE } from '../../../constants/Sizes';
 
 /* Component for the head drawing canvas
 ------------------------------------------------------------------------------*/
-const Head = ( { canvasProps, headRef } ) => {   
+const Head = ( { canvasProps, headRef, headSize } ) => {   
 
     // Get current theme colors
     const colorScheme = useColorScheme();
@@ -16,14 +16,15 @@ const Head = ( { canvasProps, headRef } ) => {
     const boxShadowColor = `${theme.boxShadowColor} 0px 0px 6px -1px, 
                             ${theme.boxShadowColor} 0px 0px 4px -1px`;
 
+    
     return (
         <CanvasWrapper 
             style={[
                 styles.canvasWrapper, 
                 styles.head, 
                 { 
-                    width: HEAD_SIZE,
-                    height: HEAD_SIZE,
+                    width: headSize,
+                    height: headSize,
                     boxShadow: boxShadowColor,
                 }
             ]}>
@@ -31,8 +32,8 @@ const Head = ( { canvasProps, headRef } ) => {
             <ReactSketchCanvas
             ref={headRef}
             style={styles.canvas}
-            width={HEAD_SIZE}
-            height={HEAD_SIZE}w
+            width={headSize}
+            height={headSize}
             {...canvasProps}
             />
         </CanvasWrapper>

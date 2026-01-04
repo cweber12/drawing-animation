@@ -1,4 +1,5 @@
 /* Landmark indices based on a standard pose estimation model 
+Ref: https://www.kaggle.com/models/google/movenet
 ------------------------------------------------------------------------------*/
 export const LANDMARKS = {
     nose: 0,
@@ -39,16 +40,24 @@ export const CONNECTED_KEYPOINTS = [
 
 /* Mapping of body parts to landmark indices for canvas rendering
 ------------------------------------------------------------------------------*/
+
+
 export const CANVAS_LANDMARK_MAP = {
 
     rightUpperArm: { 
-        rightCenter: LANDMARKS.rightShoulder, 
-        leftCenter: LANDMARKS.rightElbow 
+        // Horizontal orientation
+        leftCenter: LANDMARKS.rightShoulder, 
+        rightCenter: LANDMARKS.rightElbow,
+         // Vertical orientation
+        start: LANDMARKS.rightShoulder, 
+        end: LANDMARKS.rightElbow
     },
 
-    rightLowerArm: { 
-        rightCenter: LANDMARKS.rightElbow, 
-        leftCenter: LANDMARKS.rightWrist 
+    rightLowerArm: {       
+        leftCenter: LANDMARKS.rightElbow, 
+        rightCenter: LANDMARKS.rightWrist, 
+        start: LANDMARKS.rightElbow, 
+        end: LANDMARKS.rightWrist
     },
 
     rightHand: {
@@ -56,14 +65,19 @@ export const CANVAS_LANDMARK_MAP = {
         elbow: LANDMARKS.rightElbow // used only for rotation
     },
 
+
     leftUpperArm: { 
         leftCenter: LANDMARKS.leftShoulder, 
-        rightCenter: LANDMARKS.leftElbow 
+        rightCenter: LANDMARKS.leftElbow,
+        start: LANDMARKS.leftShoulder, 
+        end: LANDMARKS.leftElbow
     },
 
     leftLowerArm: { 
         leftCenter: LANDMARKS.leftElbow, 
-        rightCenter: LANDMARKS.leftWrist 
+        rightCenter: LANDMARKS.leftWrist,
+        start: LANDMARKS.leftElbow, 
+        end: LANDMARKS.leftWrist
     },
 
     leftHand: {
@@ -107,5 +121,8 @@ export const CANVAS_LANDMARK_MAP = {
 
     rightFoot: {center: LANDMARKS.rightAnkle},
     leftFoot: {center: LANDMARKS.leftAnkle},
-
 };
+
+
+
+

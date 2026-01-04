@@ -3,19 +3,17 @@ import React, { useRef } from 'react';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 import CanvasWrapper from '../../themed_elements/ThemedCanvasWrapper';
 import { Colors } from '../../../constants/Colors';
-import { 
-    ARM_LENGTH, 
-    ARM_WIDTH, 
-    HAND_LENGTH, 
-    HAND_WIDTH, 
-    isSmallScreen 
-} from '../../../constants/Sizes';
 
 const RightArm = ( { 
     canvasProps, 
     upperArmRef, 
     lowerArmRef, 
-    handRef 
+    handRef, 
+    armWidth, 
+    armLength,
+    handWidth,
+    handLength, 
+    isSmallScreen
 }) => {
 
     // Determine canvas dimensions based on screen size// Get current theme colors
@@ -31,8 +29,8 @@ const RightArm = ( {
                 style={[
                     styles.canvasWrapper, 
                     { 
-                        width: isSmallScreen ? ARM_WIDTH : HAND_LENGTH, 
-                        height: isSmallScreen ? ARM_LENGTH : HAND_WIDTH, 
+                        width: isSmallScreen ? armWidth : handLength, 
+                        height: isSmallScreen ? armLength : handWidth, 
                         boxShadow: boxShadowColor,
                     }
                 ]}>
@@ -40,8 +38,8 @@ const RightArm = ( {
                     <ReactSketchCanvas
                         ref={upperArmRef}
                         style={styles.canvas}
-                        width={ARM_WIDTH}
-                        height={ARM_LENGTH}
+                        width={armWidth}
+                        height={armLength}
                         {...canvasProps}
                     />
                 ) : (
@@ -49,8 +47,8 @@ const RightArm = ( {
                     <ReactSketchCanvas
                         ref={handRef}
                         style={styles.canvas}
-                        width={HAND_WIDTH}
-                        height={HAND_LENGTH}
+                        width={handWidth}
+                        height={handLength}
                         {...canvasProps}
                     />
                     )}
@@ -59,16 +57,16 @@ const RightArm = ( {
                 style={[
                     styles.canvasWrapper, 
                     { 
-                        width: isSmallScreen ? ARM_WIDTH : ARM_LENGTH, 
-                        height: isSmallScreen ? ARM_LENGTH : ARM_WIDTH,
+                        width: isSmallScreen ? armWidth : armLength, 
+                        height: isSmallScreen ? armLength : armWidth,
                         boxShadow: boxShadowColor
                     }
                 ]}>
                 <ReactSketchCanvas
                     ref={lowerArmRef}
                     style={styles.canvas}
-                    width={isSmallScreen ? ARM_WIDTH : ARM_LENGTH}
-                    height={isSmallScreen ? ARM_LENGTH : ARM_WIDTH}
+                    width={isSmallScreen ? armWidth : armLength}
+                    height={isSmallScreen ? armLength : armWidth}
                     {...canvasProps}
                 />
             </CanvasWrapper>
@@ -76,8 +74,8 @@ const RightArm = ( {
                 style={[
                     styles.canvasWrapper, 
                     { 
-                        width: isSmallScreen ? HAND_WIDTH : ARM_LENGTH, 
-                        height: isSmallScreen ? HAND_LENGTH : ARM_WIDTH, 
+                        width: isSmallScreen ? handWidth : armLength, 
+                        height: isSmallScreen ? handLength : armWidth, 
                         boxShadow: boxShadowColor
                     }
                 ]}>
@@ -85,16 +83,16 @@ const RightArm = ( {
                     <ReactSketchCanvas
                         ref={handRef}
                         style={styles.canvas}
-                        width={HAND_WIDTH}
-                        height={HAND_LENGTH}
+                        width={handWidth}
+                        height={handLength}
                         {...canvasProps}
                     />
                 ) : (
                     <ReactSketchCanvas
                         ref={upperArmRef}
                         style={styles.canvas}
-                        width={ARM_LENGTH}
-                        height={ARM_WIDTH}
+                        width={armLength}
+                        height={armWidth}
                         {...canvasProps}
                     />
                 )}

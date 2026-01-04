@@ -1,20 +1,24 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react';
-import { View, StyleSheet, useWindowDimensions, useColorScheme, ScrollView } from 'react-native';
-import { ReactSketchCanvas } from 'react-sketch-canvas';
+import { 
+    View, 
+    StyleSheet, 
+    useWindowDimensions, 
+    useColorScheme
+} from 'react-native';
 import { useRouter, useNavigation } from 'expo-router';
-import { CANVAS_LANDMARK_MAP } from '../constants/LandmarkData';
+import { CANVAS_LANDMARK_MAP, getCanvasLandmarkMap } from '../constants/LandmarkData';
 import ThemedView from '../components/themed_elements/ThemedView';
 import { Colors } from '../constants/Colors';
-import CanvasWrapper from '../components/themed_elements/ThemedCanvasWrapper';
 import BrushSizeSlider from '../components/controls/BrushSizeSlider';
 import ColorPicker from '../components/controls/ColorPicker';
 import Head from '../components/canvas/body_parts/Head';
 import Torso from '../components/canvas/body_parts/Torso';
-import { CANVAS_BORDER_RADIUS } from '../constants/Sizes';
 import RightArm from '../components/canvas/body_parts/RightArm';
 import LeftArm from '../components/canvas/body_parts/LeftArm';
 import Legs from '../components/canvas/body_parts/Legs';
 import Feet from '../components/canvas/body_parts/Feet';
+import { getSvgSizes } from '../constants/Sizes';
+import { get } from 'lodash';
 
 const DrawWeb = () => {
     /* Navigation and routing for screen transitions
@@ -23,14 +27,13 @@ const DrawWeb = () => {
     const navigation = useNavigation();
 
     const { width, height } = useWindowDimensions();
-    const isSmallScreen = width < 600;
+    const isSmallScreen = width < 768;
+    const sizes = getSvgSizes(height);
     
     /* Theme and color scheme
     --------------------------------------------------------------------------*/
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-    const boxShadowColor = `${theme.boxShadowColor} 0px 0px 6px -1px, 
-                            ${theme.boxShadowColor} 0px 0px 4px -1px`;
     
     /* State variables brush size and color settings
     --------------------------------------------------------------------------*/
@@ -38,13 +41,6 @@ const DrawWeb = () => {
     const [strokeWidth, setStrokeWidth] = useState(2);
     const [showBrushSizeSlider, setShowBrushSizeSlider] = useState(false);
     const [showColorPicker, setShowColorPicker] = useState(false);
-    
-    /* Other state variables
-    - bodySvgs: holds the saved SVGs for each body part
-    - viewMode: 'pose' or 'svg' for detectPose display mode
-    --------------------------------------------------------------------------*/
-    const [bodySvgs, setBodySvgs] = useState({});
-    const [viewMode, setViewMode] = useState(null);
     
     /* Refs for each body part canvas
     --------------------------------------------------------------------------*/
@@ -63,23 +59,6 @@ const DrawWeb = () => {
     const leftUpperLegRef = useRef(null);
     const leftLowerLegRef = useRef(null);
     const leftFootRef = useRef(null);
-
-    /* Body part dimensions based on overall canvas width
-    --------------------------------------------------------------------------*/
-    const torsoWidth = isSmallScreen ? width * 0.35 : width * 0.075;
-    const torsoHeight = torsoWidth * 1.5;
-    const legWidth = (torsoWidth * 0.5) - 1;
-    const legHeight = torsoHeight * 0.75;
-    const armWidth = torsoWidth * 0.9;
-    const forearmWidth = armWidth * 0.9;
-    const armHeight = (torsoHeight * 0.4) - 1;
-    const handHeight = armHeight;
-    const handWidth = armWidth;
-    const handOffsetY = armHeight * 0.3;
-    const headHeight = torsoHeight * 0.8;
-    const headWidth = torsoWidth;
-    const footHeight = torsoHeight * 0.35;
-    const footWidth = legWidth * 2;
     
     /* Common canvas props
     --------------------------------------------------------------------------*/
@@ -99,6 +78,8 @@ const DrawWeb = () => {
         
     }, []);
 
+    /* Toggle display of color picker
+    --------------------------------------------------------------------------*/
     const toggleColorPicker = useCallback(() => {
         setShowBrushSizeSlider(false);
         setShowColorPicker(prev => !prev);
@@ -128,6 +109,7 @@ const DrawWeb = () => {
     --------------------------------------------------------------------------*/
     const saveAll = useCallback(async () => {
         try {
+            // Collect refs for each body part
             const refs = {
                 head: headRef,
                 rightUpperArm: rightUpperArmRef,
@@ -145,6 +127,7 @@ const DrawWeb = () => {
                 torso: torsoRef,
             };
 
+            // Export SVG from each canvas ref
             const svgs = {};
             for (const [key, ref] of Object.entries(refs)) {
                 if (ref.current && ref.current.exportSvg) {
@@ -156,6 +139,7 @@ const DrawWeb = () => {
                 }
             }
 
+            // Update state and ref
             bodySvgsRef.current = svgs;
             setBodySvgs(svgs);
             return svgs;
@@ -181,10 +165,10 @@ const DrawWeb = () => {
                 svgs: JSON.stringify(svgsToSend),
                 mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
                 viewMode: mode,
+                armOrientation: isSmallScreen ? 'vertical' : 'horizontal',
             },
         });
-    }, [router, saveAll]);
-
+    }, [router, saveAll, isSmallScreen]);
     /* Set navigation params for header buttons
     --------------------------------------------------------------------------*/
     useEffect(() => {
@@ -195,7 +179,7 @@ const DrawWeb = () => {
             setPoseView: () => goToDetectPose('pose'),
             setSvgView: () => goToDetectPose('svg'),
         });
-    }, [navigation, clearAll, goToDetectPose, toggleBrushSizeSlider, viewMode]);
+    }, [navigation, clearAll, goToDetectPose, toggleBrushSizeSlider]);
     
     /* Render page
     --------------------------------------------------------------------------*/
@@ -220,47 +204,61 @@ const DrawWeb = () => {
                 <Head 
                     canvasProps={canvasProps}
                     headRef={headRef} 
+                    headSize={sizes.HEAD_SIZE}
                 /> 
                 
-                {/* Arms and Torso */}
-                <View style={styles.armTorsoRow}>
-                    {/* Left Arm (upper + lower) */}
+                <View style={styles.row}>
+
                     <RightArm
                         canvasProps={canvasProps}
                         upperArmRef={rightUpperArmRef}
                         lowerArmRef={rightLowerArmRef}
                         handRef={rightHandRef}
+                        armWidth={sizes.ARM_WIDTH}
+                        armLength={sizes.ARM_LENGTH}
+                        handWidth={sizes.HAND_WIDTH}
+                        handLength={sizes.HAND_LENGTH}
+                        isSmallScreen={isSmallScreen}
                     />
-                    {/* Torso */}
-                    {/* Torso and Legs */}
-                    <View style={styles.legColumn}>
-                        {/* Torso */}
+                    
+                    <View>
                         <Torso
                             canvasProps={canvasProps}
                             torsoRef={torsoRef}
+                            torsoWidth={sizes.TORSO_WIDTH}
+                            torsoHeight={sizes.TORSO_HEIGHT}
                         />
-                        {/* Legs */}
+
                         <Legs
                             canvasProps={canvasProps}
                             rightUpperLegRef={rightUpperLegRef}
                             rightLowerLegRef={rightLowerLegRef}
                             leftUpperLegRef={leftUpperLegRef}
                             leftLowerLegRef={leftLowerLegRef}
+                            legWidth={sizes.LEG_WIDTH}
+                            legLength={sizes.LEG_LENGTH}
                         />
                     </View>
-                    {/* Left Arm (upper + lower) */}
+
                     <LeftArm
                         canvasProps={canvasProps}
                         upperArmRef={leftUpperArmRef}
                         lowerArmRef={leftLowerArmRef}
                         handRef={leftHandRef}
+                        armWidth={sizes.ARM_WIDTH}
+                        armLength={sizes.ARM_LENGTH}
+                        handWidth={sizes.HAND_WIDTH}
+                        handLength={sizes.HAND_LENGTH}
+                        isSmallScreen={isSmallScreen}
                     />
                 </View>
-                {/* Feet */}
+
                 <Feet
                     canvasProps={canvasProps}
                     rightFootRef={rightFootRef}
                     leftFootRef={leftFootRef}
+                    footWidth={sizes.FOOT_WIDTH}
+                    footLength={sizes.FOOT_LENGTH}
                 />
             </ThemedView>            
         </View>        
@@ -274,6 +272,7 @@ const styles = StyleSheet.create({
         flex: 1,
         position: 'relative'
     },
+    
     container: {
         position: 'absolute',
         top: 0,
@@ -284,20 +283,8 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'flex-start',
-        padding: 24,
+        padding: 12,
         gap: 2, 
-    },
-
-    scrollView: {
-        flexGrow: 1,
-        width : '100%',
-        height: '100%',
-    },
-
-    controls: {
-        flexDirection: 'row',
-        gap: 8,
-        marginBottom: 8,
     },
 
     sketchControls: {
@@ -313,21 +300,7 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 8,
     },
 
-    canvasWrapper: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 24,
-        overflow: 'hidden',
-    },
-
-    canvas: {
-        backgroundColor: 'transparent',
-        width: '100%',
-        height: '100%',
-        borderRadius: '0.25rem',
-    },
-
-    armTorsoRow: {
+    row: {
         flexDirection: 'row',
         alignItems: 'flex-start',
         justifyContent: 'center',
