@@ -3,6 +3,7 @@ import {
   TouchableOpacity, 
   StyleSheet, 
   useColorScheme,
+  Touchable,
 } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { 
@@ -11,12 +12,15 @@ import {
   FaTrashAlt, 
   FaRunning, 
   FaVideo,
-  FaFileVideo
+  FaFileVideo, 
+  FaFileExport
 } from 'react-icons/fa';
 import { RiWebcamFill } from "react-icons/ri";
 import { getIconSize } from '../../constants/Sizes';
 
 const DrawWebHeaderButtons = ({ 
+  viewMode,
+  onExportSvgs,
   onClear, 
   onShowBrushSizeSlider,
   onShowColorPicker,
@@ -29,6 +33,15 @@ const DrawWebHeaderButtons = ({
   
     return (
     <View style={styles.container}>    
+      
+      <TouchableOpacity 
+        onPress={() => {
+          onExportSvgs && onExportSvgs();
+        }}
+      >
+        <FaFileExport size={getIconSize()} color={theme.button} />
+      </TouchableOpacity>
+
       <TouchableOpacity  
         onPress={() => {
           onPickVideo && onPickVideo();

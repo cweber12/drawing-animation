@@ -44,16 +44,16 @@ export const CANVAS_LANDMARK_MAP = {
 
     rightUpperArm: { 
         // Horizontal orientation
-        leftCenter: LANDMARKS.rightShoulder, 
-        rightCenter: LANDMARKS.rightElbow,
+        rightCenter: LANDMARKS.rightShoulder, 
+        leftCenter: LANDMARKS.rightElbow,
          // Vertical orientation
         start: LANDMARKS.rightShoulder, 
         end: LANDMARKS.rightElbow
     },
 
     rightLowerArm: {       
-        leftCenter: LANDMARKS.rightElbow, 
-        rightCenter: LANDMARKS.rightWrist, 
+        rightCenter: LANDMARKS.rightElbow, 
+        leftCenter: LANDMARKS.rightWrist, 
         start: LANDMARKS.rightElbow, 
         end: LANDMARKS.rightWrist
     },

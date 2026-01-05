@@ -3,7 +3,8 @@ import {
     View, 
     StyleSheet, 
     useWindowDimensions, 
-    useColorScheme
+    useColorScheme, 
+    Platform
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useRouter, useNavigation } from 'expo-router';
@@ -20,6 +21,8 @@ import Legs from '../components/canvas/body_parts/Legs';
 import Feet from '../components/canvas/body_parts/Feet';
 import { getSvgSizes } from '../constants/Sizes';
 import { get } from 'lodash';
+import * as FileSystem from 'expo-file-system';
+
 
 const SketchPage = () => {
     /* Navigation and routing for screen transitions
@@ -118,8 +121,6 @@ const SketchPage = () => {
             // Collect refs for each body part
             const refs = {
                 head: headRef,
-                rightUpperArm: rightUpperArmRef,
-                leftUpperArm: leftUpperArmRef,
                 rightUpperLeg: rightUpperLegRef,
                 rightLowerLeg: rightLowerLegRef,
                 rightFoot: rightFootRef,
@@ -127,10 +128,15 @@ const SketchPage = () => {
                 leftLowerLeg: leftLowerLegRef,
                 leftFoot: leftFootRef,
                 torso: torsoRef,
+                rightUpperArm: rightUpperArmRef,
+                leftUpperArm: leftUpperArmRef,
                 rightLowerArm: rightLowerArmRef,
                 rightHand: rightHandRef,
                 leftLowerArm: leftLowerArmRef,
                 leftHand: leftHandRef,
+                
+                
+                
             };
 
             // Export SVG from each canvas ref
@@ -186,17 +192,49 @@ const SketchPage = () => {
             },
         });
     }, [router, saveAll, isSmallScreen, poseVideoUri]);
+
+    const exportSvgsToFile = async (svgs) => {
+        try {
+            const json = JSON.stringify(svgs, null, 2);
+            if (Platform.OS === 'web') {
+                // Web: trigger download using Blob
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'body_svgs.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert('SVGs exported as body_svgs.json');
+            } else {
+                // Native: use expo-file-system
+                const fileUri = FileSystem.documentDirectory + 'body_svgs.json';
+                await FileSystem.writeAsStringAsync(fileUri, json, {
+                    encoding: FileSystem.EncodingType.UTF8,
+                });
+                alert('SVGs exported to: ' + fileUri);
+            }
+        } catch (e) {
+            console.error('Error exporting SVGs:', e);
+            alert('Failed to export SVGs');
+        }
+    };
+    
     /* Set navigation params for header buttons
     --------------------------------------------------------------------------*/
     useEffect(() => {
         navigation.setParams({
+            viewMode: viewMode,
+            onExportSvgs: exportSvgsToFile,
             onClear: clearAll,
             onShowBrushSizeSlider: toggleBrushSizeSlider,
             onShowColorPicker: toggleColorPicker,
             setPoseView: () => goToDetectPose('pose', null),
             setSvgView: () => goToDetectPose('svg', null),
             onPickVideo: handlePickVideo,
-            viewMode: viewMode,
+            
         });
     }, [
             navigation, 

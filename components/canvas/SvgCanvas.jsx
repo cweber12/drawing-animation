@@ -286,9 +286,11 @@ const SvgCanvas = ({
               if (part === 'leftUpperArm' || part === 'leftLowerArm') {
                 from = scaledLandmarks[map.leftCenter];
                 to = scaledLandmarks[map.rightCenter];
+              } else if (part === 'rightUpperArm' || part === 'rightLowerArm') {
+                from = scaledLandmarks[map.leftCenter];
+                to = scaledLandmarks[map.rightCenter];
               } else {
-                from = scaledLandmarks[map.rightCenter];
-                to = scaledLandmarks[map.leftCenter];
+                continue;
               }
 
             }
@@ -340,7 +342,8 @@ const SvgCanvas = ({
         ----------------------------------------------------------------------*/
         if ( 
           part === 'leftUpperLeg' || part === 'leftLowerLeg' || 
-          part === 'rightUpperLeg' || part === 'rightLowerLeg' 
+          part === 'rightUpperLeg' || part === 'rightLowerLeg'
+
         ) {
             if (map.start === undefined || map.end === undefined) continue;
             const from = scaledLandmarks[map.start];
