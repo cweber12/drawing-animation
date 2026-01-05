@@ -8,7 +8,7 @@ modes:
 - 'pose': Pose recording mode where detected poses are recorded and can be replayed as an animation.
 --------------------------------------------------------------------------------------------------*/
 
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo, use } from 'react';
 import Webcam from 'react-webcam';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
@@ -61,7 +61,7 @@ const DetectPose = () => {
   ------------------------------------------------------------------------------------------------*/
   const [showWebcam, setShowWebcam] = useState(true); 
   const [showPoseAnimation, setShowPoseAnimation] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   
   /* Ref to Track First Start of Detection
   --------------------------------------------------------------------------------------------------
@@ -100,6 +100,12 @@ const DetectPose = () => {
       setIsDetecting(true); // always detect in svg mode
     }
   }, [viewMode]);
+
+  useEffect(() => {
+    if (videoUri) {
+      setVideoLoaded(true); 
+    }
+  }, [videoUri]);
 
   /* Toggle Webcam Visibility
   ------------------------------------------------------------------------------------------------*/
@@ -195,7 +201,21 @@ const DetectPose = () => {
         try { // estimate poses
           if (isDetecting) {
             const poses = await detector.estimatePoses(video, { flipHorizontal: true });
-            const currentLandmarks = poses?.[0]?.keypoints ?? []; // get keypoints (or empty array)
+            let currentLandmarks = poses?.[0]?.keypoints ?? []; // get keypoints (or empty array)
+            
+            if (videoUri && videoLoaded) {
+              const videoWidth = video.videoWidth;
+              const videoHeight = video.videoHeight;
+              // Scale landmarks to match webcam dimensions
+              const scaleX = CANVAS_WIDTH / videoWidth;
+              const scaleY = 1;
+              currentLandmarks = currentLandmarks.map(kp => ({
+                ...kp,
+                x: kp.x * scaleX,
+                y: kp.y * scaleY,
+              }));
+            }
+            
             setLandmarks(currentLandmarks); // update current landmarks
 
             
@@ -252,6 +272,7 @@ const DetectPose = () => {
             svgs={svgs}
             mapping={mapping}
             armOrientation={armOrientation}
+            videoLoaded={videoLoaded}
             style={{
               position: 'absolute',
               left: 0,

@@ -37,6 +37,7 @@ const SvgCanvas = ({
   svgs = {}, 
   mapping = {}, 
   armOrientation,
+  videoLoaded,
   style
 }) => {
 
@@ -44,8 +45,8 @@ const SvgCanvas = ({
   const canvasRef = useRef(null);
   const imagesRef = useRef({});
   // Scaling factors from webcam to canvas size
-  const scaleX = width / webcamWidth;
-  const scaleY = height / webcamHeight;
+  const scaleWebcamX = width / webcamWidth;
+  const scaleWebcamY = height / webcamHeight; 
   // Theme colors 
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
@@ -159,8 +160,8 @@ const SvgCanvas = ({
         kp
           ? {
               ...kp,
-              x: kp.x * scaleX,
-              y: kp.y * scaleY,
+              x: kp.x * scaleWebcamX,
+              y: kp.y * scaleWebcamY,
             }
           : kp
       );
@@ -359,7 +360,7 @@ const SvgCanvas = ({
         }
     }
 
-  }, [displayLandmarks, width, height, scaleX, scaleY, mapping, svgs]);
+  }, [displayLandmarks, width, height, scaleWebcamX, scaleWebcamY, mapping, svgs]);
 
   return (
     <canvas
