@@ -20,6 +20,7 @@ import { StyleSheet, useWindowDimensions } from 'react-native';
 import ThemedView from '../components/themed_elements/ThemedView';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, getWebcamDimensions } from '../constants/Sizes';
 import { smoothLandmarks } from '../utils/poseUtils';
+import { set } from 'lodash';
 
 const DetectPose = () => {
   
@@ -62,6 +63,9 @@ const DetectPose = () => {
   const [showWebcam, setShowWebcam] = useState(true); 
   const [showPoseAnimation, setShowPoseAnimation] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
+
+  const [naturalVideoWidth, setNaturalVideoWidth] = useState(null);
+  const [naturalVideoHeight, setNaturalVideoHeight] = useState(null);
   
   /* Ref to Track First Start of Detection
   --------------------------------------------------------------------------------------------------
@@ -193,8 +197,7 @@ const DetectPose = () => {
 
       const detect = async () => {
         if (cancelled) return;
-        const video = videoUri ? videoRef.current : webcamRef.current?.video;
-        if (!video || video.readyState !== 4) { // video not ready
+        const video = videoUri ? videoRef.current : webcamRef.current?.video;        if (!video || video.readyState !== 4) { // video not ready
           requestAnimationFrame(detect);
           return;
         }
@@ -203,16 +206,26 @@ const DetectPose = () => {
             const poses = await detector.estimatePoses(video, { flipHorizontal: true });
             let currentLandmarks = poses?.[0]?.keypoints ?? []; // get keypoints (or empty array)
             
-            if (videoUri && videoLoaded) {
-              const videoWidth = video.videoWidth;
-              const videoHeight = video.videoHeight;
-              // Scale landmarks to match webcam dimensions
-              const scaleX = CANVAS_WIDTH / videoWidth;
-              const scaleY = 1;
+            if (videoUri && videoLoaded && naturalVideoWidth && naturalVideoHeight) {
+              // Calculate aspect ratios
+              const videoAspect = naturalVideoWidth / naturalVideoHeight;
+              const canvasAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
+
+              let scale, offsetX = 0, offsetY = 0;
+              if (videoAspect > canvasAspect) {
+                // Video fills width, black bars top/bottom
+                scale = CANVAS_WIDTH / naturalVideoWidth;
+                offsetY = (CANVAS_HEIGHT - naturalVideoHeight * scale) / 2;
+              } else {
+                // Video fills height, black bars left/right
+                scale = CANVAS_HEIGHT / naturalVideoHeight;
+                offsetX = (CANVAS_WIDTH - naturalVideoWidth * scale) / 2;
+              }
+
               currentLandmarks = currentLandmarks.map(kp => ({
                 ...kp,
-                x: kp.x * scaleX,
-                y: kp.y * scaleY,
+                x: kp.x * scale + offsetX,
+                y: kp.y * scale + offsetY,
               }));
             }
             
@@ -295,12 +308,20 @@ const DetectPose = () => {
                   left: 0,
                   top: 0,
                   zIndex: 2,
-                  width: CANVAS_WIDTH,
                   height: CANVAS_HEIGHT,
+                  width: CANVAS_WIDTH,
+                  
                   background: '#000',
-                  objectFit: 'cover',
                 }}
-                onLoadedMetadata={() => videoRef.current && videoRef.current.play()}
+                onLoadedMetadata={() => {
+                  const video = videoRef.current;
+                  if (video) {
+                    setNaturalVideoWidth(video.videoWidth);
+                    setNaturalVideoHeight(video.videoHeight);
+                    video.play();
+                  }
+                  setVideoLoaded(true);
+                }}
               />
             ) : (
               <Webcam
@@ -323,8 +344,8 @@ const DetectPose = () => {
             )}
 
             <PoseCanvas
-              width={viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth}
-              height={viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight}
+              width={viewMode === 'pose' ? (videoUri ? CANVAS_WIDTH : naturalVideoWidth) : webcamWidth}
+              height={viewMode === 'pose' ? (videoUri ? CANVAS_HEIGHT : naturalVideoHeight) : webcamHeight}
               landmarks={landmarks}
               style={{
                 position: 'absolute',

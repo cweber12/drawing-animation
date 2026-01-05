@@ -119,11 +119,7 @@ const SketchPage = () => {
             const refs = {
                 head: headRef,
                 rightUpperArm: rightUpperArmRef,
-                rightLowerArm: rightLowerArmRef,
-                rightHand: rightHandRef,
                 leftUpperArm: leftUpperArmRef,
-                leftLowerArm: leftLowerArmRef,
-                leftHand: leftHandRef,
                 rightUpperLeg: rightUpperLegRef,
                 rightLowerLeg: rightLowerLegRef,
                 rightFoot: rightFootRef,
@@ -131,6 +127,10 @@ const SketchPage = () => {
                 leftLowerLeg: leftLowerLegRef,
                 leftFoot: leftFootRef,
                 torso: torsoRef,
+                rightLowerArm: rightLowerArmRef,
+                rightHand: rightHandRef,
+                leftLowerArm: leftLowerArmRef,
+                leftHand: leftHandRef,
             };
 
             // Export SVG from each canvas ref
