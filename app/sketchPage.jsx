@@ -52,6 +52,7 @@ const SketchPage = () => {
     --------------------------------------------------------------------------*/
     const [viewMode, setViewMode] = useState('svg'); // 'svg' or 'pose'
     const [poseVideoUri, setPoseVideoUri] = useState(null);
+    const [exportSvg, setExportSvg] = useState(false);
     
     /* Refs for each body part canvas
     --------------------------------------------------------------------------*/
@@ -181,45 +182,48 @@ const SketchPage = () => {
             // Update state and ref
             bodySvgsRef.current = svgs;
             
-            /*Export SVGs as JSON file
-            - un-comment to save each svg as a JSON file in device storage
-            - on web, triggers download of JSON file  
-                                               ** add remove closing tag here V
-            ------------------------------------------------------------------*/
-            try {
-                const json = JSON.stringify(svgs, null, 2);
-                if (Platform.OS === 'web') {
-                    // Web: trigger download using Blob
-                    const blob = new Blob([json], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'body_svgs.json';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    console.log('SVGs exported as body_svgs.json');
-                } else {
-                    // Native: use expo-file-system
-                    const fileUri = FileSystem.documentDirectory + 'body_svgs.json';
-                    await FileSystem.writeAsStringAsync(fileUri, json, {
-                        encoding: FileSystem.EncodingType.UTF8,
-                    });
-                    console.log('SVGs exported to: ' + fileUri);
-                }
-            } catch (e) {
-                console.error('Error exporting SVGs:', e);
+            // Export SVGs as JSON file (if export button pressed) 
+            if (exportSvg) {
+                try {
+                    const json = JSON.stringify(svgs, null, 2);
+                    if (Platform.OS === 'web') {
+                        // Web: trigger download using Blob
+                        const blob = new Blob([json], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'body_svgs.json';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        console.log('SVGs exported as body_svgs.json');
+                    } else {
+                        // Native: use expo-file-system
+                        const fileUri = FileSystem.documentDirectory + 'body_svgs.json';
+                        await FileSystem.writeAsStringAsync(fileUri, json, {
+                            encoding: FileSystem.EncodingType.UTF8,
+                        });
+                        console.log('SVGs exported to: ' + fileUri);
+                    }
+                } catch (e) {               
+                    console.error('Error exporting SVGs:', e);
+                } 
             }
-            
-            /* End export SVGs as JSON file
-            --------------------------------------------------------------*/           
+                    
             return svgs;
         } catch (e) {
             console.error('Error saving SVGs:', e);
             return null;
         }
-    }, []);
+    }, [exportSvg]);
+
+    const exportAll = useCallback(async () => {
+        setExportSvg(true);
+        const svgs = await saveAll();
+        setExportSvg(false);
+        return svgs;
+    }, [saveAll]);
 
     const handlePickVideo = async () => {
         const result = await DocumentPicker.getDocumentAsync({
