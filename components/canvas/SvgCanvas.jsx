@@ -14,6 +14,7 @@ import {
   CANVAS_BORDER_RADIUS, 
   updateAvgTorsoHeight,
   updateAvgTorsoWidth,
+  updateAvgEarDistance
 } from '../../constants/Sizes';
 import {
   affineFrom3Points,
@@ -26,8 +27,7 @@ import {
   drawHeadSvg,
   drawHorizontalSegmentSvg,
   drawVerticalSegmentSvg,
-  drawLeftHandSvg,
-  drawRightHandSvg,
+  drawHandSvg,
   drawLegSvg,
   drawFootSvg,
 } from '../../utils/drawingUtils';
@@ -209,7 +209,10 @@ const SvgCanvas = ({
           x: (bl.x + br.x) / 2,
           y: (bl.y + br.y) / 2,
         };
-        const shoulderWidth = Math.abs(tr.x - tl.x);
+
+        const isFlipped = (tl.x > tr.x); 
+        const shoulderWidth = tr.x - tl.x;
+
         const offset = shoulderWidth / 2;
 
         // Use the offset to define the third point (left side shown)
@@ -237,12 +240,12 @@ const SvgCanvas = ({
         ctx.restore();
 
         ctx.save();
-        ctx.fillStyle = 'yellow'; 
+        ctx.fillStyle = 'lime'; 
         ctx.beginPath();
-        ctx.arc(tl.x, tl.y, 12, 0, 2 * Math.PI);
+        ctx.arc(tl.x, tl.y, 5, 0, 2 * Math.PI);
         ctx.fill();
         ctx.beginPath();
-        ctx.arc(tr.x, tr.y, 12, 0, 2 * Math.PI);
+        ctx.arc(tr.x, tr.y, 5, 0, 2 * Math.PI);
         ctx.fill();
         ctx.beginPath();
         ctx.arc(bl.x, bl.y, 5, 0, 2 * Math.PI);
@@ -267,16 +270,21 @@ const SvgCanvas = ({
             const leftEar = scaledLandmarks[map.leftAnchor];
             const rightEar = scaledLandmarks[map.rightAnchor];
             if (!leftEar || !rightEar || leftEar.score < 0.3 || rightEar.score < 0.3) continue;
-
+  
+            updateAvgEarDistance(Math.hypot(
+              rightEar.x - leftEar.x, 
+              rightEar.y - leftEar.y
+              )
+            );
             drawHeadSvg(ctx, img, leftEar, rightEar);
 
             ctx.save();
-            ctx.fillStyle = 'orange'; // or any color you want
+            ctx.fillStyle = 'lime'; // or any color you want
             ctx.beginPath();
-            ctx.arc(leftEar.x, leftEar.y, 8, 0, 2 * Math.PI);
+            ctx.arc(leftEar.x, leftEar.y, 5, 0, 2 * Math.PI);
             ctx.fill();
             ctx.beginPath();
-            ctx.arc(rightEar.x, rightEar.y, 8, 0, 2 * Math.PI);
+            ctx.arc(rightEar.x, rightEar.y, 5, 0, 2 * Math.PI);
             ctx.fill();
             ctx.restore();
             continue;
@@ -290,12 +298,11 @@ const SvgCanvas = ({
             map.leftCenter !== undefined && map.rightCenter !== undefined 
         ) {
             let from, to;
+            let fromAdjusted, toAdjusted;
             if (armOrientation === 'vertical') {
-              console.log('arm orientation vertical');
               from = scaledLandmarks[map.start];
               to = scaledLandmarks[map.end];
             } else {
-              console.log('arm orientation horizontal');
               if (part === 'rightUpperArm' || part === 'rightLowerArm') {
                 from = scaledLandmarks[map.rightCenter];
                 to = scaledLandmarks[map.leftCenter];
@@ -314,22 +321,31 @@ const SvgCanvas = ({
               (from.x === to.x && from.y === to.y)
             ) continue;
             if (armOrientation === 'vertical') {
-              console.log('drawing vertical arm', part);
               drawVerticalSegmentSvg(ctx, img, from, to, part);
             } else {
-              console.log('drawing horizontal arm', part);
-              drawHorizontalSegmentSvg(ctx, img, from, to, part);
+              fromAdjusted = { x: from.x, y: from.y + svgH / 4 };
+              toAdjusted = { x: to.x, y: to.y + svgH / 4 };
+              drawHorizontalSegmentSvg(ctx, img, fromAdjusted, toAdjusted, part);
             }
 
             // Draw from/to points as circles
             ctx.save();
             ctx.fillStyle = 'lime'; // or any color you want
             ctx.beginPath();
-            ctx.arc(from.x, from.y, 8, 0, 2 * Math.PI);
+            ctx.arc(from.x, from.y, 5, 0, 2 * Math.PI);
             ctx.fill();
             ctx.beginPath();
-            ctx.arc(to.x, to.y, 8, 0, 2 * Math.PI);
+            ctx.arc(to.x, to.y, 5, 0, 2 * Math.PI);
             ctx.fill();
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(fromAdjusted.x, fromAdjusted.y, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = 'cyan';
+            ctx.beginPath();
+            ctx.arc(toAdjusted.x, toAdjusted.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            
             ctx.restore();
 
             continue;
@@ -338,44 +354,37 @@ const SvgCanvas = ({
 
         /* HANDS
         ----------------------------------------------------------------------*/
-        if (part === 'leftHand' &&
-            map.wrist !== undefined &&
-            map.elbow !== undefined
+        if ((part === 'leftHand' || part === 'rightHand') &&
+            map.wrist !== undefined && map.elbow !== undefined
         ) {
             const wrist = scaledLandmarks[map.wrist];
             const elbow = scaledLandmarks[map.elbow];
+            let wristAdjusted, elbowAdjusted;
+            wristAdjusted = { x: wrist.x, y: wrist.y + svgH / 4 };
+            elbowAdjusted = { x: elbow.x, y: elbow.y + svgH / 4 };
             if (!wrist || !elbow || wrist.score < 0.3 || elbow.score < 0.3) continue;
-            drawLeftHandSvg(ctx, img, wrist, elbow, armOrientation);
+            drawHandSvg(
+              ctx, 
+              img, 
+              wristAdjusted, 
+              elbowAdjusted, 
+              armOrientation, 
+              part);
+       
             ctx.save();
-            ctx.fillStyle = 'blue'; // or any color you want
+            ctx.fillStyle = 'lime'; // or any color you want
             ctx.beginPath();
             ctx.arc(wrist.x, wrist.y, 5, 0, 2 * Math.PI);
             ctx.fill();
             ctx.beginPath();
             ctx.arc(elbow.x, elbow.y, 5, 0, 2 * Math.PI);
             ctx.fill();
-            ctx.restore();
-            continue;
-        }
-
-        if (part === 'rightHand' &&
-            map.wrist !== undefined &&
-            map.elbow !== undefined
-        ) {
-            const wrist = scaledLandmarks[map.wrist];
-            const elbow = scaledLandmarks[map.elbow];
-            if (
-              !wrist || !elbow || wrist.score < 0.3 || 
-              elbow.score < 0.3) continue;
-            drawRightHandSvg(ctx, img, wrist, elbow, armOrientation);
-
-            ctx.save();
-            ctx.fillStyle = 'blue'; // or any color you want
+            ctx.fillStyle = "yellow";
             ctx.beginPath();
-            ctx.arc(wrist.x, wrist.y, 5, 0, 2 * Math.PI);
+            ctx.arc(wristAdjusted.x, wristAdjusted.y, 3, 0, 2 * Math.PI);
             ctx.fill();
             ctx.beginPath();
-            ctx.arc(elbow.x, elbow.y, 5, 0, 2 * Math.PI);
+            ctx.arc(elbowAdjusted.x, elbowAdjusted.y, 3, 0, 2 * Math.PI);
             ctx.fill();
             ctx.restore();
             continue;
@@ -395,12 +404,12 @@ const SvgCanvas = ({
             drawLegSvg(ctx, img, from, to, part);
 
             ctx.save();
-            ctx.fillStyle = 'purple';
+            ctx.fillStyle = 'lime';
             ctx.beginPath();
-            ctx.arc(from.x, from.y, 8, 0, 2 * Math.PI);
+            ctx.arc(from.x, from.y, 5, 0, 2 * Math.PI);
             ctx.fill();
             ctx.beginPath();
-            ctx.arc(to.x, to.y, 8, 0, 2 * Math.PI);
+            ctx.arc(to.x, to.y, 5, 0, 2 * Math.PI);
             ctx.fill();
             ctx.restore();
             continue;
@@ -409,15 +418,16 @@ const SvgCanvas = ({
         /* FEET
         ----------------------------------------------------------------------*/
         if ( part === 'leftFoot' || part === 'rightFoot' ) {
-            if (map.center === undefined) continue;
-            const center = scaledLandmarks[map.center];
-            if (!center || center.score < 0.3) continue;  
-            drawFootSvg(ctx, img, center, part); 
+            if (map.knee === undefined || map.ankle === undefined) continue;
+            const knee = scaledLandmarks[map.knee];
+            const ankle = scaledLandmarks[map.ankle];
+            if (!knee || !ankle || knee.score < 0.3 || ankle.score < 0.3) continue;  
+            drawFootSvg(ctx, img, ankle, knee, part); 
             
             ctx.save();
             ctx.fillStyle = 'lime';
             ctx.beginPath();
-            ctx.arc(center.x, center.y, 8, 0, 2 * Math.PI);
+            ctx.arc(ankle.x, ankle.y, 5, 0, 2 * Math.PI);
             ctx.fill();
             ctx.restore();
             

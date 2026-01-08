@@ -117,9 +117,15 @@ export const CANVAS_LANDMARK_MAP = {
         leftAnchor: LANDMARKS.rightEar,
     },
 
-    rightFoot: {center: LANDMARKS.rightAnkle},
+    rightFoot: {
+        ankle: LANDMARKS.rightAnkle, 
+        knee: LANDMARKS.rightKnee
+    },
     
-    leftFoot: {center: LANDMARKS.leftAnkle},
+    leftFoot: {
+        ankle: LANDMARKS.leftAnkle,
+        knee: LANDMARKS.leftKnee
+    },
 };
 
 

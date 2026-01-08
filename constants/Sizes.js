@@ -7,7 +7,7 @@ export const SCREEN_HEIGHT = height;
 
 export const CANVAS_WIDTH = width * 0.9;
 export const CANVAS_HEIGHT = height * 0.88;
-export const CANVAS_BORDER_RADIUS = 24;
+export const CANVAS_BORDER_RADIUS = 50;
 
 export const ICON_SIZE = 32;
 
@@ -57,14 +57,16 @@ export function getSvgSizes(height) {
 let avgTorsoHeight = 0;
 let avgTorsoWidth = 0;
 let currentTorsoWidth = 0;
-const torsoAlpha = 0.1; // Smoothing factor
+let avgHipWidth = 0;
+let currentHipWidth = 0;
+const alpha = 0.1; // Smoothing factor
 
 export function updateAvgTorsoHeight(newHeight) {
     if (avgTorsoHeight === 0) {
         avgTorsoHeight = newHeight;
     } else {
         avgTorsoHeight = 
-            torsoAlpha * newHeight + (1 - torsoAlpha) * avgTorsoHeight;
+            alpha * newHeight + (1 - alpha) * avgTorsoHeight;
     }
 }
 
@@ -78,7 +80,7 @@ export function updateAvgTorsoWidth(newWidth) {
         avgTorsoWidth = newWidth;
     } else {
         avgTorsoWidth = 
-            torsoAlpha * newWidth + (1 - torsoAlpha) * avgTorsoWidth;
+            alpha * newWidth + (1 - alpha) * avgTorsoWidth;
     }
 }
 
@@ -86,7 +88,52 @@ export function getAvgTorsoWidth() {
     return avgTorsoWidth;
 }
 
+
 export function getCurrentTorsoWidth() {
     return currentTorsoWidth;
+}
+
+export function updateAvgHipWidth(newWidth) {
+    currentHipWidth = newWidth;
+    if (avgHipWidth === 0) {
+        avgHipWidth = newWidth;
+    } else {
+        avgHipWidth = 
+            alpha * newWidth + (1 - alpha) * avgHipWidth;
+    }
+}
+
+export function getAvgHipWidth() {
+    return avgHipWidth;
+}
+
+export function getCurrentHipWidth() {
+    return currentHipWidth;
+}
+
+export function rotatedAroundSpine() {
+    return currentTorsoWidth < avgTorsoWidth * 0.5 && 
+           currentHipWidth < avgHipWidth * 0.5; 
+}
+
+/* Average Ear Distance for Head Scaling
+------------------------------------------------------------------------------*/
+let avgEarDistance = 0;
+
+export function updateAvgEarDistance(newDistance) {
+    if (avgEarDistance === 0) {
+        avgEarDistance = newDistance;
+    } else {
+        avgEarDistance = 
+            alpha * newDistance + (1 - alpha) * avgEarDistance;
+    }
+}
+
+export function getAvgEarDistance() {
+    return avgEarDistance;
+}
+
+export function getEarX(leftEar, rightEar) {
+    return rightEar.x - leftEar.x;
 }
 

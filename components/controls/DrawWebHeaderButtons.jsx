@@ -13,14 +13,17 @@ import {
   FaRunning, 
   FaVideo,
   FaFileVideo, 
-  FaFileExport
+  FaFileExport,
+  FaEraser
 } from 'react-icons/fa';
 import { RiWebcamFill } from "react-icons/ri";
 import { getIconSize } from '../../constants/Sizes';
 
 const DrawWebHeaderButtons = ({ 
   viewMode,
+  onSave,
   onClear, 
+  onToggleEraseMode,
   onShowBrushSizeSlider,
   onShowColorPicker,
   setPoseView,
@@ -32,6 +35,14 @@ const DrawWebHeaderButtons = ({
   
     return (
     <View style={styles.container}>    
+      
+      <TouchableOpacity 
+        onPress={() => {
+          onSave && onSave();
+        }}
+      >
+        <FaFileExport size={getIconSize()} color={theme.button} />
+      </TouchableOpacity>
       
       <TouchableOpacity  
         onPress={() => {
@@ -62,6 +73,12 @@ const DrawWebHeaderButtons = ({
         onPress={onClear}
       >
         <FaTrashAlt size={getIconSize()} color={theme.button} />
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        onPress={onToggleEraseMode}
+      >
+        <FaEraser size={getIconSize()} color={theme.button}  />
       </TouchableOpacity>
 
       <TouchableOpacity 

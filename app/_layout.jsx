@@ -78,8 +78,9 @@ const RootLayout = () => {
                             <>
                                 <DrawWebHeaderButtons
                                     viewMode={route.params?.viewMode}
+                                    onSave={route.params?.onSave}
                                     onClear={route.params?.onClear}
-                                    onOpenCamera={route.params?.onOpenCamera}
+                                    onToggleEraseMode={route.params?.onToggleEraseMode}
                                     onShowBrushSizeSlider={route.params?.onShowBrushSizeSlider}
                                     onShowColorPicker={route.params?.onShowColorPicker}
                                     setPoseView={route.params?.setPoseView}

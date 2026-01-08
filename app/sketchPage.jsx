@@ -45,6 +45,7 @@ const SketchPage = () => {
     const [strokeWidth, setStrokeWidth] = useState(2);
     const [showBrushSizeSlider, setShowBrushSizeSlider] = useState(false);
     const [showColorPicker, setShowColorPicker] = useState(false);
+    const [erase, setErase] = useState(false);
 
     /* View mode state to pass current viewMode to header buttons
     --------------------------------------------------------------------------*/
@@ -77,6 +78,7 @@ const SketchPage = () => {
         svgStyle: { background: 'transparent'} ,
         strokeWidth: strokeWidth,
         strokeColor: selectedColor,
+        eraseMode: erase
     };
 
     /* Toggle display of sketch controls
@@ -93,6 +95,10 @@ const SketchPage = () => {
         setShowBrushSizeSlider(false);
         setShowColorPicker(prev => !prev);
         
+    }, []);
+
+    const toggleEraseMode = useCallback(() => {
+        setErase(prev => !prev);
     }, []);
 
     /* Clear all canvases (reset) 
@@ -112,6 +118,7 @@ const SketchPage = () => {
         leftUpperLegRef.current?.clearCanvas();
         leftLowerLegRef.current?.clearCanvas();
         leftFootRef.current?.clearCanvas();
+        bodySvgsRef.current = {};
     }, []);
 
     /* Save all canvases as SVGs
@@ -134,9 +141,7 @@ const SketchPage = () => {
                 rightHand: rightHandRef,
                 leftLowerArm: leftLowerArmRef,
                 leftHand: leftHandRef,
-                
-                
-                
+                    
             };
 
             // Export SVG from each canvas ref
@@ -154,8 +159,11 @@ const SketchPage = () => {
             // Update state and ref
             bodySvgsRef.current = svgs;
             
-            /* Export SVGs as JSON file
-            --------------------------------------------------------------
+            /*Export SVGs as JSON file
+            - un-comment to save each svg as a JSON file in device storage
+            - on web, triggers download of JSON file  
+                                               ** add remove closing tag here V
+            ------------------------------------------------------------------
             try {
                 const json = JSON.stringify(svgs, null, 2);
                 if (Platform.OS === 'web') {
@@ -181,8 +189,9 @@ const SketchPage = () => {
             } catch (e) {
                 console.error('Error exporting SVGs:', e);
             }
-            --------------------------------------------------------------*/
             
+            /* End export SVGs as JSON file
+            --------------------------------------------------------------*/           
             return svgs;
         } catch (e) {
             console.error('Error saving SVGs:', e);
@@ -206,10 +215,7 @@ const SketchPage = () => {
         console.log('videoUri param:', poseVideoUri);
         let savedSvgs = null;
         
-        const svgsToSend =
-            Object.keys(bodySvgsRef.current || {}).length > 0
-            ? bodySvgsRef.current
-            : await saveAll();
+        const svgsToSend = await saveAll();
 
         // Try to load saved SVGs from file
         if (Platform.OS === 'web') {
@@ -258,6 +264,8 @@ const SketchPage = () => {
         navigation.setParams({
             viewMode: viewMode,
             onClear: clearAll,
+            onToggleErase: toggleEraseMode,
+            onSave: saveAll,
             onShowBrushSizeSlider: toggleBrushSizeSlider,
             onShowColorPicker: toggleColorPicker,
             setPoseView: () => goToDetectPose('pose', null),
