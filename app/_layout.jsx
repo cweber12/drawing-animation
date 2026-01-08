@@ -80,7 +80,7 @@ const RootLayout = () => {
                                     viewMode={route.params?.viewMode}
                                     onSave={route.params?.onSave}
                                     onClear={route.params?.onClear}
-                                    onToggleEraseMode={route.params?.onToggleEraseMode}
+                                    onToggleErase={route.params?.onToggleErase}
                                     onShowBrushSizeSlider={route.params?.onShowBrushSizeSlider}
                                     onShowColorPicker={route.params?.onShowColorPicker}
                                     setPoseView={route.params?.setPoseView}

@@ -23,7 +23,7 @@ const DrawWebHeaderButtons = ({
   viewMode,
   onSave,
   onClear, 
-  onToggleEraseMode,
+  onToggleErase,
   onShowBrushSizeSlider,
   onShowColorPicker,
   setPoseView,
@@ -76,7 +76,7 @@ const DrawWebHeaderButtons = ({
       </TouchableOpacity>
 
       <TouchableOpacity 
-        onPress={onToggleEraseMode}
+        onPress={onToggleErase}
       >
         <FaEraser size={getIconSize()} color={theme.button}  />
       </TouchableOpacity>

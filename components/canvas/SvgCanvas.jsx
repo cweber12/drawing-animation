@@ -14,6 +14,7 @@ import {
   CANVAS_BORDER_RADIUS, 
   updateAvgTorsoHeight,
   updateAvgTorsoWidth,
+  updateAvgHipWidth,
   updateAvgEarDistance
 } from '../../constants/Sizes';
 import {
@@ -190,6 +191,9 @@ const SvgCanvas = ({
         if (!tl || !tr || !bl || !br) continue;
         if (tl.score < 0.3 || tr.score < 0.3 || bl.score < 0.3 || br.score < 0.3) continue;
         
+        const shoulderWidth = tr.x - tl.x;
+        const offset = shoulderWidth / 2;
+        
         updateAvgTorsoHeight( 
           Math.hypot( 
             (tl.x + tr.x)/2 - (bl.x + br.x)/2, 
@@ -198,10 +202,11 @@ const SvgCanvas = ({
         );
 
         updateAvgTorsoWidth(
-          Math.hypot(
-            (tr.x + br.x)/2 - (tl.x + bl.x)/2,
-            (tr.y + br.y)/2 - (tl.y + bl.y)/2
-          )
+          Math.abs(tr.x - tl.x)
+        );
+
+        updateAvgHipWidth (
+          (br.x - bl.x)
         );
  
         // Calculate hip center and shoulder width
@@ -209,11 +214,6 @@ const SvgCanvas = ({
           x: (bl.x + br.x) / 2,
           y: (bl.y + br.y) / 2,
         };
-
-        const isFlipped = (tl.x > tr.x); 
-        const shoulderWidth = tr.x - tl.x;
-
-        const offset = shoulderWidth / 2;
 
         // Use the offset to define the third point (left side shown)
         const thirdPoint = {
@@ -276,6 +276,7 @@ const SvgCanvas = ({
               rightEar.y - leftEar.y
               )
             );
+
             drawHeadSvg(ctx, img, leftEar, rightEar);
 
             ctx.save();
@@ -425,9 +426,13 @@ const SvgCanvas = ({
             drawFootSvg(ctx, img, ankle, knee, part); 
             
             ctx.save();
-            ctx.fillStyle = 'lime';
+            if (part === 'rightFoot') {
+                ctx.fillStyle = 'orange';
+            } else {
+                ctx.fillStyle = 'aqua';
+            }
             ctx.beginPath();
-            ctx.arc(ankle.x, ankle.y, 5, 0, 2 * Math.PI);
+            ctx.arc(ankle.x, ankle.y, 10, 0, 2 * Math.PI);
             ctx.fill();
             ctx.restore();
             

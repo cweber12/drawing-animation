@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useRouter, useNavigation } from 'expo-router';
-import { CANVAS_LANDMARK_MAP, getCanvasLandmarkMap } from '../constants/LandmarkData';
+import { CANVAS_LANDMARK_MAP} from '../constants/LandmarkData';
 import ThemedView from '../components/themed_elements/ThemedView';
 import { Colors } from '../constants/Colors';
 import BrushSizeSlider from '../components/controls/BrushSizeSlider';
@@ -42,6 +42,7 @@ const SketchPage = () => {
     /* State variables brush size and color settings
     --------------------------------------------------------------------------*/
     const [selectedColor, setSelectedColor] = useState(theme.svgStrokeColor);
+    const [previousColor, setPreviousColor] = useState(theme.svgStrokeColor);
     const [strokeWidth, setStrokeWidth] = useState(2);
     const [showBrushSizeSlider, setShowBrushSizeSlider] = useState(false);
     const [showColorPicker, setShowColorPicker] = useState(false);
@@ -78,7 +79,8 @@ const SketchPage = () => {
         svgStyle: { background: 'transparent'} ,
         strokeWidth: strokeWidth,
         strokeColor: selectedColor,
-        eraseMode: erase
+        eraseMode: erase,
+        eraserWidth: strokeWidth, 
     };
 
     /* Toggle display of sketch controls
@@ -97,9 +99,29 @@ const SketchPage = () => {
         
     }, []);
 
+    /* Toggle erase mode
+    --------------------------------------------------------------------------*/
     const toggleEraseMode = useCallback(() => {
         setErase(prev => !prev);
     }, []);
+
+    /* Update erase mode on all canvases when erase state changes
+    --------------------------------------------------------------------------*/
+    useEffect(() => {
+        // List all refs
+        const refs = [
+            headRef, torsoRef,
+            rightUpperArmRef, rightLowerArmRef, rightHandRef,
+            leftUpperArmRef, leftLowerArmRef, leftHandRef,
+            rightUpperLegRef, rightLowerLegRef, rightFootRef,
+            leftUpperLegRef, leftLowerLegRef, leftFootRef
+        ];
+        refs.forEach(ref => {
+            if (ref.current && ref.current.eraseMode) {
+                ref.current.eraseMode(erase);
+            }
+        });
+    }, [erase]);
 
     /* Clear all canvases (reset) 
     --------------------------------------------------------------------------*/
@@ -163,7 +185,7 @@ const SketchPage = () => {
             - un-comment to save each svg as a JSON file in device storage
             - on web, triggers download of JSON file  
                                                ** add remove closing tag here V
-            ------------------------------------------------------------------
+            ------------------------------------------------------------------*/
             try {
                 const json = JSON.stringify(svgs, null, 2);
                 if (Platform.OS === 'web') {
@@ -307,6 +329,7 @@ const SketchPage = () => {
                     canvasProps={canvasProps}
                     headRef={headRef} 
                     headSize={sizes.HEAD_SIZE}
+                    eraseMode={erase}
                 /> 
                 
                 <View style={styles.row}>

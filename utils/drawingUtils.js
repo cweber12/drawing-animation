@@ -3,9 +3,12 @@ import { CANVAS_BORDER_RADIUS, isSmallScreen } from '../constants/Sizes';
 import { 
     getAvgTorsoHeight, 
     getAvgEarDistance,
-    rotatedAroundSpine
+    getTorsoScaleFactor,
+    getCurrentHipWidth,
+    getAvgHipWidth
 } from '../constants/Sizes';
 import { get } from 'lodash';
+import { scale } from '@shopify/react-native-skia';
 
 /* TODO
 --------------------------------------------------------------------------------
@@ -167,8 +170,13 @@ export function drawFootSvg(ctx, img, ankle, knee, part) {
     const dy = ankle.y - knee.y;
     const angle = Math.atan2(dy, dx);
     const avgTorsoHeight = getAvgTorsoHeight();
+    const avgHipWidth = getAvgHipWidth();
+    const currentHipWidth = getCurrentHipWidth();
+    const scaleFactor = currentHipWidth / Math.abs(avgHipWidth);
     // Scaling
-    let scaleX = (avgTorsoHeight * 0.85) / Math.max(1, svgW);
+    let scaleX; 
+    scaleX = (currentHipWidth - Math.abs(avgHipWidth) * 0.5) / Math.max(1, svgW);  
+    //scaleX = (avgTorsoHeight * 0.85) / Math.max(1, svgW);
     const scaleY = (avgTorsoHeight * 0.65 * 0.5) / Math.max(1, svgH);
 
     ctx.save();

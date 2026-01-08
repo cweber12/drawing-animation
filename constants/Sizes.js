@@ -111,9 +111,8 @@ export function getCurrentHipWidth() {
     return currentHipWidth;
 }
 
-export function rotatedAroundSpine() {
-    return currentTorsoWidth < avgTorsoWidth * 0.5 && 
-           currentHipWidth < avgHipWidth * 0.5; 
+export function getTorsoScaleFactor() {
+    return currentHipWidth / Math.abs(avgHipWidth); 
 }
 
 /* Average Ear Distance for Head Scaling
