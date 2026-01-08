@@ -51,3 +51,42 @@ export function getSvgSizes(height) {
         FOOT_WIDTH,
     };
 }
+
+/* Average Torso Height and Width for Scaling
+------------------------------------------------------------------------------*/
+let avgTorsoHeight = 0;
+let avgTorsoWidth = 0;
+let currentTorsoWidth = 0;
+const torsoAlpha = 0.1; // Smoothing factor
+
+export function updateAvgTorsoHeight(newHeight) {
+    if (avgTorsoHeight === 0) {
+        avgTorsoHeight = newHeight;
+    } else {
+        avgTorsoHeight = 
+            torsoAlpha * newHeight + (1 - torsoAlpha) * avgTorsoHeight;
+    }
+}
+
+export function getAvgTorsoHeight() {
+    return avgTorsoHeight;
+}
+
+export function updateAvgTorsoWidth(newWidth) {
+    currentTorsoWidth = newWidth;
+    if (avgTorsoWidth === 0) {
+        avgTorsoWidth = newWidth;
+    } else {
+        avgTorsoWidth = 
+            torsoAlpha * newWidth + (1 - torsoAlpha) * avgTorsoWidth;
+    }
+}
+
+export function getAvgTorsoWidth() {
+    return avgTorsoWidth;
+}
+
+export function getCurrentTorsoWidth() {
+    return currentTorsoWidth;
+}
+

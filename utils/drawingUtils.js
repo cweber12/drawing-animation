@@ -1,5 +1,7 @@
 import { getSvgSize } from './svgUtils';
 import { CANVAS_BORDER_RADIUS, isSmallScreen } from '../constants/Sizes';
+import { updateAvgTorsoHeight, getAvgTorsoHeight } from '../constants/Sizes';
+import { get } from 'lodash';
 
 /* TODO
 --------------------------------------------------------------------------------
@@ -21,8 +23,8 @@ export function drawHeadSvg(ctx, img, leftEar, rightEar) {
     // Midpoint between ears
     const midX = (leftEar.x + rightEar.x) / 2;
     const midY = ((leftEar.y + rightEar.y) / 2); 
-    const earDist = Math.hypot(dx, dy);
-    const scale = (earDist / svgW) * 2; 
+    const avgTorsoHeight = getAvgTorsoHeight();
+    const scale = ((avgTorsoHeight * 0.85) / svgW); 
     ctx.save();
     ctx.translate(midX, midY);
     ctx.rotate(angle); 
@@ -58,13 +60,17 @@ export function drawHorizontalSegmentSvg(ctx, img, from, to, part) {
     const dy = toAdjusted.y - fromAdjusted.y;
     const angle = Math.atan2(dy, dx);
     const length = Math.hypot(dx, dy);
-    const scale = length / Math.max(1, svgW);
+    
+    // Scale width based on average torso height for smoother scaling
+    const avgTorsoHeight = getAvgTorsoHeight();
+    const scaleWidth = (avgTorsoHeight * 0.85 * 0.65) / Math.max(1, svgW);
+    const scaleLength = length / Math.max(1, svgW);
 
     ctx.save(); 
     ctx.translate(fromAdjusted.x, fromAdjusted.y );
 
     ctx.rotate(angle); // Rotate to point toward elbow/wrist
-    ctx.scale(scale, scale); // Scale so SVG width matches segment length
+    ctx.scale(scaleLength, scaleWidth); // Scale so SVG width matches segment length
     ctx.drawImage(img, 0, -svgH / 2, svgW, svgH); 
     ctx.restore();
 }
@@ -94,11 +100,13 @@ export function drawVerticalSegmentSvg(ctx, img, from, to, part) {
     const dy = toAdjusted.y - fromAdjusted.y; // Adjust for canvas border radius
     const angle = Math.atan2(dy, dx);
     const length = Math.hypot(dx, dy);
-    const scale = length / Math.max(1, svgH);
+    const avgTorsoHeight = getAvgTorsoHeight();
+    const scaleLength = length / Math.max(1, svgH);
+    const scaleWidth = (avgTorsoHeight * 0.85 * 0.65) / Math.max(1, svgW);
     ctx.save(); 
     ctx.translate(fromAdjusted.x, fromAdjusted.y);
     ctx.rotate(angle - Math.PI / 2); // Rotate to point toward elbow/wrist
-    ctx.scale(scale, scale); // Scale so SVG height matches segment length
+    ctx.scale(scaleWidth, scaleLength); // Scale so SVG height matches segment length
     ctx.drawImage(img, - svgW / 2, 0, svgW, svgH); 
     ctx.restore();
 }
@@ -111,19 +119,17 @@ export function drawLeftHandSvg(ctx, img, wrist, elbow, armOrientation) {
     const dy = wrist.y - elbow.y;
     const angle = Math.atan2(dy, dx);
     const length = Math.hypot(dx, dy);
-    let scale;
-    if (armOrientation === 'horizontal') {
-        scale = length / Math.max(1, svgW);
-    } else {
-        scale = length / Math.max(1, svgH);
-    }
+    const avgTorsoHeight = getAvgTorsoHeight();
+    const scaleLength = length / Math.max(1, svgW);
+    const scaleWidth =  (avgTorsoHeight * 0.85 * 0.5) / Math.max(1, svgH);
     ctx.save();
     ctx.translate(wrist.x, wrist.y);
-    ctx.scale(scale, scale);
     if (armOrientation === 'horizontal') {
+        ctx.scale(scaleLength, scaleWidth);
         ctx.rotate(angle); 
         ctx.drawImage(img, 0, -svgH / 2, svgW, svgH);
     } else {
+        ctx.scale(scaleWidth, scaleLength);
         ctx.rotate(angle - Math.PI / 2);
         ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
     }
@@ -138,20 +144,18 @@ export function drawRightHandSvg(ctx, img, wrist, elbow, armOrientation) {
     const dy = wrist.y - elbow.y;
     const angle = Math.atan2(dy, dx);
     const length = Math.hypot(dx, dy);
-    let scale;
-    if (armOrientation === 'horizontal') {
-        scale = length / Math.max(1, svgW);
-    } else {
-        scale = length / Math.max(1, svgH);
-    }
+    const avgTorsoHeight = getAvgTorsoHeight();
+    const scaleLength = length / Math.max(1, svgW);
+    const scaleWidth =  (avgTorsoHeight * 0.85 * 0.5) / Math.max(1, svgH);
 
     ctx.save();
     ctx.translate(wrist.x , wrist.y);
-    ctx.scale(scale, scale);
     if (armOrientation === 'horizontal') {
+        ctx.scale(scaleLength, scaleWidth);
         ctx.rotate(angle + Math.PI); // Flip for right hand
         ctx.drawImage(img, -svgW, -svgH / 2, svgW, svgH);
     } else {
+        ctx.scale(scaleWidth, scaleLength);
         ctx.rotate(angle - Math.PI / 2); // Flip for right hand
         ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
     }
@@ -162,21 +166,23 @@ export function drawRightHandSvg(ctx, img, wrist, elbow, armOrientation) {
 ------------------------------------------------------------------------------*/
 export function drawLegSvg(ctx, img, from, to, part) {
   const { w: svgW, h: svgH } = getSvgSize(img);
-  const fromOffset = {x: from.x, y: from.y - svgH / 4,};
-  const toOffset = {x: to.x , y: to.y - svgH / 4 ,};
+  const fromOffset = {x: from.x, y: from.y};
+  const toOffset = {x: to.x , y: to.y};
   const dx = toOffset.x - fromOffset.x;
   const dy = toOffset.y - fromOffset.y;
   const angle = Math.atan2(dy, dx);
   const length = Math.hypot(dx, dy);
-  const scale = length / Math.max(1, svgH);
+  const avgTorsoHeight = getAvgTorsoHeight();
+  const scaleLength = length / Math.max(1, svgH);
+  const scaleWidth = (avgTorsoHeight * 0.85 * 0.5) / Math.max(1, svgW);
   ctx.save();
   ctx.translate(fromOffset.x, fromOffset.y);
   ctx.rotate(angle - Math.PI / 2); // <-- Fix: rotate so SVG height aligns with segment
-  ctx.scale(scale, scale);
+  ctx.scale(scaleWidth, scaleLength);
   if (part === 'leftUpperLeg' || part === 'leftLowerLeg') {
-      ctx.drawImage(img, -svgW / 1.25, svgH / 4, svgW, svgH);
+      ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
   } else if (part === 'rightUpperLeg' || part === 'rightLowerLeg') {
-      ctx.drawImage(img, 0, svgH / 4, svgW, svgH);
+      ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
   }
   ctx.restore();
 }
@@ -185,8 +191,12 @@ export function drawLegSvg(ctx, img, from, to, part) {
 ------------------------------------------------------------------------------*/
 export function drawFootSvg(ctx, img, ankle, part) {
     const { w: svgW, h: svgH } = getSvgSize(img);
+    const avgTorsoHeight = getAvgTorsoHeight();
+    const scaleLength = (avgTorsoHeight * 0.85 * 0.5 * 2) / Math.max(1, svgW);
+    const scaleWidth = (avgTorsoHeight * 0.65 * 0.5) / Math.max(1, svgH);
     ctx.save();
     ctx.translate(ankle.x, ankle.y);
+    ctx.scale(scaleWidth, scaleLength);
     if (part === 'leftFoot') {
         // Align top-left corner to ankle
         ctx.drawImage(img, -svgW / 4, 0, svgW, svgH);

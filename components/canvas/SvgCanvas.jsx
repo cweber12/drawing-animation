@@ -8,7 +8,13 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { LANDMARKS, CONNECTED_KEYPOINTS } from '../../constants/LandmarkData';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, CANVAS_BORDER_RADIUS } from '../../constants/Sizes';
+import { 
+  CANVAS_WIDTH, 
+  CANVAS_HEIGHT, 
+  CANVAS_BORDER_RADIUS, 
+  updateAvgTorsoHeight,
+  updateAvgTorsoWidth,
+} from '../../constants/Sizes';
 import {
   affineFrom3Points,
   svgStringToImage,
@@ -25,6 +31,7 @@ import {
   drawLegSvg,
   drawFootSvg,
 } from '../../utils/drawingUtils';
+import { update } from 'lodash';
 
 const SvgCanvas = ({ 
   width, 
@@ -183,6 +190,20 @@ const SvgCanvas = ({
         if (!tl || !tr || !bl || !br) continue;
         if (tl.score < 0.3 || tr.score < 0.3 || bl.score < 0.3 || br.score < 0.3) continue;
         
+        updateAvgTorsoHeight( 
+          Math.hypot( 
+            (tl.x + tr.x)/2 - (bl.x + br.x)/2, 
+            (tl.y + tr.y)/2 - (bl.y + br.y)/2 
+          ) 
+        );
+
+        updateAvgTorsoWidth(
+          Math.hypot(
+            (tr.x + br.x)/2 - (tl.x + bl.x)/2,
+            (tr.y + br.y)/2 - (tl.y + bl.y)/2
+          )
+        );
+ 
         // Calculate hip center and shoulder width
         const hipCenter = {
           x: (bl.x + br.x) / 2,
@@ -235,18 +256,6 @@ const SvgCanvas = ({
         ctx.restore();
         continue;
         }
-
-        /*
-        if (map.center !== undefined) {
-            const center = scaledLandmarks[map.center];
-            if (!center || center.score < 0.3) continue;
-
-            ctx.save();
-            ctx.translate(center.x, center.y);
-            ctx.drawImage(img, -svgW / 2, -svgH / 2, svgW, svgH);
-            ctx.restore();
-            continue;
-        }*/
 
         /* HEAD 
         ----------------------------------------------------------------------*/
