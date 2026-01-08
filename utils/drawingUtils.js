@@ -38,6 +38,20 @@ export function drawHorizontalSegmentSvg(ctx, img, from, to, part) {
     
     let fromAdjusted = { ...from };
     let toAdjusted = { ...to };
+    if (part === 'leftUpperArm' ) {
+        fromAdjusted = {
+            x: from.x, 
+            y: from.y + svgW / 8,};
+        toAdjusted = {x: to.x, y: to.y, };
+    } else if (part === 'rightUpperArm' ) {
+        fromAdjusted = {
+            x: from.x,
+            y: from.y + svgW / 8,};
+        toAdjusted = {x: to.x,  y: to.y, };
+    } else {
+        fromAdjusted = { x: from.x, y: from.y,};
+        toAdjusted = { x: to.x, y: to.y,};
+    }
 
     
     const dx = toAdjusted.x - fromAdjusted.x;
@@ -47,10 +61,11 @@ export function drawHorizontalSegmentSvg(ctx, img, from, to, part) {
     const scale = length / Math.max(1, svgW);
 
     ctx.save(); 
-    ctx.translate(fromAdjusted.x, fromAdjusted.y);
+    ctx.translate(fromAdjusted.x, fromAdjusted.y );
+
     ctx.rotate(angle); // Rotate to point toward elbow/wrist
     ctx.scale(scale, scale); // Scale so SVG width matches segment length
-    ctx.drawImage(img, 0, 0, svgW, svgH); 
+    ctx.drawImage(img, 0, -svgH / 2, svgW, svgH); 
     ctx.restore();
 }
 
@@ -95,12 +110,19 @@ export function drawLeftHandSvg(ctx, img, wrist, elbow, armOrientation) {
     const dx = wrist.x - elbow.x;
     const dy = wrist.y - elbow.y;
     const angle = Math.atan2(dy, dx);
-
+    const length = Math.hypot(dx, dy);
+    let scale;
+    if (armOrientation === 'horizontal') {
+        scale = length / Math.max(1, svgW);
+    } else {
+        scale = length / Math.max(1, svgH);
+    }
     ctx.save();
     ctx.translate(wrist.x, wrist.y);
+    ctx.scale(scale, scale);
     if (armOrientation === 'horizontal') {
-        ctx.rotate(angle); // Flip for left hand
-        ctx.drawImage(img, 0, 0, svgW, svgH);
+        ctx.rotate(angle); 
+        ctx.drawImage(img, 0, -svgH / 2, svgW, svgH);
     } else {
         ctx.rotate(angle - Math.PI / 2);
         ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
@@ -128,7 +150,7 @@ export function drawRightHandSvg(ctx, img, wrist, elbow, armOrientation) {
     ctx.scale(scale, scale);
     if (armOrientation === 'horizontal') {
         ctx.rotate(angle + Math.PI); // Flip for right hand
-        ctx.drawImage(img, -svgW, 0, svgW, svgH);
+        ctx.drawImage(img, -svgW, -svgH / 2, svgW, svgH);
     } else {
         ctx.rotate(angle - Math.PI / 2); // Flip for right hand
         ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
@@ -151,7 +173,11 @@ export function drawLegSvg(ctx, img, from, to, part) {
   ctx.translate(fromOffset.x, fromOffset.y);
   ctx.rotate(angle - Math.PI / 2); // <-- Fix: rotate so SVG height aligns with segment
   ctx.scale(scale, scale);
-  ctx.drawImage(img, -svgW / 2, svgH / 4, svgW, svgH);
+  if (part === 'leftUpperLeg' || part === 'leftLowerLeg') {
+      ctx.drawImage(img, -svgW / 1.25, svgH / 4, svgW, svgH);
+  } else if (part === 'rightUpperLeg' || part === 'rightLowerLeg') {
+      ctx.drawImage(img, 0, svgH / 4, svgW, svgH);
+  }
   ctx.restore();
 }
 
@@ -163,10 +189,10 @@ export function drawFootSvg(ctx, img, ankle, part) {
     ctx.translate(ankle.x, ankle.y);
     if (part === 'leftFoot') {
         // Align top-left corner to ankle
-        ctx.drawImage(img, svgW, 0, svgW, svgH);
+        ctx.drawImage(img, -svgW / 4, 0, svgW, svgH);
     } else {
         // Align top-right corner to ankle
-        ctx.drawImage(img, -svgW, 0, svgW, svgH);
+        ctx.drawImage(img, -svgW / 1.25, 0, svgW, svgH);
     }
     ctx.restore();
 }

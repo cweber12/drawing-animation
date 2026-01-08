@@ -124,16 +124,16 @@ const DetectPose = () => {
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     navigation.setParams({
-      onToggleWebcam: toggleWebcam,
+      onToggleWebcam: toggleWebcam, // toggle webcam visibility
       onDetectionStarted: () => {
-        firstStartRef.current = false;
-        setSavedLandmarks([]);
-        setShowPoseAnimation(false);
-        setIsDetecting(true);
+        firstStartRef.current = false; // not first start anymore, net stop will show animation
+        setSavedLandmarks([]); // clear saved landmarks
+        setShowPoseAnimation(false); // hide pose animation during detection
+        setIsDetecting(true); // detection started
       },
       onDetectionStopped: () => {
-        setIsDetecting(false);
-        if (!firstStartRef.current) setShowPoseAnimation(true);
+        setIsDetecting(false); // detection stopped
+        if (!firstStartRef.current) setShowPoseAnimation(true); // show after fists start
       },
       viewMode,
       showPoseAnimation,
@@ -186,26 +186,37 @@ const DetectPose = () => {
   - Cleanup function disposes of the detector when component unmounts 
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
-    let detector;
-    let cancelled = false;
+    let detector; // pose detector instance
+    let cancelled = false; // track if effect is cancelled
 
+    /* Load and Run Pose Detection
+    ----------------------------------------------------------------------------------------------*/
     const runPoseDetection = async () => {
+      // Create MoveNet detector
       detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
       if (cancelled) return;
 
       setLoading(false); // pose model loaded
 
+      /* Recursive Pose Detection Loop 
+      --------------------------------------------------------------------------------------------*/
       const detect = async () => {
         if (cancelled) return;
-        const video = videoUri ? videoRef.current : webcamRef.current?.video;        if (!video || video.readyState !== 4) { // video not ready
-          requestAnimationFrame(detect);
-          return;
+        const video = videoUri ? videoRef.current : webcamRef.current?.video;        
+        if (!video || video.readyState !== 4) { // video not ready
+          requestAnimationFrame(detect); // request next frame
+          return; // wait for video to be ready, then run detect again
         }
-        try { // estimate poses
+        /* Estimate Poses
+        ------------------------------------------------------------------------------------------*/
+        try {
           if (isDetecting) {
+            // Get poses from video frame
             const poses = await detector.estimatePoses(video, { flipHorizontal: true });
             let currentLandmarks = poses?.[0]?.keypoints ?? []; // get keypoints (or empty array)
             
+            /* Adjust landmarks to fit canvas size in 'pose' mode
+            --------------------------------------------------------------------------------------*/
             if (videoUri && videoLoaded && naturalVideoWidth && naturalVideoHeight) {
               // Calculate aspect ratios
               const videoAspect = naturalVideoWidth / naturalVideoHeight;
@@ -228,10 +239,13 @@ const DetectPose = () => {
                 y: kp.y * scale + offsetY,
               }));
             }
-            
+
+            /* Update current landmarks state
+            --------------------------------------------------------------------------------------*/
             setLandmarks(currentLandmarks); // update current landmarks
 
-            
+            /* Save landmarks for pose animation in 'pose' mode
+            --------------------------------------------------------------------------------------*/
             if (viewMode === 'pose') { // In 'pose' mode, save landmarks for animation
               setSavedLandmarks(prev => [...prev, JSON.parse(JSON.stringify(currentLandmarks))]);
             }
@@ -239,7 +253,7 @@ const DetectPose = () => {
         } catch (e) {
           console.error('estimatePoses error:', e);
         }
-        requestAnimationFrame(detect); // get next frame
+        requestAnimationFrame(detect); // request next frame
       };
       detect(); // continue detection loop
     };
@@ -258,8 +272,8 @@ const DetectPose = () => {
 
   if (!isTfReady || loading) {
     return (
-      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-        <div>Loading pose model...</div>
+      <div>
+        <div style={styles.notificationText}>Loading pose model...</div>
       </div>
     );
   }
@@ -342,7 +356,6 @@ const DetectPose = () => {
                 }}
               />
             )}
-
             <PoseCanvas
               width={viewMode === 'pose' ? (videoUri ? CANVAS_WIDTH : naturalVideoWidth) : webcamWidth}
               height={viewMode === 'pose' ? (videoUri ? CANVAS_HEIGHT : naturalVideoHeight) : webcamHeight}
@@ -356,8 +369,10 @@ const DetectPose = () => {
                 height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
               }}
             />
+
           </>
         )}
+        
         
       </div>
     </ThemedView>

@@ -119,32 +119,6 @@ const SvgCanvas = ({
 
     if (!displayLandmarks || displayLandmarks.length === 0) return;
 
-    /* Draw pose skeleton
-    --------------------------------------------------------------------------*/
-    ctx.strokeStyle = 'lime';
-    ctx.lineWidth = 2;
-    CONNECTED_KEYPOINTS.forEach(([i, j]) => {
-      const kp1 = displayLandmarks[i];
-      const kp2 = displayLandmarks[j];
-      if (kp1 && kp2 && kp1.score > 0.3 && kp2.score > 0.3) {
-        ctx.beginPath();
-        ctx.moveTo(kp1.x, kp1.y);
-        ctx.lineTo(kp2.x, kp2.y);
-        ctx.stroke();
-      }
-    });
-
-    /* Draw keypoints
-    --------------------------------------------------------------------------*/
-    ctx.fillStyle = 'red';
-    displayLandmarks.forEach((kp) => {
-      if (kp && kp.score > 0.3) {
-        ctx.beginPath();
-        ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
-        ctx.fill();
-      }
-    });
-
     /* Draw SVGs for body parts
     --------------------------------------------------------------------------*/
     const images = imagesRef.current;
@@ -196,10 +170,9 @@ const SvgCanvas = ({
         /* TORSO 
         ----------------------------------------------------------------------*/
         if (
-        map.topLeft !== undefined &&
-        map.topRight !== undefined &&
-        map.bottomLeft !== undefined &&
-        map.bottomRight !== undefined
+          part === 'torso' &&
+          map.topLeft !== undefined && map.topRight !== undefined &&
+          map.bottomLeft !== undefined && map.bottomRight !== undefined
         ) {
         const tl = scaledLandmarks[map.topLeft];
         const tr = scaledLandmarks[map.topRight];
@@ -241,9 +214,29 @@ const SvgCanvas = ({
         ctx.scale(1, 1); 
         ctx.drawImage(img, 0, 0, svgW, svgH);
         ctx.restore();
+
+        ctx.save();
+        ctx.fillStyle = 'yellow'; 
+        ctx.beginPath();
+        ctx.arc(tl.x, tl.y, 12, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(tr.x, tr.y, 12, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(bl.x, bl.y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(br.x, br.y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(hipCenter.x, hipCenter.y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.restore();
         continue;
         }
 
+        /*
         if (map.center !== undefined) {
             const center = scaledLandmarks[map.center];
             if (!center || center.score < 0.3) continue;
@@ -253,7 +246,7 @@ const SvgCanvas = ({
             ctx.drawImage(img, -svgW / 2, -svgH / 2, svgW, svgH);
             ctx.restore();
             continue;
-        }
+        }*/
 
         /* HEAD 
         ----------------------------------------------------------------------*/
@@ -267,33 +260,42 @@ const SvgCanvas = ({
             if (!leftEar || !rightEar || leftEar.score < 0.3 || rightEar.score < 0.3) continue;
 
             drawHeadSvg(ctx, img, leftEar, rightEar);
+
+            ctx.save();
+            ctx.fillStyle = 'orange'; // or any color you want
+            ctx.beginPath();
+            ctx.arc(leftEar.x, leftEar.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(rightEar.x, rightEar.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
             continue;
         }
 
         /* ARMS
         ----------------------------------------------------------------------*/
         if (
-            (part === 'leftUpperArm' || part === 'rightUpperArm' ||
-            part === 'leftLowerArm' || part === 'rightLowerArm') &&
-            map.leftCenter !== undefined && map.rightCenter !== undefined &&
-            map.start !== undefined && map.end !== undefined
+            (part === 'rightUpperArm' || part === 'rightLowerArm' ||
+            part === 'leftUpperArm' || part === 'leftLowerArm') &&
+            map.leftCenter !== undefined && map.rightCenter !== undefined 
         ) {
             let from, to;
             if (armOrientation === 'vertical') {
+              console.log('arm orientation vertical');
               from = scaledLandmarks[map.start];
               to = scaledLandmarks[map.end];
             } else {
-              if (part === 'leftUpperArm' || part === 'leftLowerArm') {
-                from = scaledLandmarks[map.leftCenter];
-                to = scaledLandmarks[map.rightCenter];
-              } else if (part === 'rightUpperArm' || part === 'rightLowerArm') {
-                from = scaledLandmarks[map.leftCenter];
-                to = scaledLandmarks[map.rightCenter];
+              console.log('arm orientation horizontal');
+              if (part === 'rightUpperArm' || part === 'rightLowerArm') {
+                from = scaledLandmarks[map.rightCenter];
+                to = scaledLandmarks[map.leftCenter];
               } else {
-                continue;
+                from = scaledLandmarks[map.leftCenter];
+                to = scaledLandmarks[map.rightCenter];
               }
 
-            }
+            } 
             
             if (
               !from || 
@@ -309,8 +311,21 @@ const SvgCanvas = ({
               console.log('drawing horizontal arm', part);
               drawHorizontalSegmentSvg(ctx, img, from, to, part);
             }
+
+            // Draw from/to points as circles
+            ctx.save();
+            ctx.fillStyle = 'lime'; // or any color you want
+            ctx.beginPath();
+            ctx.arc(from.x, from.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(to.x, to.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
+
             continue;
         }
+        
 
         /* HANDS
         ----------------------------------------------------------------------*/
@@ -322,6 +337,15 @@ const SvgCanvas = ({
             const elbow = scaledLandmarks[map.elbow];
             if (!wrist || !elbow || wrist.score < 0.3 || elbow.score < 0.3) continue;
             drawLeftHandSvg(ctx, img, wrist, elbow, armOrientation);
+            ctx.save();
+            ctx.fillStyle = 'blue'; // or any color you want
+            ctx.beginPath();
+            ctx.arc(wrist.x, wrist.y, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(elbow.x, elbow.y, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
             continue;
         }
 
@@ -335,6 +359,16 @@ const SvgCanvas = ({
               !wrist || !elbow || wrist.score < 0.3 || 
               elbow.score < 0.3) continue;
             drawRightHandSvg(ctx, img, wrist, elbow, armOrientation);
+
+            ctx.save();
+            ctx.fillStyle = 'blue'; // or any color you want
+            ctx.beginPath();
+            ctx.arc(wrist.x, wrist.y, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(elbow.x, elbow.y, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
             continue;
         }
 
@@ -350,6 +384,16 @@ const SvgCanvas = ({
             const to = scaledLandmarks[map.end];
             if (!from || !to || from.score < 0.3 || to.score < 0.3) continue;
             drawLegSvg(ctx, img, from, to, part);
+
+            ctx.save();
+            ctx.fillStyle = 'purple';
+            ctx.beginPath();
+            ctx.arc(from.x, from.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(to.x, to.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
             continue;
         }
 
@@ -359,9 +403,47 @@ const SvgCanvas = ({
             if (map.center === undefined) continue;
             const center = scaledLandmarks[map.center];
             if (!center || center.score < 0.3) continue;  
-            drawFootSvg(ctx, img, center, { x: center.x + 1, y: center.y }, part); 
+            drawFootSvg(ctx, img, center, part); 
+            
+            ctx.save();
+            ctx.fillStyle = 'lime';
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
+            
+        
+            continue;
         }
+
     }
+    /* Draw pose skeleton
+    --------------------------------------------------------------------------*/
+    ctx.strokeStyle = 'lime';
+    ctx.lineWidth = 2;
+    CONNECTED_KEYPOINTS.forEach(([i, j]) => {
+      const kp1 = scaledLandmarks[i];
+      const kp2 = scaledLandmarks[j];
+      if (kp1 && kp2 && kp1.score > 0.3 && kp2.score > 0.3) {
+        ctx.beginPath();
+        ctx.moveTo(kp1.x, kp1.y);
+        ctx.lineTo(kp2.x, kp2.y);
+        ctx.stroke();
+      }
+    });
+
+    /* Draw keypoints
+    --------------------------------------------------------------------------*/
+    ctx.fillStyle = 'red';
+    scaledLandmarks.forEach((kp) => {
+      if (kp && kp.score > 0.3) {
+        ctx.beginPath();
+        ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+    });
+
+   
 
   }, [displayLandmarks, width, height, scaleWebcamX, scaleWebcamY, mapping, svgs]);
 

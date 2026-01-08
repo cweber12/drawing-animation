@@ -47,15 +47,15 @@ export const CANVAS_LANDMARK_MAP = {
         rightCenter: LANDMARKS.rightShoulder, 
         leftCenter: LANDMARKS.rightElbow,
          // Vertical orientation
-        start: LANDMARKS.rightShoulder, 
-        end: LANDMARKS.rightElbow
+        //start: LANDMARKS.rightShoulder, 
+        //end: LANDMARKS.rightElbow
     },
 
     rightLowerArm: {       
         rightCenter: LANDMARKS.rightElbow, 
         leftCenter: LANDMARKS.rightWrist, 
-        start: LANDMARKS.rightElbow, 
-        end: LANDMARKS.rightWrist
+        //start: LANDMARKS.rightElbow, 
+        //end: LANDMARKS.rightWrist
     },
 
     rightHand: {
@@ -67,15 +67,15 @@ export const CANVAS_LANDMARK_MAP = {
     leftUpperArm: { 
         leftCenter: LANDMARKS.leftShoulder, 
         rightCenter: LANDMARKS.leftElbow,
-        start: LANDMARKS.leftShoulder, 
-        end: LANDMARKS.leftElbow
+        //start: LANDMARKS.leftShoulder, 
+        //end: LANDMARKS.leftElbow
     },
 
     leftLowerArm: { 
         leftCenter: LANDMARKS.leftElbow, 
         rightCenter: LANDMARKS.leftWrist,
-        start: LANDMARKS.leftElbow, 
-        end: LANDMARKS.leftWrist
+        //start: LANDMARKS.leftElbow, 
+        //end: LANDMARKS.leftWrist
     },
 
     leftHand: {
@@ -118,6 +118,7 @@ export const CANVAS_LANDMARK_MAP = {
     },
 
     rightFoot: {center: LANDMARKS.rightAnkle},
+    
     leftFoot: {center: LANDMARKS.leftAnkle},
 };
 

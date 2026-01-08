@@ -78,7 +78,6 @@ const RootLayout = () => {
                             <>
                                 <DrawWebHeaderButtons
                                     viewMode={route.params?.viewMode}
-                                    onExportSvgs={route.params?.onExportSvgs}
                                     onClear={route.params?.onClear}
                                     onOpenCamera={route.params?.onOpenCamera}
                                     onShowBrushSizeSlider={route.params?.onShowBrushSizeSlider}

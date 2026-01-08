@@ -153,6 +153,36 @@ const SketchPage = () => {
 
             // Update state and ref
             bodySvgsRef.current = svgs;
+            
+            /* Export SVGs as JSON file
+            --------------------------------------------------------------
+            try {
+                const json = JSON.stringify(svgs, null, 2);
+                if (Platform.OS === 'web') {
+                    // Web: trigger download using Blob
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'body_svgs.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    console.log('SVGs exported as body_svgs.json');
+                } else {
+                    // Native: use expo-file-system
+                    const fileUri = FileSystem.documentDirectory + 'body_svgs.json';
+                    await FileSystem.writeAsStringAsync(fileUri, json, {
+                        encoding: FileSystem.EncodingType.UTF8,
+                    });
+                    console.log('SVGs exported to: ' + fileUri);
+                }
+            } catch (e) {
+                console.error('Error exporting SVGs:', e);
+            }
+            --------------------------------------------------------------*/
+            
             return svgs;
         } catch (e) {
             console.error('Error saving SVGs:', e);
@@ -174,17 +204,46 @@ const SketchPage = () => {
     --------------------------------------------------------------------------*/
     const goToDetectPose = useCallback(async (mode, poseVideoUri) => {
         console.log('videoUri param:', poseVideoUri);
+        let savedSvgs = null;
+        
         const svgsToSend =
             Object.keys(bodySvgsRef.current || {}).length > 0
             ? bodySvgsRef.current
             : await saveAll();
 
-        if (!svgsToSend) return;
+        // Try to load saved SVGs from file
+        if (Platform.OS === 'web') {
+            try {
+                const response = await fetch('/svg_parts/body_svgs.json');
+                if (response.ok) {
+                    const text = await response.text();
+                    if (text && text.trim() !== '' && text.trim() !== 'undefined') {
+                        savedSvgs = JSON.parse(text);
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not load saved SVGs:', e);
+            }
+        } else {
+            try {
+                const fileUri = FileSystem.documentDirectory + 'body_svgs.json';
+                const savedSvgsString = await FileSystem.readAsStringAsync(fileUri);
+                if (savedSvgsString && savedSvgsString.trim() !== '' && savedSvgsString.trim() !== 'undefined') {
+                    savedSvgs = JSON.parse(savedSvgsString);
+                }
+            } catch (e) {
+                console.warn('Could not load saved SVGs:', e);
+            }
+        }
+
+        //if (!svgsToSend) return;
+        if (!savedSvgs) return; 
 
         router.push({
             pathname: '/detectPose',
             params: {
-                svgs: JSON.stringify(svgsToSend),
+                //svgs: JSON.stringify(svgsToSend),
+                svgs: JSON.stringify(savedSvgs),
                 mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
                 viewMode: mode,
                 videoUri: poseVideoUri,
@@ -193,41 +252,11 @@ const SketchPage = () => {
         });
     }, [router, saveAll, isSmallScreen, poseVideoUri]);
 
-    const exportSvgsToFile = async (svgs) => {
-        try {
-            const json = JSON.stringify(svgs, null, 2);
-            if (Platform.OS === 'web') {
-                // Web: trigger download using Blob
-                const blob = new Blob([json], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'body_svgs.json';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                alert('SVGs exported as body_svgs.json');
-            } else {
-                // Native: use expo-file-system
-                const fileUri = FileSystem.documentDirectory + 'body_svgs.json';
-                await FileSystem.writeAsStringAsync(fileUri, json, {
-                    encoding: FileSystem.EncodingType.UTF8,
-                });
-                alert('SVGs exported to: ' + fileUri);
-            }
-        } catch (e) {
-            console.error('Error exporting SVGs:', e);
-            alert('Failed to export SVGs');
-        }
-    };
-    
     /* Set navigation params for header buttons
     --------------------------------------------------------------------------*/
     useEffect(() => {
         navigation.setParams({
             viewMode: viewMode,
-            onExportSvgs: exportSvgsToFile,
             onClear: clearAll,
             onShowBrushSizeSlider: toggleBrushSizeSlider,
             onShowColorPicker: toggleColorPicker,

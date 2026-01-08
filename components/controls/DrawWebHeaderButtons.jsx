@@ -20,7 +20,6 @@ import { getIconSize } from '../../constants/Sizes';
 
 const DrawWebHeaderButtons = ({ 
   viewMode,
-  onExportSvgs,
   onClear, 
   onShowBrushSizeSlider,
   onShowColorPicker,
@@ -34,14 +33,6 @@ const DrawWebHeaderButtons = ({
     return (
     <View style={styles.container}>    
       
-      <TouchableOpacity 
-        onPress={() => {
-          onExportSvgs && onExportSvgs();
-        }}
-      >
-        <FaFileExport size={getIconSize()} color={theme.button} />
-      </TouchableOpacity>
-
       <TouchableOpacity  
         onPress={() => {
           onPickVideo && onPickVideo();
