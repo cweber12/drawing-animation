@@ -4,10 +4,13 @@ export const Colors = {
 
     dark: {
         text: "#e9e9e9ff",
-        title: "#C6DE41",
+        title: "#ffffffff",
         background: "#181818ff",
         navBackground: "black",
-        button: "#d9ff00ff",
+        button: "#ffffffff",
+        actionButton: "#85f900ff",
+        buttonHover: "#bfbfbfff",
+        actionButtonHover: "#7ac328ff",
         buttonText: "#071C21", 
         svgStrokeColor: "#ffffffff",
         canvasBackground: "#000000ff",
@@ -17,11 +20,12 @@ export const Colors = {
     },
 
     light: {
-        text: "#071C21",
-        title: "#153B44",
-        background: "#e6e6e6ff",
-        navBackground: "#f1fabcff",
-        button: "#153B44",
+        text: "#242424ff",
+        title: "#1d1d1dff",
+        background: "#ffffffff",
+        navBackground: "#c7c7c7ff",
+        button: "#000000ff",
+        actionButton: "#80ff00ff",
         buttonText: "black", 
         svgStrokeColor: "black",
         canvasBackground: "#ffffffff",

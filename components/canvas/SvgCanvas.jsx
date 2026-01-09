@@ -15,7 +15,10 @@ import {
   updateAvgTorsoHeight,
   updateAvgTorsoWidth,
   updateAvgHipWidth,
-  updateAvgEarDistance
+  updateAvgEarDistance, 
+  updateHipX,
+  updateAvgLeftHipKneeDifference,
+  updateAvgRightHipKneeDifference
 } from '../../constants/Sizes';
 import {
   affineFrom3Points,
@@ -201,13 +204,11 @@ const SvgCanvas = ({
           ) 
         );
 
-        updateAvgTorsoWidth(
-          Math.abs(tr.x - tl.x)
-        );
+        updateAvgTorsoWidth(Math.abs(tr.x - tl.x));
 
-        updateAvgHipWidth (
-          (br.x - bl.x)
-        );
+        updateAvgHipWidth ((br.x - bl.x));
+
+        updateHipX(bl.x, br.x);
  
         // Calculate hip center and shoulder width
         const hipCenter = {
@@ -422,7 +423,13 @@ const SvgCanvas = ({
             if (map.knee === undefined || map.ankle === undefined) continue;
             const knee = scaledLandmarks[map.knee];
             const ankle = scaledLandmarks[map.ankle];
-            if (!knee || !ankle || knee.score < 0.3 || ankle.score < 0.3) continue;  
+            if (!knee || !ankle || knee.score < 0.3 || ankle.score < 0.3) continue;
+            
+            if (part === 'leftFoot') {
+                updateAvgLeftHipKneeDifference(knee.x, ankle.x);;
+            } else {
+                updateAvgRightHipKneeDifference(knee.x, ankle.x);;
+            }
             drawFootSvg(ctx, img, ankle, knee, part); 
             
             ctx.save();

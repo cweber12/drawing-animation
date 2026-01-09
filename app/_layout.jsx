@@ -1,9 +1,15 @@
-import { StyleSheet, useColorScheme, TouchableOpacity, useWindowDimensions } from 'react-native'
+import React, { useState } from 'react'
+import { 
+    StyleSheet, 
+    useColorScheme, 
+    TouchableOpacity, 
+    useWindowDimensions 
+} from 'react-native'
 import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native-web'
 import { Colors } from '../constants/Colors'
-import DrawWebHeaderButtons from '../components/controls/DrawWebHeaderButtons';
+import SketchButtons from '../components/controls/SketchButtons';
 import DetectPoseButtons from '../components/controls/detectPoseButtons';
 import { FaHome } from 'react-icons/fa';
 import { getIconSize } from '../constants/Sizes';
@@ -16,7 +22,7 @@ const HomeButton = () => {
     const theme = Colors[colorScheme] ?? Colors.light
 
     return (
-        <View style={{ marginRight: 24, flexShrink: 0 }}>
+        <View style={{ marginRight: 24, marginLeft: 24, flexShrink: 0 }}>
             <TouchableOpacity 
                 onPress={() => router.replace('/')}
             >
@@ -34,11 +40,12 @@ const RootLayout = () => {
     // Responsive layout based on screen width
     const { width } = useWindowDimensions();
     const isSmallScreen = width < 600;
+    const [headerTitle, setHeaderTitle] = useState('Sketch');
     return (
         <>
             <StatusBar style="auto"/>
             <Stack screenOptions={{ 
-                headerTitleAlign: isSmallScreen ? 'left' : 'center',
+                headerTitleAlign: 'center',
                 headerStyle: { 
                     backgroundColor: theme.navBackground, 
                         borderBottomWidth: 0,
@@ -47,8 +54,8 @@ const RootLayout = () => {
                 },
                 headerTintColor: theme.title,
                 headerTitleStyle: {
-                    fontSize: isSmallScreen ? 20 : 32, 
-                    fontWeight: 'bold', 
+                    fontSize: isSmallScreen ? 20 : 24, 
+                   
                 },
                 }}>
                 <Stack.Screen name="index" options={{ title: 'Home' }}/>
@@ -73,21 +80,22 @@ const RootLayout = () => {
                 <Stack.Screen
                     name="sketchPage"
                     options={({ route }) => ({
-                        title: 'Sketch',
-                        headerRight: () => (
+                        title: headerTitle,
+                        headerLeft: () => (
                             <>
-                                <DrawWebHeaderButtons
-                                    viewMode={route.params?.viewMode}
-                                    onSave={route.params?.onSave}
+                                <HomeButton />
+                                <SketchButtons
+                                    eraseMode={route.params?.eraseMode}
+                                    strokeColor={route.params?.strokeColor}
                                     onClear={route.params?.onClear}
                                     onToggleErase={route.params?.onToggleErase}
                                     onShowBrushSizeSlider={route.params?.onShowBrushSizeSlider}
                                     onShowColorPicker={route.params?.onShowColorPicker}
-                                    setPoseView={route.params?.setPoseView}
-                                    setSvgView={route.params?.setSvgView}
-                                    onPickVideo={route.params?.onPickVideo}
+                                    onHoverTitle={(title) => setHeaderTitle(title)}
+                                    onExportAll={route.params?.onExportAll}
+                                    onShowDetectPoseOptions={route.params?.onShowDetectPoseOptions}
                                 />
-                                <HomeButton />
+                                
                             </>
                         ),
                     })}

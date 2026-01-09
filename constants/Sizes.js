@@ -9,12 +9,10 @@ export const CANVAS_WIDTH = width * 0.9;
 export const CANVAS_HEIGHT = height * 0.88;
 export const CANVAS_BORDER_RADIUS = 50;
 
-export const ICON_SIZE = 32;
-
 export function getIconSize() {
-    if (width < 400) return 20;
-    if (width < 600) return 24;
-    return 32;
+    if (width < 400) return 16;
+    if (width < 600) return 20;
+    return 24;
 }
 
 export function getWebcamDimensions() {
@@ -59,6 +57,16 @@ let avgTorsoWidth = 0;
 let currentTorsoWidth = 0;
 let avgHipWidth = 0;
 let currentHipWidth = 0;
+let prevHipWidth = 0;
+let leftHipX = 0;
+let rightHipX = 0;
+let maxHipWidth = 0; 
+let maxHipCounter = 0;
+let currentLeftKneeX = 0;
+let currentRightKneeX = 0;
+let avgLeftHipKneeDifference = 0;
+let avgRightHipKneeDifference = 0;
+let avgHipKneeCounter = 0;
 const alpha = 0.1; // Smoothing factor
 
 export function updateAvgTorsoHeight(newHeight) {
@@ -94,13 +102,73 @@ export function getCurrentTorsoWidth() {
 }
 
 export function updateAvgHipWidth(newWidth) {
+    prevHipWidth = currentHipWidth;
     currentHipWidth = newWidth;
+    if (newWidth > maxHipWidth) {
+        maxHipWidth = newWidth;
+    }
+
+    if (maxHipCounter >= 50) {
+        maxHipWidth = avgHipWidth;
+        maxHipCounter = 0;
+    }
     if (avgHipWidth === 0) {
         avgHipWidth = newWidth;
     } else {
         avgHipWidth = 
             alpha * newWidth + (1 - alpha) * avgHipWidth;
     }
+    maxHipCounter++;
+}
+
+function justFlipped() {
+    return (prevHipWidth < 0 && currentHipWidth > 0) ||
+           (prevHipWidth > 0 && currentHipWidth < 0);
+}
+
+
+export function updateAvgLeftHipKneeDifference(currentLeftKneeX, currentLeftAnkleX) {
+    if (avgLeftHipKneeDifference === 0) {
+        avgLeftHipKneeDifference = (leftHipX + currentLeftAnkleX) / 2 - currentLeftKneeX;
+    } else {
+        avgLeftHipKneeDifference =
+            alpha* ((leftHipX + currentLeftAnkleX) / 2 - currentLeftKneeX) + 
+            (1 - alpha) * avgLeftHipKneeDifference;
+    }
+    console.log("Avg Left Hip Knee Difference: " + avgLeftHipKneeDifference);
+    avgHipKneeCounter++;
+    if (justFlipped()) {
+        console.log("Flipped");
+        avgHipKneeCounter = 0;
+        avgLeftHipKneeDifference = 0;
+    }
+    
+}
+
+export function updateAvgRightHipKneeDifference(currentRightKneeX, currentRightAnkleX) {
+    if (avgRightHipKneeDifference === 0) {
+        avgRightHipKneeDifference = (rightHipX + currentRightAnkleX) / 2 - currentRightKneeX;
+    } else {
+        avgRightHipKneeDifference =
+            alpha* ((rightHipX + currentRightAnkleX) / 2 - currentRightKneeX) + 
+            (1 - alpha) * avgRightHipKneeDifference;
+    }
+    avgHipKneeCounter++;
+    console.log("Avg Right Hip Knee Difference: " + avgRightHipKneeDifference);
+    if (justFlipped()) {
+        console.log("Flipped");
+        avgHipKneeCounter = 0;
+        avgRightHipKneeDifference = 0;
+    }
+    
+}
+
+export function getAvgLeftHipKneeDifference() {
+    return avgLeftHipKneeDifference;
+}
+
+export function getAvgRightHipKneeDifference() {
+    return avgRightHipKneeDifference;
 }
 
 export function getAvgHipWidth() {
@@ -111,8 +179,21 @@ export function getCurrentHipWidth() {
     return currentHipWidth;
 }
 
+export function getMaxHipWidth() {
+    return maxHipWidth;
+}
+
 export function getTorsoScaleFactor() {
     return currentHipWidth / Math.abs(avgHipWidth); 
+}
+
+export function updateHipX(leftX, rightX) {
+    leftHipX = leftX;
+    rightHipX = rightX;
+}
+
+export function getHipX() {
+    return { leftHipX, rightHipX };
 }
 
 /* Average Ear Distance for Head Scaling

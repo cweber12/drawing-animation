@@ -5,7 +5,12 @@ import {
     getAvgEarDistance,
     getTorsoScaleFactor,
     getCurrentHipWidth,
-    getAvgHipWidth
+    getAvgHipWidth, 
+    getHipX,
+    getMaxHipWidth, 
+    getAvgLeftHipKneeDifference,
+    getAvgRightHipKneeDifference
+
 } from '../constants/Sizes';
 import { get } from 'lodash';
 import { scale } from '@shopify/react-native-skia';
@@ -170,22 +175,44 @@ export function drawFootSvg(ctx, img, ankle, knee, part) {
     const dy = ankle.y - knee.y;
     const angle = Math.atan2(dy, dx);
     const avgTorsoHeight = getAvgTorsoHeight();
-    const avgHipWidth = getAvgHipWidth();
     const currentHipWidth = getCurrentHipWidth();
-    const scaleFactor = currentHipWidth / Math.abs(avgHipWidth);
-    // Scaling
-    let scaleX; 
-    scaleX = (currentHipWidth - Math.abs(avgHipWidth) * 0.5) / Math.max(1, svgW);  
-    //scaleX = (avgTorsoHeight * 0.85) / Math.max(1, svgW);
+    const avgHipWidth = getAvgHipWidth();
+    const { leftHipX, rightHipX } = getHipX();
     const scaleY = (avgTorsoHeight * 0.65 * 0.5) / Math.max(1, svgH);
+    let mirror = 1;
+    let avgHipKneeDifference; 
+    // facing away from camera
+    if (currentHipWidth < 0) {
+        if (part === 'leftFoot') {
+            avgHipKneeDifference = getAvgLeftHipKneeDifference();
+            if (avgHipKneeDifference > 0) {
+                mirror = -1;
+            } 
+        } else if (part === 'rightFoot') {
+            avgHipKneeDifference = getAvgRightHipKneeDifference();
+            if (avgHipKneeDifference < 0) {
+                mirror = -1;
+            }
+        }
+    // facing toward camera
+    } else {
+        if (part === 'leftFoot') {
+            avgHipKneeDifference = getAvgLeftHipKneeDifference();
+            if (avgHipKneeDifference > 0) {
+                mirror = -1;
+            }
+        } else {
+            avgHipKneeDifference = getAvgRightHipKneeDifference();
+            if (avgHipKneeDifference < 0) {
+                mirror = -1;
+            }
+        }
+    }
 
     ctx.save();
     ctx.translate(ankle.x, ankle.y);
     ctx.rotate(angle - Math.PI / 2); // Align with lower leg
-
-
-    ctx.scale(scaleX, scaleY);
-
+    ctx.scale(mirror * scaleY, scaleY);
     if (part === 'leftFoot') {
         ctx.drawImage(img, -svgH / 1.5, 0, svgW, svgH); // top-left corner at ankle
     } else if (part === 'rightFoot') {
