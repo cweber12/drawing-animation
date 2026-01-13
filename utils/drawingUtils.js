@@ -1,19 +1,9 @@
 import { getSvgSize } from './svgUtils';
-import { CANVAS_BORDER_RADIUS, isSmallScreen } from '../constants/Sizes';
 import { 
     getAvgTorsoHeight, 
     getAvgEarDistance,
-    getTorsoScaleFactor,
-    getCurrentHipWidth,
-    getAvgHipWidth, 
-    getHipX,
-    getMaxHipWidth, 
-    getAvgLeftHipKneeDifference,
-    getAvgRightHipKneeDifference
 
 } from '../constants/Sizes';
-import { get } from 'lodash';
-import { scale } from '@shopify/react-native-skia';
 
 /* TODO
 --------------------------------------------------------------------------------
@@ -169,54 +159,41 @@ export function drawLegSvg(ctx, img, from, to, part) {
 - if shoulder dx is snall and eye x < shoulder x, mirror left foot
 - if shoulder dx is small and eye x > shoulder x, mirror right foot
 ------------------------------------------------------------------------------*/
-export function drawFootSvg(ctx, img, ankle, knee, part) {
+export function drawFootSvg(ctx, img, from, to, part) {
     const { w: svgW, h: svgH } = getSvgSize(img);
-    const dx = ankle.x - knee.x;
-    const dy = ankle.y - knee.y;
+
+    // Vector from foot to ankle
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
     const angle = Math.atan2(dy, dx);
-    const avgTorsoHeight = getAvgTorsoHeight();
-    const currentHipWidth = getCurrentHipWidth();
-    const avgHipWidth = getAvgHipWidth();
-    const { leftHipX, rightHipX } = getHipX();
-    const scaleY = (avgTorsoHeight * 0.65 * 0.5) / Math.max(1, svgH);
-    let mirror = 1;
-    let avgHipKneeDifference; 
-    // facing away from camera
-    if (currentHipWidth < 0) {
-        if (part === 'leftFoot') {
-            avgHipKneeDifference = getAvgLeftHipKneeDifference();
-            if (avgHipKneeDifference > 0) {
-                mirror = -1;
-            } 
-        } else if (part === 'rightFoot') {
-            avgHipKneeDifference = getAvgRightHipKneeDifference();
-            if (avgHipKneeDifference < 0) {
-                mirror = -1;
-            }
-        }
-    // facing toward camera
-    } else {
-        if (part === 'leftFoot') {
-            avgHipKneeDifference = getAvgLeftHipKneeDifference();
-            if (avgHipKneeDifference > 0) {
-                mirror = -1;
-            }
-        } else {
-            avgHipKneeDifference = getAvgRightHipKneeDifference();
-            if (avgHipKneeDifference < 0) {
-                mirror = -1;
-            }
-        }
+    const length = Math.hypot(dx, dy);
+    let scaleFactor = 1.0;
+    if (part === 'rightFoot' && to.x > from.x) {
+        scaleFactor = -1.0; // mirror right foot
+    } else if (part === 'leftFoot' && to.x > from.x) {
+        scaleFactor = -1.0; // mirror left foot
     }
+    
+    const scaleX = (length / svgW) * scaleFactor * 1.5;
+    const avgTorsoHeight = getAvgTorsoHeight();
+    const scaleY = (avgTorsoHeight * 0.3) / Math.max(1, svgH);
+    
 
     ctx.save();
-    ctx.translate(ankle.x, ankle.y);
-    ctx.rotate(angle - Math.PI / 2); // Align with lower leg
-    ctx.scale(mirror * scaleY, scaleY);
-    if (part === 'leftFoot') {
-        ctx.drawImage(img, -svgH / 1.5, 0, svgW, svgH); // top-left corner at ankle
-    } else if (part === 'rightFoot') {
-        ctx.drawImage(img, -svgW / 1.5, 0, svgW, svgH); // top-right corner at ankle
+
+    if (part === 'rightFoot') {
+        // Align left edge of SVG to foot, right edge to ankle
+        ctx.translate(from.x, from.y);
+        //ctx.rotate(angle); // Flip for right foot
+        ctx.scale(scaleX, scaleY);
+        ctx.drawImage(img, - svgW * 0.75, 0, svgW, svgH); // left edge at (0,0)
+    } else if (part === 'leftFoot') {
+        // Align left edge of SVG to ankle, right edge to foot
+        ctx.translate(to.x, to.y);
+        //ctx.rotate(angle); // Flip for left foot
+        ctx.scale(scaleX, scaleY);
+        ctx.drawImage(img, -svgW * 0.25, 0, svgW, svgH); // left edge at (0,0)
     }
+
     ctx.restore();
 }

@@ -5,11 +5,14 @@ import CanvasWrapper from '../../themed_elements/ThemedCanvasWrapper';
 import { Colors } from '../../../constants/Colors';
 
 const Feet = ({ 
+    canvasProps,
+    rightFootId, 
+    leftFootId,
     rightFootRef, 
-    leftFootRef, 
-    canvasProps, 
+    leftFootRef,  
     footWidth, 
-    footLength 
+    footLength,
+
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
@@ -28,11 +31,13 @@ const Feet = ({
                     }
                 ]}>
                 <ReactSketchCanvas
+                    id = {rightFootId}
                     ref={rightFootRef}
                     style={styles.canvas}
                     width={footLength}
                     height={footWidth}
                     {...canvasProps}
+         
                 />
             </CanvasWrapper>
             <CanvasWrapper 
@@ -45,11 +50,13 @@ const Feet = ({
                     }
                 ]}>
                 <ReactSketchCanvas
+                    id = {leftFootId}
                     ref={leftFootRef}
                     style={styles.canvas}
                     width={footLength}
                     height={footWidth}
                     {...canvasProps}
+               
                 />
             </CanvasWrapper>
         </View>

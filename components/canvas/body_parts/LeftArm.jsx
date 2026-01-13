@@ -6,6 +6,9 @@ import { Colors } from '../../../constants/Colors';
 
 const RightArm = ( { 
     canvasProps, 
+    upperArmId, 
+    lowerArmId, 
+    handId,
     upperArmRef, 
     lowerArmRef, 
     handRef, 
@@ -13,7 +16,7 @@ const RightArm = ( {
     armLength,
     handWidth,
     handLength, 
-    isSmallScreen 
+    isSmallScreen, 
 }) => {
 
     // Determine canvas dimensions based on screen size// Get current theme colors
@@ -36,11 +39,13 @@ const RightArm = ( {
                 ]}>
 
                 <ReactSketchCanvas
+                    id={upperArmId}
                     ref={upperArmRef}
                     style={styles.canvas}
                     width={armWidth}
                     height={armLength}
                     {...canvasProps}
+                
                 />
              
             </CanvasWrapper>
@@ -55,11 +60,13 @@ const RightArm = ( {
                     }
                 ]}>
                 <ReactSketchCanvas
+                    id={lowerArmId}
                     ref={lowerArmRef}
                     style={styles.canvas}
                     width={isSmallScreen ? armWidth : armLength}
                     height={isSmallScreen ? armLength : armWidth}
                     {...canvasProps}
+             
                 />
             </CanvasWrapper>
             <CanvasWrapper 
@@ -73,11 +80,13 @@ const RightArm = ( {
                 ]}>
     
                 <ReactSketchCanvas
+                    id={handId}
                     ref={handRef}
                     style={styles.canvas}
                     width={handWidth}
                     height={handLength}
                     {...canvasProps}
+      
                 />
             
             </CanvasWrapper>

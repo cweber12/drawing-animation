@@ -18,7 +18,9 @@ import {
   updateAvgEarDistance, 
   updateHipX,
   updateAvgLeftHipKneeDifference,
-  updateAvgRightHipKneeDifference
+  updateAvgRightHipKneeDifference, 
+  updateAvgLeftLegAngle, 
+  updateAvgRightLegAngle
 } from '../../constants/Sizes';
 import {
   affineFrom3Points,
@@ -35,6 +37,10 @@ import {
   drawLegSvg,
   drawFootSvg,
 } from '../../utils/drawingUtils';
+import {
+  getLeftLegAngle,
+  getRightLegAngle
+} from '../../utils/FootCalculator';
 import { update } from 'lodash';
 
 const SvgCanvas = ({ 
@@ -64,7 +70,7 @@ const SvgCanvas = ({
 
   // Animation frame state for pose replay
   const [frame, setFrame] = useState(0);
-
+  
   /* Animate through savedLandmarks in pose mode
   ----------------------------------------------------------------------------*/
   useEffect(() => {
@@ -72,7 +78,7 @@ const SvgCanvas = ({
       setFrame(0);
       const interval = setInterval(() => {
         setFrame(prev => (prev + 1) % savedLandmarks.length);
-      }, 1000 / 30);
+      }, 1000 / 10); // 10 FPS
       return () => clearInterval(interval);
     }
     setFrame(0);
@@ -206,9 +212,6 @@ const SvgCanvas = ({
 
         updateAvgTorsoWidth(Math.abs(tr.x - tl.x));
 
-        updateAvgHipWidth ((br.x - bl.x));
-
-        updateHipX(bl.x, br.x);
  
         // Calculate hip center and shoulder width
         const hipCenter = {
@@ -420,17 +423,20 @@ const SvgCanvas = ({
         /* FEET
         ----------------------------------------------------------------------*/
         if ( part === 'leftFoot' || part === 'rightFoot' ) {
-            if (map.knee === undefined || map.ankle === undefined) continue;
-            const knee = scaledLandmarks[map.knee];
-            const ankle = scaledLandmarks[map.ankle];
-            if (!knee || !ankle || knee.score < 0.3 || ankle.score < 0.3) continue;
-            
-            if (part === 'leftFoot') {
-                updateAvgLeftHipKneeDifference(knee.x, ankle.x);;
+            if (map.leftCenter === undefined || map.rightCenter === undefined) continue;
+            const leftCenter = scaledLandmarks[map.leftCenter];
+            const rightCenter = scaledLandmarks[map.rightCenter];
+            if (!leftCenter || !rightCenter || leftCenter.score < 0.3 || rightCenter.score < 0.3) continue;
+            let from, to;
+            if (part === 'rightFoot') {
+                from = rightCenter;
+                to = leftCenter;
             } else {
-                updateAvgRightHipKneeDifference(knee.x, ankle.x);;
+                from = leftCenter;
+                to = rightCenter;
             }
-            drawFootSvg(ctx, img, ankle, knee, part); 
+
+            drawFootSvg(ctx, img, from, to, part);
             
             ctx.save();
             if (part === 'rightFoot') {
@@ -439,7 +445,10 @@ const SvgCanvas = ({
                 ctx.fillStyle = 'aqua';
             }
             ctx.beginPath();
-            ctx.arc(ankle.x, ankle.y, 10, 0, 2 * Math.PI);
+            ctx.arc(from.x, from.y, 10, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(to.x, to.y, 10, 0, 2 * Math.PI);
             ctx.fill();
             ctx.restore();
             

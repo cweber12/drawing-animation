@@ -7,10 +7,12 @@ import { Colors } from '../../../constants/Colors';
 import { TORSO_WIDTH, TORSO_HEIGHT } from '../../../constants/Sizes';
 
 const Torso = ( { 
-    canvasProps, 
+    canvasProps,
+    torsoId, 
     torsoRef,
     torsoWidth,
-    torsoHeight
+    torsoHeight, 
+
 } ) => {
 
     // Get current theme colors
@@ -29,11 +31,13 @@ const Torso = ( {
                 }
             ]}>
             <ReactSketchCanvas
+                id={torsoId}
                 ref={torsoRef}
                 style={styles.canvas}
                 width={torsoWidth}
                 height={torsoHeight}
                 {...canvasProps}
+
             />
         </CanvasWrapper>
     )

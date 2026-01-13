@@ -5,7 +5,10 @@ import CanvasWrapper from '../../themed_elements/ThemedCanvasWrapper';
 import { Colors } from '../../../constants/Colors';
 
 const RightArm = ( { 
-    canvasProps, 
+    canvasProps,
+    upperArmId, 
+    lowerArmId, 
+    handId, 
     upperArmRef, 
     lowerArmRef, 
     handRef, 
@@ -13,7 +16,8 @@ const RightArm = ( {
     armLength,
     handWidth,
     handLength, 
-    isSmallScreen
+    isSmallScreen, 
+
 }) => {
 
     // Determine canvas dimensions based on screen size// Get current theme colors
@@ -36,20 +40,24 @@ const RightArm = ( {
                 ]}>
                 {isSmallScreen ? (
                     <ReactSketchCanvas
+                        id={upperArmId}
                         ref={upperArmRef}
                         style={styles.canvas}
                         width={armWidth}
                         height={armLength}
                         {...canvasProps}
+                   
                     />
                 ) : (
                     
                     <ReactSketchCanvas
+                        id={handId}
                         ref={handRef}
                         style={styles.canvas}
                         width={handWidth}
                         height={handLength}
                         {...canvasProps}
+                  
                     />
                     )}
             </CanvasWrapper>
@@ -63,11 +71,13 @@ const RightArm = ( {
                     }
                 ]}>
                 <ReactSketchCanvas
+                    id={lowerArmId}
                     ref={lowerArmRef}
                     style={styles.canvas}
                     width={isSmallScreen ? armWidth : armLength}
                     height={isSmallScreen ? armLength : armWidth}
                     {...canvasProps}
+         
                 />
             </CanvasWrapper>
             <CanvasWrapper 
@@ -81,19 +91,23 @@ const RightArm = ( {
                 ]}>
                 {isSmallScreen ? (
                     <ReactSketchCanvas
+                        id={handId}
                         ref={handRef}
                         style={styles.canvas}
                         width={handWidth}
                         height={handLength}
                         {...canvasProps}
+                 
                     />
                 ) : (
                     <ReactSketchCanvas
+                        id={upperArmId}
                         ref={upperArmRef}
                         style={styles.canvas}
                         width={armLength}
                         height={armWidth}
                         {...canvasProps}
+          
                     />
                 )}
             </CanvasWrapper>

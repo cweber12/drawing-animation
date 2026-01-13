@@ -19,6 +19,8 @@ export const LANDMARKS = {
     rightKnee: 14,
     leftAnkle: 15,
     rightAnkle: 16,
+    leftFoot: 17,
+    rightFoot: 18,
 };
 
 /* Connections between pose landmark indices
@@ -36,6 +38,8 @@ export const CONNECTED_KEYPOINTS = [
   [14, 16],  // Right Calf
   [5, 11],   // Left Side Torso
   [6, 12],   // Right Side Torso
+  [15, 17],  // Left Foot
+  [16, 18],  // Right Foot
 ];
 
 /* Mapping of body parts to landmark indices for canvas rendering
@@ -118,13 +122,13 @@ export const CANVAS_LANDMARK_MAP = {
     },
 
     rightFoot: {
-        ankle: LANDMARKS.rightAnkle, 
-        knee: LANDMARKS.rightKnee
+        rightCenter: LANDMARKS.rightAnkle, 
+        leftCenter: LANDMARKS.rightFoot
     },
     
     leftFoot: {
-        ankle: LANDMARKS.leftAnkle,
-        knee: LANDMARKS.leftKnee
+        rightCenter: LANDMARKS.leftAnkle,
+        leftCenter: LANDMARKS.leftFoot
     },
 };
 

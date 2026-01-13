@@ -21,6 +21,9 @@ import ThemedView from '../components/themed_elements/ThemedView';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, getWebcamDimensions } from '../constants/Sizes';
 import { smoothLandmarks } from '../utils/poseUtils';
 import { set } from 'lodash';
+import { LANDMARKS } from '../constants/LandmarkData';
+import { FootCalculator } from '../utils/FootCalculator';
+
 
 const DetectPose = () => {
   
@@ -66,6 +69,8 @@ const DetectPose = () => {
 
   const [naturalVideoWidth, setNaturalVideoWidth] = useState(null);
   const [naturalVideoHeight, setNaturalVideoHeight] = useState(null);
+
+  const footCalculator = useRef(new FootCalculator());
   
   /* Ref to Track First Start of Detection
   --------------------------------------------------------------------------------------------------
@@ -76,8 +81,6 @@ const DetectPose = () => {
   const firstStartRef = useRef(true);
 
   /* Filter saved landmarks to remove low-confidence points (score < 0.3)
-  --------------------------------------------------------------------------------------------------
-  -  This prevents jittery points during animation replay
   ------------------------------------------------------------------------------------------------*/
   const filteredLandmarks = useMemo(() =>
     savedLandmarks.map(
@@ -94,6 +97,12 @@ const DetectPose = () => {
       ? smoothLandmarks(filteredLandmarks, 5)
       : filteredLandmarks
   ), [showPoseAnimation, filteredLandmarks]);
+
+  const estimatedLandmarks = useMemo(() => {
+    if (smoothedSavedLandmarks.length === 0) return smoothedSavedLandmarks;
+    return footCalculator.current.addFeetToLandmarks(smoothedSavedLandmarks);
+  }, [smoothedSavedLandmarks]);
+
   
   /* Update isDetecting based on viewMode
   ------------------------------------------------------------------------------------------------*/
@@ -193,9 +202,11 @@ const DetectPose = () => {
     ----------------------------------------------------------------------------------------------*/
     const runPoseDetection = async () => {
       // Create MoveNet detector
-      detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
+      detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, 
+        { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER }
+      );
       if (cancelled) return;
-
+      console.log('Pose Detector loaded, model:', detector);
       setLoading(false); // pose model loaded
 
       /* Recursive Pose Detection Loop 
@@ -294,7 +305,7 @@ const DetectPose = () => {
             webcamWidth={webcamWidth}
             webcamHeight={webcamHeight}
             landmarks={landmarks}
-            savedLandmarks={smoothedSavedLandmarks}
+            savedLandmarks={estimatedLandmarks}
             replay={showPoseAnimation}
             svgs={svgs}
             mapping={mapping}

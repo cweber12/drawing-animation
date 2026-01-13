@@ -60,8 +60,6 @@ import Feet from '../components/canvas/body_parts/Feet';
 const SketchPage = () => {
     
     /* Navigation and routing for screen transitions
-    - router: navigates to different screens (detectPose)
-    - navigation: sets params used and set by header buttons
     --------------------------------------------------------------------------*/
     const router = useRouter();
     const navigation = useNavigation();
@@ -86,21 +84,25 @@ const SketchPage = () => {
     const [selectedColor, setSelectedColor] = useState(theme.svgStrokeColor);
     const [strokeWidth, setStrokeWidth] = useState(2);
     const [showBrushSizeSlider, setShowBrushSizeSlider] = useState(false);
-    const [showColorPicker, setShowColorPicker] = useState(false);
+    const [showColorPicker, setShowColorPicker] = useState(false);   
     const [erase, setErase] = useState(false);
+    
     // viewMode for Detect Pose Display: 'svg' or 'pose'
     const [viewMode, setViewMode] = useState('svg'); 
+    
     // uploaded video URI for pose detection
     const [poseVideoUri, setPoseVideoUri] = useState(null);
+    
     // export SVGs flag (triggers export in saveAll)
     const [exportSvg, setExportSvg] = useState(false);
+    
     // show pose options dropdown (upload video, select view mode)
     const [showDetectPoseOptions, setShowDetectPoseOptions] = useState(false);
     
     /* Refs for each body part canvas
     - Ensures canvases can be updated and accessed separately
     --------------------------------------------------------------------------*/
-    const bodySvgsRef = useRef({}); // Holds all saved svgs
+    const bodySvgsRef = useRef({}); 
     const headRef = useRef(null);
     const torsoRef = useRef(null);
     const rightUpperArmRef = useRef(null);
@@ -126,8 +128,8 @@ const SketchPage = () => {
         svgStyle: { background: 'transparent'} ,
         strokeWidth: strokeWidth,
         strokeColor: selectedColor,
-        eraseMode: erase,
         eraserWidth: strokeWidth, 
+        eraseMode: erase,
     };
 
     /* Toggle display of sketch controls
@@ -412,15 +414,19 @@ const SketchPage = () => {
                 
                 <Head 
                     canvasProps={canvasProps}
+                    canvasId="head"
                     headRef={headRef} 
                     headSize={sizes.HEAD_SIZE}
-                    eraseMode={erase}
+
                 /> 
                 
                 <View style={styles.row}>
 
                     <RightArm
                         canvasProps={canvasProps}
+                        upperArmId="rightUpperArm"
+                        lowerArmId="rightLowerArm"
+                        handId="rightHand"
                         upperArmRef={rightUpperArmRef}
                         lowerArmRef={rightLowerArmRef}
                         handRef={rightHandRef}
@@ -429,29 +435,40 @@ const SketchPage = () => {
                         handWidth={sizes.HAND_WIDTH}
                         handLength={sizes.HAND_LENGTH}
                         isSmallScreen={isSmallScreen}
+
                     />
                     
                     <View>
                         <Torso
                             canvasProps={canvasProps}
+                            torsoId="torso"
                             torsoRef={torsoRef}
                             torsoWidth={sizes.TORSO_WIDTH}
                             torsoHeight={sizes.TORSO_HEIGHT}
+
                         />
 
                         <Legs
                             canvasProps={canvasProps}
+                            leftUpperLegId="leftUpperLeg"
+                            rightUpperLegId="rightUpperLeg"
+                            rightLowerLegId="rightLowerLeg"
+                            leftLowerLegId="leftLowerLeg"
                             rightUpperLegRef={rightUpperLegRef}
                             rightLowerLegRef={rightLowerLegRef}
                             leftUpperLegRef={leftUpperLegRef}
                             leftLowerLegRef={leftLowerLegRef}
                             legWidth={sizes.LEG_WIDTH}
                             legLength={sizes.LEG_LENGTH}
+
                         />
                     </View>
 
                     <LeftArm
                         canvasProps={canvasProps}
+                        upperArmId="leftUpperArm"
+                        lowerArmId="leftLowerArm"
+                        handId="leftHand"
                         upperArmRef={leftUpperArmRef}
                         lowerArmRef={leftLowerArmRef}
                         handRef={leftHandRef}
@@ -460,16 +477,19 @@ const SketchPage = () => {
                         handWidth={sizes.HAND_WIDTH}
                         handLength={sizes.HAND_LENGTH}
                         isSmallScreen={isSmallScreen}
+               
                     />
                 </View>
-
                 <Feet
                     canvasProps={canvasProps}
+                    rightFootId="rightFoot"
+                    leftFootId="leftFoot"
                     rightFootRef={rightFootRef}
                     leftFootRef={leftFootRef}
                     footWidth={sizes.FOOT_WIDTH}
                     footLength={sizes.FOOT_LENGTH}
                 />
+
             </ThemedView>            
         </View>        
     );

@@ -11,12 +11,17 @@ import {
 
 const Legs = ( {
     canvasProps, 
+    rightUpperLegId,
+    rightLowerLegId,
+    leftUpperLegId,
+    leftLowerLegId,
     rightUpperLegRef, 
     rightLowerLegRef, 
     leftUpperLegRef, 
     leftLowerLegRef, 
     legWidth,
     legLength,
+
 } ) => {
 
     const colorScheme = useColorScheme();
@@ -38,11 +43,14 @@ const Legs = ( {
                         }
                     ]}>
                     <ReactSketchCanvas
+                    id={rightUpperLegId}
                     ref={rightUpperLegRef}
                     style={styles.canvas}
                     width={legWidth}
                     height={legLength}
                     {...canvasProps}
+           
+
                     />
                 </CanvasWrapper>
                 <CanvasWrapper 
@@ -55,11 +63,13 @@ const Legs = ( {
                         }
                     ]}>
                     <ReactSketchCanvas
+                    id={rightLowerLegId}
                     ref={rightLowerLegRef}
                     style={styles.canvas}
                     width={legWidth}
                     height={legLength}
                     {...canvasProps}
+             
                     />
                 </CanvasWrapper>
                 
@@ -76,11 +86,13 @@ const Legs = ( {
                         }
                     ]}>
                     <ReactSketchCanvas
+                    id={leftUpperLegId}
                     ref={leftUpperLegRef}
                     style={styles.canvas}
                     width={legWidth}
                     height={legLength}
                     {...canvasProps}
+             
                     />
                 </CanvasWrapper>
                 <CanvasWrapper 
@@ -93,11 +105,13 @@ const Legs = ( {
                         }
                     ]}>
                     <ReactSketchCanvas
+                    id={leftLowerLegId}
                     ref={leftLowerLegRef}
                     style={styles.canvas}
                     width={legWidth}
                     height={legLength}
                     {...canvasProps}
+            
                     />
                 </CanvasWrapper>
             </View>
