@@ -71,6 +71,8 @@ const RootLayout = () => {
                                     onToggleWebcam={route.params?.onToggleWebcam} 
                                     onDetectionStarted={route.params?.onDetectionStarted}
                                     onDetectionStopped={route.params?.onDetectionStopped}
+                                    savedLandmarks={route.params?.estimatedLandmarks}
+                                    isDetecting={route.params?.isDetecting}
                                 />
                                 <HomeButton />
                             </>

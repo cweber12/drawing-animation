@@ -5,41 +5,45 @@ import { Colors } from '../../constants/Colors';
 import { FaCamera, FaStopCircle } from 'react-icons/fa';
 import { BsRecordCircleFill } from "react-icons/bs";
 import { getIconSize } from '../../constants/Sizes';
+import UploadJson from '../buttons/UploadJson';
 
 const DetectPoseButtons = ({ 
-    onToggleWebcam, 
     onDetectionStarted, 
     onDetectionStopped, 
     viewMode, 
-    showPoseAnimation,
+    savedLandmarks, 
+    isDetecting,
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-    // hides buttons that are not fully implemented yet
-    const todo = true; 
   
+    console.log('SavedLandmarks in DetectPoseButtons:', savedLandmarks);
     return (
         <View style={styles.container}>
-            <TouchableOpacity 
-                style={styles.button} 
-                onPress={onToggleWebcam}
-            >
-                <FaCamera size={getIconSize()} color={theme.button} />
-            </TouchableOpacity>
+
             {viewMode === 'pose' && (
                 <>
+                    {savedLandmarks && savedLandmarks.length > 0 && (
+                        <UploadJson 
+                            landmarks={savedLandmarks}
+                            style={styles.button}    
+                        />
+                    )}
+                    {!isDetecting ? (
                     <TouchableOpacity 
                         style={styles.button} 
                         onPress={onDetectionStarted}
                     >
                         <BsRecordCircleFill size={getIconSize()} color={theme.button} />
                     </TouchableOpacity>
+                    ) : (
                     <TouchableOpacity 
                         style={styles.button} 
                         onPress={onDetectionStopped}
                     >
                         <FaStopCircle size={getIconSize()} color={theme.button} />
                     </TouchableOpacity>
+                    )}
                 </>
             )}
         </View>

@@ -5,8 +5,6 @@
   ----------------------------------------------------------------------------
 */
 import React, { useRef, useEffect, useState } from 'react';
-import { useColorScheme } from 'react-native';
-import { Colors } from '../../constants/Colors';
 import { LANDMARKS, CONNECTED_KEYPOINTS } from '../../constants/LandmarkData';
 import { 
   CANVAS_WIDTH, 
@@ -14,13 +12,7 @@ import {
   CANVAS_BORDER_RADIUS, 
   updateAvgTorsoHeight,
   updateAvgTorsoWidth,
-  updateAvgHipWidth,
   updateAvgEarDistance, 
-  updateHipX,
-  updateAvgLeftHipKneeDifference,
-  updateAvgRightHipKneeDifference, 
-  updateAvgLeftLegAngle, 
-  updateAvgRightLegAngle
 } from '../../constants/Sizes';
 import {
   affineFrom3Points,
@@ -37,10 +29,6 @@ import {
   drawLegSvg,
   drawFootSvg,
 } from '../../utils/drawingUtils';
-import {
-  getLeftLegAngle,
-  getRightLegAngle
-} from '../../utils/FootCalculator';
 import { update } from 'lodash';
 
 const SvgCanvas = ({ 
@@ -64,9 +52,13 @@ const SvgCanvas = ({
   // Scaling factors from webcam to canvas size
   const scaleWebcamX = width / webcamWidth;
   const scaleWebcamY = height / webcamHeight; 
-  // Theme colors 
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme] ?? Colors.light;
+
+  const debugTorsoAnchors = false;
+  const debugHeadAnchors = false;
+  const debugArmAnchors = false;
+  const debugHandAnchors = false;
+  const debugLegAnchors = true;
+  const debugFootAnchors = true;
 
   // Animation frame state for pose replay
   const [frame, setFrame] = useState(0);
@@ -78,7 +70,7 @@ const SvgCanvas = ({
       setFrame(0);
       const interval = setInterval(() => {
         setFrame(prev => (prev + 1) % savedLandmarks.length);
-      }, 1000 / 10); // 10 FPS
+      }, 1000 / 24); // 24 FPS
       return () => clearInterval(interval);
     }
     setFrame(0);
@@ -242,26 +234,29 @@ const SvgCanvas = ({
         ctx.scale(1, 1); 
         ctx.drawImage(img, 0, 0, svgW, svgH);
         ctx.restore();
-
-        ctx.save();
-        ctx.fillStyle = 'lime'; 
-        ctx.beginPath();
-        ctx.arc(tl.x, tl.y, 5, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(tr.x, tr.y, 5, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(bl.x, bl.y, 5, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(br.x, br.y, 5, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(hipCenter.x, hipCenter.y, 5, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.restore();
-        continue;
+        /* Draw anchor points for debugging
+        ----------------------------------------------------------------------*/
+        if (debugTorsoAnchors) {
+          ctx.save();
+          ctx.fillStyle = 'lime'; 
+          ctx.beginPath();
+          ctx.arc(tl.x, tl.y, 2, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(tr.x, tr.y, 2, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(bl.x, bl.y, 2, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(br.x, br.y, 2, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(hipCenter.x, hipCenter.y, 2, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.restore();
+          continue;
+        }
         }
 
         /* HEAD 
@@ -283,15 +278,18 @@ const SvgCanvas = ({
 
             drawHeadSvg(ctx, img, leftEar, rightEar);
 
-            ctx.save();
-            ctx.fillStyle = 'lime'; // or any color you want
-            ctx.beginPath();
-            ctx.arc(leftEar.x, leftEar.y, 5, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(rightEar.x, rightEar.y, 5, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.restore();
+            // Draw anchor points for debugging
+            if (debugHeadAnchors) {
+              ctx.save();
+              ctx.fillStyle = 'lime'; // or any color you want
+              ctx.beginPath();
+              ctx.arc(leftEar.x, leftEar.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(rightEar.x, rightEar.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.restore();
+            }
             continue;
         }
 
@@ -315,7 +313,6 @@ const SvgCanvas = ({
                 from = scaledLandmarks[map.leftCenter];
                 to = scaledLandmarks[map.rightCenter];
               }
-
             } 
             
             if (
@@ -334,25 +331,25 @@ const SvgCanvas = ({
             }
 
             // Draw from/to points as circles
-            ctx.save();
-            ctx.fillStyle = 'lime'; // or any color you want
-            ctx.beginPath();
-            ctx.arc(from.x, from.y, 5, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(to.x, to.y, 5, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.fillStyle = 'red';
-            ctx.beginPath();
-            ctx.arc(fromAdjusted.x, fromAdjusted.y, 5, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.fillStyle = 'cyan';
-            ctx.beginPath();
-            ctx.arc(toAdjusted.x, toAdjusted.y, 8, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            ctx.restore();
-
+            if (debugArmAnchors) {
+              ctx.save();
+              ctx.fillStyle = 'lime'; // or any color you want
+              ctx.beginPath();
+              ctx.arc(from.x, from.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(to.x, to.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.fillStyle = 'red';
+              ctx.beginPath();
+              ctx.arc(fromAdjusted.x, fromAdjusted.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.fillStyle = 'cyan';
+              ctx.beginPath();
+              ctx.arc(toAdjusted.x, toAdjusted.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.restore();
+            }
             continue;
         }
         
@@ -375,23 +372,26 @@ const SvgCanvas = ({
               elbowAdjusted, 
               armOrientation, 
               part);
-       
-            ctx.save();
-            ctx.fillStyle = 'lime'; // or any color you want
-            ctx.beginPath();
-            ctx.arc(wrist.x, wrist.y, 5, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(elbow.x, elbow.y, 5, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.fillStyle = "yellow";
-            ctx.beginPath();
-            ctx.arc(wristAdjusted.x, wristAdjusted.y, 3, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(elbowAdjusted.x, elbowAdjusted.y, 3, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.restore();
+            
+
+            if (debugHandAnchors) {
+              ctx.save();
+              ctx.fillStyle = 'lime'; // or any color you want
+              ctx.beginPath();
+              ctx.arc(wrist.x, wrist.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(elbow.x, elbow.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.fillStyle = "yellow";
+              ctx.beginPath();
+              ctx.arc(wristAdjusted.x, wristAdjusted.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(elbowAdjusted.x, elbowAdjusted.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.restore();
+            }
             continue;
         }
 
@@ -408,15 +408,18 @@ const SvgCanvas = ({
             if (!from || !to || from.score < 0.3 || to.score < 0.3) continue;
             drawLegSvg(ctx, img, from, to, part);
 
-            ctx.save();
-            ctx.fillStyle = 'lime';
-            ctx.beginPath();
-            ctx.arc(from.x, from.y, 5, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(to.x, to.y, 5, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.restore();
+            // Draw anchor points for debugging
+            if (debugLegAnchors) {
+              ctx.save();
+              ctx.fillStyle = 'lime';
+              ctx.beginPath();
+              ctx.arc(from.x, from.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(to.x, to.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.restore();
+            }
             continue;
         }
 
@@ -438,19 +441,21 @@ const SvgCanvas = ({
 
             drawFootSvg(ctx, img, from, to, part);
             
-            ctx.save();
-            if (part === 'rightFoot') {
-                ctx.fillStyle = 'orange';
-            } else {
-                ctx.fillStyle = 'aqua';
+            if (debugFootAnchors) {
+              ctx.save();
+              if (part === 'rightFoot') {
+                  ctx.fillStyle = 'orange';
+              } else {
+                  ctx.fillStyle = 'aqua';
+              }
+              ctx.beginPath();
+              ctx.arc(from.x, from.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(to.x, to.y, 2, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.restore();
             }
-            ctx.beginPath();
-            ctx.arc(from.x, from.y, 10, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(to.x, to.y, 10, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.restore();
             
         
             continue;

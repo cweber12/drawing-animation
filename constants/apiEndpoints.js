@@ -1,0 +1,1 @@
+const API_ENDPOINT_S3_UPLOAD = 'https://kqaq8gwqvl.execute-api.us-east-2.amazonaws.com/prod';

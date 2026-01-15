@@ -298,8 +298,7 @@ const SketchPage = () => {
         //const svgsToSend = await saveAll(); 
         let savedSvgs = null;
         
-
-        /* Try to load saved SVGs from file (if using svgsToSend, remove this V)
+        /* Try to load saved SVGs from file (if using svgsToSend, comment out)
         ----------------------------------------------------------------------*/
         if (Platform.OS === 'web') {
             try {

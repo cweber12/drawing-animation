@@ -70,7 +70,7 @@ export class FootCalculator {
     } else {
       this.avgRightLegAngle = angleAlpha * newAngle + (1 - angleAlpha) * this.avgRightLegAngle;
     }
-    console.log("Avg Right Leg Angle (deg): ", (this.avgRightLegAngle * 180 / Math.PI).toFixed(1));
+    //console.log("Avg Right Leg Angle (deg): ", (this.avgRightLegAngle * 180 / Math.PI).toFixed(1));
   }
 
   _updateAvgLeftLegAngle(newAngle) {
@@ -80,7 +80,7 @@ export class FootCalculator {
     } else {
       this.avgLeftLegAngle = angleAlpha * newAngle + (1 - angleAlpha) * this.avgLeftLegAngle;
     }
-    console.log("Avg Left Leg Angle (deg): ", (this.avgLeftLegAngle * 180 / Math.PI).toFixed(1));
+    //console.log("Avg Left Leg Angle (deg): ", (this.avgLeftLegAngle * 180 / Math.PI).toFixed(1));
   }
 
   _calculateAngleBetweenVectors(v1, v2) {
@@ -121,9 +121,11 @@ export class FootCalculator {
     this.currentLeftLegAngle = angle;
     this.currentLeftLegDirection = direction;
     this._updateAvgLeftLegAngle(angle);
-    console.log("Left Leg Angle (deg): ", (angle * 180 / Math.PI).toFixed(1), " Dir: ", direction);
+    //console.log("Left Leg Angle (deg): ", (angle * 180 / Math.PI).toFixed(1), " Dir: ", direction);
 
-    if (this.leftThetaRef === null) this.leftThetaRef = angle - Math.PI / 8; // init reference
+    if (this.leftThetaRef === null) {
+      this.leftThetaRef = Math.min(angle - Math.PI / 8, 3 * Math.PI / 4); // init reference
+    } 
   }
 
   _updateRightLegAngle(rightHip, rightKnee, rightAnkle) {
@@ -141,9 +143,11 @@ export class FootCalculator {
     this.currentRightLegAngle = angle;
     this.currentRightLegDirection = direction;
     this._updateAvgRightLegAngle(angle);
-    console.log("Right Leg Angle (deg): ", (angle * 180 / Math.PI).toFixed(1), " Dir: ", direction);
+    //console.log("Right Leg Angle (deg): ", (angle * 180 / Math.PI).toFixed(1), " Dir: ", direction);
 
-    if (this.rightThetaRef === null) this.rightThetaRef = angle - Math.PI / 4; // init reference
+    if (this.rightThetaRef === null) {
+      this.rightThetaRef = Math.min(angle - Math.PI / 8, 3 * Math.PI / 4); // init reference
+    }
   }
 
   _estimateFootCoordinate({

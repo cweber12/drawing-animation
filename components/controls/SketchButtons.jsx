@@ -17,6 +17,8 @@ import {
 import { getIconSize } from '../../constants/Sizes';
 import React from 'react';
 
+import UploadJson from '../buttons/UploadJson';
+
 const SketchButtons = ({ 
   eraseMode,
   strokeColor,
@@ -37,11 +39,12 @@ const SketchButtons = ({
     const [hoveredBrushSize, setHoveredBrushSize] = React.useState(null);
     const [hoveredColorPicker, setHoveredColorPicker] = React.useState(null);
     const [hoveredAnimate, setHoveredAnimate] = React.useState(null);
+    
 
   
     return (
     <View style={styles.container}>    
-      
+
       {/* EXPORT BUTTON -----------------------------------------------------*/}
       <TouchableOpacity 
         onPress={() => {onExportAll && onExportAll();}}

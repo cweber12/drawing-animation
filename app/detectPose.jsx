@@ -23,6 +23,7 @@ import { smoothLandmarks } from '../utils/poseUtils';
 import { set } from 'lodash';
 import { LANDMARKS } from '../constants/LandmarkData';
 import { FootCalculator } from '../utils/FootCalculator';
+import { API_ENDPOINT_S3_UPLOAD } from '../constants/apiEndpoints';
 
 
 const DetectPose = () => {
@@ -32,11 +33,6 @@ const DetectPose = () => {
   const navigation = useNavigation(); 
   const params = useLocalSearchParams(); 
 
-  /* Geet screen dimensions and define isSmallScreen for responsive layout
-  ------------------------------------------------------------------------------------------------*/
-  const { width, height } = useWindowDimensions();
-  const isSmallScreen = width < 768;
-
   /* Get webcam dimensions from constants/Sizes.js
   ------------------------------------------------------------------------------------------------*/
   const { width: webcamWidth, height: webcamHeight } = getWebcamDimensions();
@@ -45,7 +41,7 @@ const DetectPose = () => {
   ------------------------------------------------------------------------------------------------*/
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};
   const mapping = params.mapping ? JSON.parse(params.mapping) : {};
-  const armOrientation = params.armOrientation || (isSmallScreen ? 'vertical' : 'horizontal');
+  const armOrientation = params.armOrientation;
   const videoUri = params.videoUri || null;
 
   /* Normalize viewMode param so it is always a string (works with web and native)
@@ -132,10 +128,12 @@ const DetectPose = () => {
   - This effect updates the params when the user clicks a header button
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
+    console.log('Updating navigation params from DetectPose...');
+    console.log('estimatedLandmarks:', estimatedLandmarks);
     navigation.setParams({
       onToggleWebcam: toggleWebcam, // toggle webcam visibility
       onDetectionStarted: () => {
-        firstStartRef.current = false; // not first start anymore, net stop will show animation
+        firstStartRef.current = false; // not first start anymore, next stop will show animation
         setSavedLandmarks([]); // clear saved landmarks
         setShowPoseAnimation(false); // hide pose animation during detection
         setIsDetecting(true); // detection started
@@ -146,12 +144,15 @@ const DetectPose = () => {
       },
       viewMode,
       showPoseAnimation,
+      estimatedLandmarks,
+      isDetecting,
     });
   }, [
     navigation,
     toggleWebcam,
     viewMode,
     showPoseAnimation,
+    isDetecting
   ]);
 
   /* Load TensorFlow.js and Pose Detection Model
@@ -203,7 +204,7 @@ const DetectPose = () => {
     const runPoseDetection = async () => {
       // Create MoveNet detector
       detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, 
-        { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER }
+        { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING }
       );
       if (cancelled) return;
       console.log('Pose Detector loaded, model:', detector);
@@ -382,9 +383,7 @@ const DetectPose = () => {
             />
 
           </>
-        )}
-        
-        
+        )}  
       </div>
     </ThemedView>
   );
