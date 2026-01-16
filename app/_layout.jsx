@@ -22,11 +22,11 @@ const HomeButton = () => {
     const theme = Colors[colorScheme] ?? Colors.light
 
     return (
-        <View style={{ marginRight: 24, marginLeft: 24, flexShrink: 0 }}>
+        <View style={{ marginHorizontal: 24, flexShrink: 0 }}>
             <TouchableOpacity 
                 onPress={() => router.replace('/')}
             >
-                <FaHome size={getIconSize()} color={theme.button} />
+                <FaHome size={getIconSize()} color={theme.homeButton} />
             </TouchableOpacity>
         </View>
     );
@@ -65,6 +65,7 @@ const RootLayout = () => {
                         title: route.params?.viewMode === 'svg' ? 'Live Animation' : 'Create Animation',
                         headerRight: () => (
                             <>
+                                
                                 <DetectPoseButtons
                                     viewMode={route.params?.viewMode}
                                     showPoseAnimation={route.params?.showPoseAnimation}
@@ -75,6 +76,7 @@ const RootLayout = () => {
                                     isDetecting={route.params?.isDetecting}
                                 />
                                 <HomeButton />
+                                
                             </>
                         ),
                     })}
@@ -83,9 +85,9 @@ const RootLayout = () => {
                     name="sketchPage"
                     options={({ route }) => ({
                         title: headerTitle,
-                        headerLeft: () => (
+                        headerRight: () => (
                             <>
-                                <HomeButton />
+                                
                                 <SketchButtons
                                     eraseMode={route.params?.eraseMode}
                                     strokeColor={route.params?.strokeColor}
@@ -97,11 +99,13 @@ const RootLayout = () => {
                                     onExportAll={route.params?.onExportAll}
                                     onShowDetectPoseOptions={route.params?.onShowDetectPoseOptions}
                                 />
+                                <HomeButton />
                                 
                             </>
                         ),
                     })}
                 />
+                <Stack.Screen name="viewSavedPoses" options={{ title: 'Saved Poses' }}/>
             </Stack>
         </>
     )

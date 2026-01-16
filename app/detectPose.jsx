@@ -185,6 +185,7 @@ const DetectPose = () => {
       firstStartRef.current = false; 
     } else if (!firstStartRef.current) {
       setShowPoseAnimation(true);
+      console.log('showPoseAnimation = True: animating ', estimatedLandmarks.length, 'frames');
     }
   }, [isDetecting, viewMode]);
 
@@ -369,8 +370,20 @@ const DetectPose = () => {
               />
             )}
             <PoseCanvas
-              width={viewMode === 'pose' ? (videoUri ? CANVAS_WIDTH : naturalVideoWidth) : webcamWidth}
-              height={viewMode === 'pose' ? (videoUri ? CANVAS_HEIGHT : naturalVideoHeight) : webcamHeight}
+              width={
+                viewMode === 'pose'
+                  ? (videoUri
+                      ? CANVAS_WIDTH
+                      : naturalVideoWidth || CANVAS_WIDTH)
+                  : webcamWidth
+              }
+              height={
+                viewMode === 'pose'
+                  ? (videoUri
+                      ? CANVAS_HEIGHT
+                      : naturalVideoHeight || CANVAS_HEIGHT)
+                  : webcamHeight
+              }
               landmarks={landmarks}
               style={{
                 position: 'absolute',

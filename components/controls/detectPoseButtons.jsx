@@ -17,7 +17,6 @@ const DetectPoseButtons = ({
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
   
-    console.log('SavedLandmarks in DetectPoseButtons:', savedLandmarks);
     return (
         <View style={styles.container}>
 
@@ -34,14 +33,14 @@ const DetectPoseButtons = ({
                         style={styles.button} 
                         onPress={onDetectionStarted}
                     >
-                        <BsRecordCircleFill size={getIconSize()} color={theme.button} />
+                        <BsRecordCircleFill size={getIconSize()} color={theme.actionButton} />
                     </TouchableOpacity>
                     ) : (
                     <TouchableOpacity 
                         style={styles.button} 
                         onPress={onDetectionStopped}
                     >
-                        <FaStopCircle size={getIconSize()} color={theme.button} />
+                        <FaStopCircle size={getIconSize()} color={theme.stopButton} />
                     </TouchableOpacity>
                     )}
                 </>
@@ -57,7 +56,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
-        marginRight: 8,
+        marginLeft: 8,
     },
     
     button: {

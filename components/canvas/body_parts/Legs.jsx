@@ -39,7 +39,6 @@ const Legs = ( {
                         { 
                             width: legWidth, 
                             height: legLength, 
-                            boxShadow: boxShadowColor 
                         }
                     ]}>
                     <ReactSketchCanvas
@@ -59,7 +58,6 @@ const Legs = ( {
                         { 
                             width: legWidth, 
                             height: legLength, 
-                            boxShadow: boxShadowColor 
                         }
                     ]}>
                     <ReactSketchCanvas
@@ -82,7 +80,6 @@ const Legs = ( {
                         { 
                             width: legWidth, 
                             height: legLength, 
-                            boxShadow: boxShadowColor 
                         }
                     ]}>
                     <ReactSketchCanvas
@@ -101,7 +98,6 @@ const Legs = ( {
                         { 
                             width: legWidth, 
                             height: legLength, 
-                            boxShadow: boxShadowColor 
                         }
                     ]}>
                     <ReactSketchCanvas

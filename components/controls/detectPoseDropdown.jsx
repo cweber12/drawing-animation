@@ -65,8 +65,12 @@ export default detectPoseDropdown
 
 const styles = StyleSheet.create({
     poseOptionsContainer: {
+        display: 'flex',
         flexDirection: 'column',
+        justifyContent: 'center',
         alignItems: 'flex-start',
+        textAlign: 'left',
+        borderBottomLeftRadius: 8,
         padding: 8,
         gap: 8,
     },

@@ -53,6 +53,7 @@ const SvgCanvas = ({
   const scaleWebcamX = width / webcamWidth;
   const scaleWebcamY = height / webcamHeight; 
 
+  // Debugging flags to display anchor points in svg rendering
   const debugTorsoAnchors = false;
   const debugHeadAnchors = false;
   const debugArmAnchors = false;
@@ -70,7 +71,7 @@ const SvgCanvas = ({
       setFrame(0);
       const interval = setInterval(() => {
         setFrame(prev => (prev + 1) % savedLandmarks.length);
-      }, 1000 / 24); // 24 FPS
+      }, 1000 / 30); // 30 FPS
       return () => clearInterval(interval);
     }
     setFrame(0);
@@ -86,6 +87,8 @@ const SvgCanvas = ({
   /* Cache SVG images when svgs prop changes
   ----------------------------------------------------------------------------*/
   useEffect(() => {
+    console.log('Caching SVG images in SvgCanvas...');
+    console.log('SVG parts:', Object.keys(svgs));
     let cancelled = false;
 
     (async () => {
@@ -176,6 +179,8 @@ const SvgCanvas = ({
         
         const { w: svgW, h: svgH } = getSvgSize(img);
 
+
+        
         /* TORSO 
         ----------------------------------------------------------------------*/
         if (
@@ -183,80 +188,85 @@ const SvgCanvas = ({
           map.topLeft !== undefined && map.topRight !== undefined &&
           map.bottomLeft !== undefined && map.bottomRight !== undefined
         ) {
-        const tl = scaledLandmarks[map.topLeft];
-        const tr = scaledLandmarks[map.topRight];
-        const bl = scaledLandmarks[map.bottomLeft];
-        const br = scaledLandmarks[map.bottomRight];
+          const tl = scaledLandmarks[map.topLeft];
+          const tr = scaledLandmarks[map.topRight];
+          const bl = scaledLandmarks[map.bottomLeft];
+          const br = scaledLandmarks[map.bottomRight];
 
-        // Ensure all four corners are present and have sufficient score
-        if (!tl || !tr || !bl || !br) continue;
-        if (tl.score < 0.3 || tr.score < 0.3 || bl.score < 0.3 || br.score < 0.3) continue;
-        
-        const shoulderWidth = tr.x - tl.x;
-        const offset = shoulderWidth / 2;
-        
-        updateAvgTorsoHeight( 
-          Math.hypot( 
-            (tl.x + tr.x)/2 - (bl.x + br.x)/2, 
-            (tl.y + tr.y)/2 - (bl.y + br.y)/2 
-          ) 
-        );
+          // Ensure all four corners are present and have sufficient score
+          if (!tl || !tr || !bl || !br) continue;
+          if (tl.score < 0.3 || tr.score < 0.3 || bl.score < 0.3 || br.score < 0.3) continue;
 
-        updateAvgTorsoWidth(Math.abs(tr.x - tl.x));
 
- 
-        // Calculate hip center and shoulder width
-        const hipCenter = {
-          x: (bl.x + br.x) / 2,
-          y: (bl.y + br.y) / 2,
-        };
+          
+          const shoulderWidth = tr.x - tl.x;
+          const offset = shoulderWidth / 2;
+          
+          updateAvgTorsoHeight( 
+            Math.hypot( 
+              (tl.x + tr.x)/2 - (bl.x + br.x)/2, 
+              (tl.y + tr.y)/2 - (bl.y + br.y)/2 
+            ) 
+          );
 
-        // Use the offset to define the third point (left side shown)
-        const thirdPoint = {
-          x: hipCenter.x - offset,
-          y: hipCenter.y,
-        };
+          updateAvgTorsoWidth(Math.abs(tr.x - tl.x));
 
-        // Use thirdPoint in the affine transform
-        const M = affineFrom3Points(
-            { x: 0, y: 0 },
-            { x: svgW, y: 0 },
-            { x: 0, y: svgH },
-            { x: tl.x, y: tl.y },
-            { x: tr.x, y: tr.y },
-            thirdPoint
-        );
+  
+          // Calculate hip center and shoulder width
+          const hipCenter = {
+            x: (bl.x + br.x) / 2,
+            y: (bl.y + br.y) / 2,
+          };
 
-        if (!M) continue;
+          // Use the offset to define the third point (left side shown)
+          const thirdPoint = {
+            x: hipCenter.x - offset,
+            y: hipCenter.y,
+          };
 
-        ctx.save();
-        ctx.setTransform(M.a, M.b, M.c, M.d, M.e, M.f);
-        ctx.scale(1, 1); 
-        ctx.drawImage(img, 0, 0, svgW, svgH);
-        ctx.restore();
-        /* Draw anchor points for debugging
-        ----------------------------------------------------------------------*/
-        if (debugTorsoAnchors) {
+          // Use thirdPoint in the affine transform
+          const M = affineFrom3Points(
+              { x: 0, y: 0 },
+              { x: svgW, y: 0 },
+              { x: 0, y: svgH },
+              { x: tl.x, y: tl.y },
+              { x: tr.x, y: tr.y },
+              thirdPoint
+          );
+
+          if (!M) continue;
+
           ctx.save();
-          ctx.fillStyle = 'lime'; 
-          ctx.beginPath();
-          ctx.arc(tl.x, tl.y, 2, 0, 2 * Math.PI);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(tr.x, tr.y, 2, 0, 2 * Math.PI);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(bl.x, bl.y, 2, 0, 2 * Math.PI);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(br.x, br.y, 2, 0, 2 * Math.PI);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(hipCenter.x, hipCenter.y, 2, 0, 2 * Math.PI);
-          ctx.fill();
+          ctx.setTransform(M.a, M.b, M.c, M.d, M.e, M.f);
+          ctx.scale(1, 1); 
+          ctx.drawImage(img, 0, 0, svgW, svgH);
           ctx.restore();
+          console.log('Drew torso SVG with corners:', tl, tr, bl, br);
+          /* Draw anchor points for debugging
+          ----------------------------------------------------------------------*/
+          if (debugTorsoAnchors) {
+            ctx.save();
+            ctx.fillStyle = 'lime'; 
+            ctx.beginPath();
+            ctx.arc(tl.x, tl.y, 2, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(tr.x, tr.y, 2, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(bl.x, bl.y, 2, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(br.x, br.y, 2, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(hipCenter.x, hipCenter.y, 2, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
+            
+            }
           continue;
-        }
+
         }
 
         /* HEAD 
@@ -275,8 +285,8 @@ const SvgCanvas = ({
               rightEar.y - leftEar.y
               )
             );
-
             drawHeadSvg(ctx, img, leftEar, rightEar);
+            console.log('Drew head SVG between ears:', leftEar, rightEar);
 
             // Draw anchor points for debugging
             if (debugHeadAnchors) {

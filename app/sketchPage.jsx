@@ -123,7 +123,7 @@ const SketchPage = () => {
     - Passed to each body part canvas component
     --------------------------------------------------------------------------*/
     const canvasProps = {
-        canvasColor: 'rgba(0,0,0,0)',          
+        canvasColor: theme.canvasBackground,          
         exportWithBackgroundImage: false,      
         svgStyle: { background: 'transparent'} ,
         strokeWidth: strokeWidth,
@@ -136,14 +136,22 @@ const SketchPage = () => {
     --------------------------------------------------------------------------*/
     const toggleBrushSizeSlider = useCallback(() => {
         setShowColorPicker(false);
+        setShowDetectPoseOptions(false);
         setShowBrushSizeSlider(prev => !prev);
         
     }, []);
 
     const toggleColorPicker = useCallback(() => {
         setShowBrushSizeSlider(false);
+        setShowDetectPoseOptions(false);
         setShowColorPicker(prev => !prev);
         
+    }, []);
+
+    const toggleDetectPoseOptions = useCallback(() => {
+        setShowBrushSizeSlider(false);
+        setShowColorPicker(false);
+        setShowDetectPoseOptions(prev => !prev);
     }, []);
 
     const toggleEraseMode = useCallback(() => {
@@ -363,9 +371,7 @@ const SketchPage = () => {
             onToggleErase: toggleEraseMode,
             onShowBrushSizeSlider: toggleBrushSizeSlider,
             onShowColorPicker: toggleColorPicker,
-            onShowDetectPoseOptions: () => {
-                setShowDetectPoseOptions(prev => !prev);
-            }
+            onShowDetectPoseOptions: toggleDetectPoseOptions,
         });
     }, [
             navigation, 
@@ -380,7 +386,7 @@ const SketchPage = () => {
             saveAll,
             toggleEraseMode
         ]
-);
+    );
     
     /* Render page
     --------------------------------------------------------------------------*/
@@ -394,7 +400,7 @@ const SketchPage = () => {
                 />
             )}
             {showColorPicker && (
-                <ColorPicker 
+                <ColorPicker
                     style={styles.sketchControls}
                     selectedColor={selectedColor}
                     onColorChange={setSelectedColor}
@@ -437,7 +443,7 @@ const SketchPage = () => {
 
                     />
                     
-                    <View>
+                    <View style={{gap: 2}}>
                         <Torso
                             canvasProps={canvasProps}
                             torsoId="torso"
@@ -523,7 +529,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         position: 'absolute',
         top: 0,
-        left: 0,
+        right: 0,
         zIndex: 10,
         padding: 16, 
         borderBottomLeftRadius: 8,

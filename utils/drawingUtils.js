@@ -47,7 +47,7 @@ export function drawHorizontalSegmentSvg(ctx, img, from, to, part) {
     const length = Math.hypot(dx, dy);
     
     // Scale width based on average torso height for smoother scaling
-    const avgTorsoHeight = getAvgTorsoHeight();
+    const avgTorsoHeight = getAvgTorsoHeight()
     const scaleWidth = (avgTorsoHeight * 0.85 * 0.65) / Math.max(1, svgW);
     const scaleLength = length / Math.max(1, svgW);
 

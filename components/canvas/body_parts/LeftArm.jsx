@@ -21,10 +21,7 @@ const RightArm = ( {
 
     // Determine canvas dimensions based on screen size// Get current theme colors
     const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] ?? Colors.light;
-    const boxShadowColor = `${theme.boxShadowColor} 0px 0px 6px -1px, 
-                            ${theme.boxShadowColor} 0px 0px 4px -1px`;
-                            
+    const theme = Colors[colorScheme] ?? Colors.light;                       
     
     return (
         <View style={isSmallScreen ? styles.armColumn : styles.armRow}>
@@ -34,7 +31,6 @@ const RightArm = ( {
                     { 
                         width: isSmallScreen ? armWidth : armLength, 
                         height: isSmallScreen ? armLength : armWidth, 
-                        boxShadow: boxShadowColor,
                     }
                 ]}>
 
@@ -56,7 +52,6 @@ const RightArm = ( {
                     { 
                         width: isSmallScreen ? armWidth : armLength, 
                         height: isSmallScreen ? armLength : armWidth,
-                        boxShadow: boxShadowColor
                     }
                 ]}>
                 <ReactSketchCanvas
@@ -75,7 +70,6 @@ const RightArm = ( {
                     { 
                         width: isSmallScreen ? handWidth : handLength, 
                         height: isSmallScreen ? handLength : handWidth, 
-                        boxShadow: boxShadowColor
                     }
                 ]}>
     

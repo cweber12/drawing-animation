@@ -18,8 +18,6 @@ const Head = ( {
     // Get current theme colors
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-    const boxShadowColor = `${theme.boxShadowColor} 0px 0px 6px -1px, 
-                            ${theme.boxShadowColor} 0px 0px 4px -1px`;
 
     
     return (
@@ -30,7 +28,6 @@ const Head = ( {
                 { 
                     width: headSize,
                     height: headSize,
-                    boxShadow: boxShadowColor,
                 }
             ]}>
 

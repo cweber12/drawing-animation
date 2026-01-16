@@ -16,8 +16,6 @@ const Feet = ({
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-    const boxShadowColor = `${theme.boxShadowColor} 0px 0px 6px -1px, 
-                            ${theme.boxShadowColor} 0px 0px 4px -1px`;
 
     return (
         <View style={styles.legsRow}>
@@ -27,7 +25,6 @@ const Feet = ({
                     { 
                         width: footLength, 
                         height: footWidth, 
-                        boxShadow: boxShadowColor
                     }
                 ]}>
                 <ReactSketchCanvas
@@ -46,7 +43,6 @@ const Feet = ({
                     { 
                         width: footLength, 
                         height: footWidth, 
-                        boxShadow: boxShadowColor
                     }
                 ]}>
                 <ReactSketchCanvas

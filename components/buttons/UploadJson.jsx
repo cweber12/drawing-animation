@@ -21,7 +21,7 @@ const UploadJson = ({ landmarks, style }) => {
     setUploadStatus('Uploading...');
     const bucket = 'pose-animations';
     const timestamp = Date.now();
-    const key = `pose_landmarks/${timestamp}_all_frames.json`;
+    const key = `pose_landmarks/${timestamp}.json`;
     const url = `https://kqaq8gwqvl.execute-api.us-east-2.amazonaws.com/prod/${bucket}/${key}`;
 
     try {
