@@ -23,7 +23,7 @@ import * as FileSystem from 'expo-file-system';
 /* Import constants
 -----------------------------------------------------------------------------*/
 import { CANVAS_LANDMARK_MAP} from '../constants/LandmarkData';
-import ThemedView from '../components/themed_elements/ThemedView';
+import ThemedView from '../components/themed_components/ThemedView';
 import { Colors } from '../constants/Colors';
 import { getSvgSizes } from '../constants/Sizes';
 /* Import components
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
         top: 0,
         right: 0,
         zIndex: 10,
-        padding: 16, 
+        padding: "2rem", 
         borderBottomLeftRadius: 8,
     },
 

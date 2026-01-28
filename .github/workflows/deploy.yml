@@ -1,3 +1,6 @@
+# Not currently implemented
+# use npm run deploy to deploy manually
+
 name: Build and Deploy Expo Web to GitHub Pages
 
 on:

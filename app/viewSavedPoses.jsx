@@ -7,7 +7,7 @@ import {
   StyleSheet
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import ThemedView from '../components/themed_elements/ThemedView';
+import ThemedView from '../components/themed_components/ThemedView';
 import PoseCanvas from '../components/canvas/PoseCanvas';
 
 const API_BASE = 'https://kqaq8gwqvl.execute-api.us-east-2.amazonaws.com/prod';

@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react'
 import { CONNECTED_KEYPOINTS } from '../../constants/LandmarkData';
-import { WEBCAM_WIDTH, WEBCAM_HEIGHT } from '../../constants/Sizes';
 
 const PoseCanvas = ({ width, height, landmarks, style }) => {
     const canvasRef = useRef(null);

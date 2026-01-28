@@ -16,15 +16,12 @@ import * as poseDetection from '@tensorflow-models/pose-detection';
 import SvgCanvas from '../components/canvas/SvgCanvas';
 import PoseCanvas from '../components/canvas/PoseCanvas';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { StyleSheet, useWindowDimensions } from 'react-native';
-import ThemedView from '../components/themed_elements/ThemedView';
+import { StyleSheet } from 'react-native';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, getWebcamDimensions } from '../constants/Sizes';
 import { smoothLandmarks } from '../utils/poseUtils';
-import { set } from 'lodash';
-import { LANDMARKS } from '../constants/LandmarkData';
 import { FootCalculator } from '../utils/FootCalculator';
-import { API_ENDPOINT_S3_UPLOAD } from '../constants/apiEndpoints';
-
+import ThemedPoseView from '../components/themed_components/ThemedPoseView';
+import { usePoseDetection } from '../hooks/usePoseDetection';
 
 const DetectPose = () => {
   
@@ -171,13 +168,6 @@ const DetectPose = () => {
   }, []);
 
   /* Manage pose animation display based on isDetecting state
-  --------------------------------------------------------------------------------------------------
-  On detection start: 
-    - Clear saved landmarks
-    - Hide pose animation
-    - Set firstStartRef to false (so animation is shown on subsequent stops)
-  On detection stop:
-    - Show pose animation (if not first start)   
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     if (isDetecting) {
@@ -186,103 +176,25 @@ const DetectPose = () => {
       firstStartRef.current = false; 
     } else if (!firstStartRef.current) {
       setShowPoseAnimation(true);
-      console.log('showPoseAnimation = True: animating ', estimatedLandmarks.length, 'frames');
     }
   }, [isDetecting, viewMode]);
 
-  /* Detect Pose from Webcam Feed and Update Landmarks
-  --------------------------------------------------------------------------------------------------
-  - requestAnimationFrame (built in browser API) ised to create a loop for continuous pose detection
-    on each frame
-  - In 'pose' mode, detected landmarks are saved for animation replay
-  - Cleanup function disposes of the detector when component unmounts 
+  /* Custom hook to run pose detection
   ------------------------------------------------------------------------------------------------*/
-  useEffect(() => {
-    let detector; // pose detector instance
-    let cancelled = false; // track if effect is cancelled
-
-    /* Load and Run Pose Detection
-    ----------------------------------------------------------------------------------------------*/
-    const runPoseDetection = async () => {
-      // Create MoveNet detector
-      detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, 
-        { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING }
-      );
-      if (cancelled) return;
-      console.log('Pose Detector loaded, model:', detector);
-      setLoading(false); // pose model loaded
-
-      /* Recursive Pose Detection Loop 
-      --------------------------------------------------------------------------------------------*/
-      const detect = async () => {
-        if (cancelled) return;
-        const video = videoUri ? videoRef.current : webcamRef.current?.video;        
-        if (!video || video.readyState !== 4) { // video not ready
-          requestAnimationFrame(detect); // request next frame
-          return; // wait for video to be ready, then run detect again
-        }
-        /* Estimate Poses
-        ------------------------------------------------------------------------------------------*/
-        try {
-          if (isDetecting) {
-            // Get poses from video frame
-            const poses = await detector.estimatePoses(video, { flipHorizontal: true });
-            let currentLandmarks = poses?.[0]?.keypoints ?? []; // get keypoints (or empty array)
-            
-            /* Adjust landmarks to fit canvas size in 'pose' mode
-            --------------------------------------------------------------------------------------*/
-            if (videoUri && videoLoaded && naturalVideoWidth && naturalVideoHeight) {
-              // Calculate aspect ratios
-              const videoAspect = naturalVideoWidth / naturalVideoHeight;
-              const canvasAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
-
-              let scale, offsetX = 0, offsetY = 0;
-              if (videoAspect > canvasAspect) {
-                // Video fills width, black bars top/bottom
-                scale = CANVAS_WIDTH / naturalVideoWidth;
-                offsetY = (CANVAS_HEIGHT - naturalVideoHeight * scale) / 2;
-              } else {
-                // Video fills height, black bars left/right
-                scale = CANVAS_HEIGHT / naturalVideoHeight;
-                offsetX = (CANVAS_WIDTH - naturalVideoWidth * scale) / 2;
-              }
-
-              currentLandmarks = currentLandmarks.map(kp => ({
-                ...kp,
-                x: kp.x * scale + offsetX,
-                y: kp.y * scale + offsetY,
-              }));
-            }
-
-            /* Update current landmarks state
-            --------------------------------------------------------------------------------------*/
-            setLandmarks(currentLandmarks); // update current landmarks
-
-            /* Save landmarks for pose animation in 'pose' mode
-            --------------------------------------------------------------------------------------*/
-            if (viewMode === 'pose') { // In 'pose' mode, save landmarks for animation
-              setSavedLandmarks(prev => [...prev, JSON.parse(JSON.stringify(currentLandmarks))]);
-            }
-          }
-        } catch (e) {
-          console.error('estimatePoses error:', e);
-        }
-        requestAnimationFrame(detect); // request next frame
-      };
-      detect(); // continue detection loop
-    };
-
-    if (isTfReady) { // start pose detection when TF is ready
-      runPoseDetection();
-    }
-
-    return () => {
-      cancelled = true;
-      try {
-        detector?.dispose?.();
-      } catch {}
-    };
-  }, [isTfReady, isDetecting]);
+  usePoseDetection({
+    isTfReady,
+    isDetecting,
+    videoUri,
+    videoRef,
+    webcamRef,
+    videoLoaded,
+    naturalVideoWidth,
+    naturalVideoHeight,
+    setLandmarks,
+    setSavedLandmarks,
+    setLoading,
+    viewMode,
+  });
 
   if (!isTfReady || loading) {
     return (
@@ -299,8 +211,7 @@ const DetectPose = () => {
   - PoseCanvas: Draws pose landmarks over webcam feed 
   ------------------------------------------------------------------------------------------------*/
   return (
-     <ThemedView style={styles.container}>
-      <div style={{ position: 'relative', width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}>
+     <ThemedPoseView>
         {(viewMode === 'svg' || showPoseAnimation) && (
           <SvgCanvas
             width={CANVAS_WIDTH}
@@ -398,8 +309,7 @@ const DetectPose = () => {
 
           </>
         )}  
-      </div>
-    </ThemedView>
+    </ThemedPoseView>
   );
 };
 
@@ -412,42 +322,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     fontFamily: 'segoe-ui',
-  },
-  
-  container: {
-    display: 'flex',
-    justifyContent: 'flex-start',
-    paddingTop: 20,
-    alignItems: 'center',
-    width: '100vw',
-    height: '100vh',
-    overflow: 'hidden',
-  },
-
-  mediaWrapper: {
-    position: 'relative',
-
-  },
-
-  webcam: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    zIndex: 2,
-
-  },
-
-  poseCanvas: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    zIndex: 3,
-  },
-
-  svgCanvas: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    zIndex: 1,
   },
 });

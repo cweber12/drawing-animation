@@ -2,7 +2,7 @@ import { StyleSheet, useColorScheme} from 'react-native'
 import React, { useRef } from 'react';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 import { SCREEN_WIDTH, SCREEN_HEIGHT, CANVAS_BORDER_RADIUS} from '../../../constants/Sizes';
-import CanvasWrapper from '../../themed_elements/ThemedCanvasWrapper';
+import CanvasWrapper from '../../themed_components/ThemedCanvasWrapper';
 import { Colors } from '../../../constants/Colors';
 import { TORSO_WIDTH, TORSO_HEIGHT } from '../../../constants/Sizes';
 
