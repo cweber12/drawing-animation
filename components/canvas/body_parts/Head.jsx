@@ -23,8 +23,6 @@ const Head = ( {
     return (
         <CanvasWrapper 
             style={[
-                styles.canvasWrapper, 
-                styles.head, 
                 { 
                     width: headSize,
                     height: headSize,
@@ -32,13 +30,12 @@ const Head = ( {
             ]}>
 
             <ReactSketchCanvas
-            id={canvasId}
-            ref={headRef}
-            style={styles.canvas}
-            width={headSize}
-            height={headSize}
-            {...canvasProps}
-  
+                id={canvasId}
+                ref={headRef}
+                style={styles.canvas}
+                width={headSize}
+                height={headSize}
+                {...canvasProps}
             />
         </CanvasWrapper>
     )

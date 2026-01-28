@@ -20,8 +20,7 @@ const Feet = ({
     return (
         <View style={styles.legsRow}>
             <CanvasWrapper 
-                style={[
-                    styles.canvasWrapper, 
+                style={[ 
                     { 
                         width: footLength, 
                         height: footWidth, 
@@ -39,7 +38,6 @@ const Feet = ({
             </CanvasWrapper>
             <CanvasWrapper 
                 style={[
-                    styles.canvasWrapper, 
                     { 
                         width: footLength, 
                         height: footWidth, 
@@ -62,12 +60,6 @@ const Feet = ({
 export default Feet
 
 const styles = StyleSheet.create({
-    canvasWrapper: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-    },
-
     canvas: {
         backgroundColor: 'transparent',
         width: '100%',

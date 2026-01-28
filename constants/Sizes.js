@@ -10,9 +10,9 @@ export const CANVAS_HEIGHT = height * 0.88;
 export const CANVAS_BORDER_RADIUS = 50;
 
 export function getIconSize() {
-    if (width < 400) return 16;
-    if (width < 600) return 20;
-    return 24;
+    if (width < 400) return 20;
+    if (width < 600) return 24;
+    return 28;
 }
 
 export function getWebcamDimensions() {
@@ -102,33 +102,6 @@ export function getAvgTorsoWidth() {
 
 export function getCurrentTorsoWidth() {
     return currentTorsoWidth;
-}
-
-function updateDirection() {
-    if (currentLeftHipX > prevLeftHipX && currentRightHipX > prevRightHipX) {
-        if (direction !== 1) {
-            direction = 1;
-            directionChangeCount = 0;
-        } else {
-            directionChangeCount++;
-        }
-
-    } else if (currentLeftHipX < prevLeftHipX && currentRightHipX < prevRightHipX) {
-        if (direction !== -1) {
-            direction = -1;
-            directionChangeCount = 0;
-        } else {
-            directionChangeCount++;
-        }
-    } else {
-        if (direction !== 0) {
-            direction = 0;
-            directionChangeCount = 0;
-        } else {
-            directionChangeCount++;
-        }
-        
-    }
 }
 
 export function updateAvgHipWidth(newWidth) {    

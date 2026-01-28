@@ -40,6 +40,7 @@ const DetectPose = () => {
   /* Parse SVGs and mapping from URL Params
   ------------------------------------------------------------------------------------------------*/
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};
+  console.log('detectPose: svgs loaded from params:', svgs);
   const mapping = params.mapping ? JSON.parse(params.mapping) : {};
   const armOrientation = params.armOrientation;
   const videoUri = params.videoUri || null;
@@ -128,7 +129,7 @@ const DetectPose = () => {
   - This effect updates the params when the user clicks a header button
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
-    console.log('Updating navigation params from DetectPose...');
+    console.log('DetectPose: Updating navigation params for header buttons');
     console.log('estimatedLandmarks:', estimatedLandmarks);
     navigation.setParams({
       onToggleWebcam: toggleWebcam, // toggle webcam visibility

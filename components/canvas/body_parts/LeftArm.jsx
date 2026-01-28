@@ -27,7 +27,6 @@ const RightArm = ( {
         <View style={isSmallScreen ? styles.armColumn : styles.armRow}>
             <CanvasWrapper 
                 style={[
-                    styles.canvasWrapper, 
                     { 
                         width: isSmallScreen ? armWidth : armLength, 
                         height: isSmallScreen ? armLength : armWidth, 
@@ -48,7 +47,6 @@ const RightArm = ( {
             
             <CanvasWrapper 
                 style={[
-                    styles.canvasWrapper, 
                     { 
                         width: isSmallScreen ? armWidth : armLength, 
                         height: isSmallScreen ? armLength : armWidth,
@@ -66,7 +64,6 @@ const RightArm = ( {
             </CanvasWrapper>
             <CanvasWrapper 
                 style={[
-                    styles.canvasWrapper, 
                     { 
                         width: isSmallScreen ? handWidth : handLength, 
                         height: isSmallScreen ? handLength : handWidth, 
@@ -77,8 +74,8 @@ const RightArm = ( {
                     id={handId}
                     ref={handRef}
                     style={styles.canvas}
-                    width={handWidth}
-                    height={handLength}
+                    width={isSmallScreen ? handWidth : handLength}
+                    height={isSmallScreen ? handLength : handWidth}
                     {...canvasProps}
       
                 />
@@ -91,11 +88,6 @@ const RightArm = ( {
 export default RightArm
 
 const styles = StyleSheet.create({
-    canvasWrapper: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-    },
     canvas: {
         backgroundColor: 'transparent',
         width: '100%',

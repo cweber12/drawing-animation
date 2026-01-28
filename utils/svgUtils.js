@@ -30,6 +30,7 @@ export function affineFrom3Points(src0, src1, src2, dst0, dst1, dst2) {
 /* SVG TO STRING IMAGE CONVERSION
 ------------------------------------------------------------------------------*/
 export function svgStringToImage(svgString) {
+    if (!svgString || typeof window === 'undefined') return Promise.resolve(null);
     return new Promise((resolve) => {
         if (!svgString || typeof window === 'undefined') return resolve(null);
 
@@ -62,6 +63,7 @@ export function getSvgSize(img) {
 /* Add SVG Clip Path for Rounded Corners
 ------------------------------------------------------------------------------*/
 export function addSvgClipPath(svgString, width, height, radius) {
+  if (typeof svgString !== 'string') return svgString;
   // Insert <defs> and <clipPath>
   const clipDef = `
     <defs>
@@ -86,6 +88,7 @@ export function addSvgClipPath(svgString, width, height, radius) {
 /* Get SVG Dimensions from SVG String
 ------------------------------------------------------------------------------*/
 export function getSvgDimensions(svgString) {
+  if (typeof svgString !== 'string') return { width: 0, height: 0 };
   const dimensions = svgString.match(/<svg[^>]*\swidth="([^"]+)"[^>]*\sheight="([^"]+)"[^>]*>/);
   if (dimensions) {
     return {

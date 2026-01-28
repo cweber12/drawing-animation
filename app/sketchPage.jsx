@@ -2,27 +2,8 @@
 /* SketchPage.jsx
 --------------------------------------------------------------------------------
 Main drawing interface for sketching, editing, and exporting SVG body parts.
-
-Sketch SVGS: head, torso, arms, hands legs, and feet on separate canvases.
-  - Select brush size and color, toggle erase mode.
-  - Save all canvases as SVGs stored in state and local file.
-  - Export SVGs as JSON file.
-  - Navigate to Detect Pose screen with saved SVGs for pose-based animation.
-
-  Navigate to detectPose: pass saved SVGs to view them over detected pose
-landmarks from device camera or uploaded video.
-  - Uses expo-router for navigation and routing.
-  - Passes viewMode ('svg' or 'pose') and videoUri as params to adjust layout
-    and functionality on Detect Pose screen.
-    - 'svg' mode: view saved svgs over live pose detection.
-    - 'pose' mode: create pose-based animation from uploaded video or webcam.
-    NOTE: 'pose' mode creates a smoother animation by applying smoothing to 
-    saved landmarks but takes longer to process. 'svg' mode uses real-time
-    landmarks and is faster but the animation is more jumpy. 
 ------------------------------------------------------------------------------*/
 
-/* Import libraries
------------------------------------------------------------------------------*/
 import React, { 
     useRef, 
     useState, 
@@ -69,7 +50,7 @@ const SketchPage = () => {
     const { width, height } = useWindowDimensions();
     const isSmallScreen = width < 768;
 
-    /* Get calculated svg sizes based on screen height
+    /* returns appropriate sizes for SVG canvases based on screen height
     --------------------------------------------------------------------------*/
     const sizes = getSvgSizes(height);
     
@@ -89,15 +70,9 @@ const SketchPage = () => {
     
     // viewMode for Detect Pose Display: 'svg' or 'pose'
     const [viewMode, setViewMode] = useState('svg'); 
-    
-    // uploaded video URI for pose detection
-    const [poseVideoUri, setPoseVideoUri] = useState(null);
-    
-    // export SVGs flag (triggers export in saveAll)
-    const [exportSvg, setExportSvg] = useState(false);
-    
-    // show pose options dropdown (upload video, select view mode)
     const [showDetectPoseOptions, setShowDetectPoseOptions] = useState(false);
+    const [svgData, setSvgData] = useState(null);
+
     
     /* Refs for each body part canvas
     - Ensures canvases can be updated and accessed separately
@@ -122,9 +97,9 @@ const SketchPage = () => {
     - CSS doesn't support spreading props, so define common props here
     - Passed to each body part canvas component
     --------------------------------------------------------------------------*/
-    const canvasProps = {
-        canvasColor: theme.canvasBackground,          
-        exportWithBackgroundImage: false,      
+    const canvasProps = {    
+        exportWithBackgroundImage: false, 
+        canvasColor: 'transparent',     
         svgStyle: { background: 'transparent'} ,
         strokeWidth: strokeWidth,
         strokeColor: selectedColor,
@@ -161,7 +136,6 @@ const SketchPage = () => {
     /* Update erase mode on all canvases when erase state changes
     --------------------------------------------------------------------------*/
     useEffect(() => {
-        // List all refs
         const refs = [
             headRef, torsoRef,
             rightUpperArmRef, rightLowerArmRef, rightHandRef,
@@ -202,84 +176,49 @@ const SketchPage = () => {
     --------------------------------------------------------------------------*/
     const saveAll = useCallback(async () => {
         try {
-            // Collect refs for each body part
             const refs = {
-                head: headRef,
-                rightUpperLeg: rightUpperLegRef,
-                rightLowerLeg: rightLowerLegRef,
-                rightFoot: rightFootRef,
-                leftUpperLeg: leftUpperLegRef,
-                leftLowerLeg: leftLowerLegRef,
-                leftFoot: leftFootRef,
-                torso: torsoRef,
-                rightUpperArm: rightUpperArmRef,
-                leftUpperArm: leftUpperArmRef,
-                rightLowerArm: rightLowerArmRef,
-                rightHand: rightHandRef,
-                leftLowerArm: leftLowerArmRef,
-                leftHand: leftHandRef,
-                    
+            head: headRef,
+            rightUpperLeg: rightUpperLegRef,
+            rightLowerLeg: rightLowerLegRef,
+            rightFoot: rightFootRef,
+            leftUpperLeg: leftUpperLegRef,
+            leftLowerLeg: leftLowerLegRef,
+            leftFoot: leftFootRef,
+            torso: torsoRef,
+            rightUpperArm: rightUpperArmRef,
+            leftUpperArm: leftUpperArmRef,
+            rightLowerArm: rightLowerArmRef,
+            rightHand: rightHandRef,
+            leftLowerArm: leftLowerArmRef,
+            leftHand: leftHandRef,
             };
 
-            // Export SVG from each canvas ref
             const svgs = {};
             for (const [key, ref] of Object.entries(refs)) {
-                if (ref.current && ref.current.exportSvg) {
-                    let svg = await ref.current.exportSvg();
-                    svgs[key] = svg;
-                } else {
-                    console.warn(`No stroke found or ref not ready for ${key}`);
-                    svgs[key] = null;
-                }
+            if (ref.current?.exportSvg) {
+                const svgString = await ref.current.exportSvg();   // ✅ await
+                svgs[key] = svgString;
+                console.log(`sketchPage: Saved SVG for ${key}`);
+            } else {
+                svgs[key] = null;
+                console.log(`sketchPage: No SVG for ${key}`);
+            }
             }
 
-            // Update state and ref
             bodySvgsRef.current = svgs;
-            
-            // Export SVGs as JSON file (if export button pressed) 
-            if (exportSvg) {
-                try {
-                    const json = JSON.stringify(svgs, null, 2);
-                    if (Platform.OS === 'web') {
-                        // Web: trigger download using Blob
-                        const blob = new Blob([json], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'body_svgs.json';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                        console.log('SVGs exported as body_svgs.json');
-                    } else {
-                        // Native: use expo-file-system
-                        const fileUri = FileSystem.documentDirectory + 'body_svgs.json';
-                        await FileSystem.writeAsStringAsync(fileUri, json, {
-                            encoding: FileSystem.EncodingType.UTF8,
-                        });
-                        console.log('SVGs exported to: ' + fileUri);
-                    }
-                } catch (e) {               
-                    console.error('Error exporting SVGs:', e);
-                } 
-            }
-                    
-            return svgs;
+            return svgs; // ✅ return so callers can use it immediately
         } catch (e) {
-            console.error('Error saving SVGs:', e);
+            console.error('sketchPage: Error saving SVGs:', e);
             return null;
         }
-    }, [exportSvg]);
+    }, []);
 
-    /* Export all SVGs handler for header button
-    --------------------------------------------------------------------------*/
-    const exportAll = useCallback(async () => {
-        setExportSvg(true);
+    const handleUpload = useCallback(async () => {
+        console.log('sketchPage: handleUpload called');
         const svgs = await saveAll();
-        setExportSvg(false);
-        return svgs;
+        setSvgData(svgs);
     }, [saveAll]);
+
 
     /* Handle picking video for pose detection
     --------------------------------------------------------------------------*/
@@ -288,76 +227,30 @@ const SketchPage = () => {
             type: 'video/*',
         });
         if (!result.canceled) {
-            console.log('Picked video:', result);
+            console.log('sketchPage: Picked video:', result);
             goToDetectPose('pose', result.assets[0].uri);    
         }
     };
 
     /* Navigate to detectPose screen with SVGs
     - passes saved SVGs, viewMode, and videoUri as params
-    - comment/uncomment to use savedSvgs from file of svgsToSend from current 
-      canvases. Use savedSvgs for debug. 
-    - savedSvgs: loaded from public/svg_parts/body_svgs.json file
-    - svgsToSend: saved from current canvases
     NOTE: will implement better saving/loading of SVGs later.
     --------------------------------------------------------------------------*/
     const goToDetectPose = useCallback(async (mode, poseVideoUri) => {
-        
-        //const svgsToSend = await saveAll(); 
-        let savedSvgs = null;
-        
-        /* Try to load saved SVGs from file (if using svgsToSend, comment out)
-        ----------------------------------------------------------------------*/
-        if (Platform.OS === 'web') {
-            try {
-                const response = await fetch('/svg_parts/body_svgs.json');
-                if (response.ok) {
-                    const text = await response.text();
-                    if (
-                        text && text.trim() !== '' && 
-                        text.trim() !== 'undefined'
-                    ) {
-                        savedSvgs = JSON.parse(text);
-                    }
-                }
-            } catch (e) {
-                console.warn('Could not load saved SVGs:', e);
-            }
-        } else {
-            try {
-                const fileUri = FileSystem.documentDirectory + 'body_svgs.json';
-                const savedSvgsString = 
-                    await FileSystem.readAsStringAsync(fileUri);
-                if (
-                    savedSvgsString && savedSvgsString.trim() !== '' && 
-                    savedSvgsString.trim() !== 'undefined'
-                ) {
-                    savedSvgs = JSON.parse(savedSvgsString);
-                }
-            } catch (e) {
-                console.warn('Could not load saved SVGs:', e);
-            }
-        }
-        /* End load saved SVGs from file
-        ----------------------------------------------------------------------*/
-
-        //if (!svgsToSend) return;
-        if (!savedSvgs) return; 
+        const svgsToSend = await saveAll();   // ✅ await
+        if (!svgsToSend) return;
 
         router.push({
             pathname: '/detectPose',
             params: {
-                // uncomment to use svgs from current canvases
-                //svgs: JSON.stringify(svgsToSend), 
-                // uncomment to use saved svgs from file
-                svgs: JSON.stringify(savedSvgs),
-                mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
-                viewMode: mode,
-                videoUri: poseVideoUri,
-                armOrientation: isSmallScreen ? 'vertical' : 'horizontal',
+            svgs: JSON.stringify(svgsToSend),
+            mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
+            viewMode: mode,
+            videoUri: poseVideoUri,
+            armOrientation: isSmallScreen ? 'vertical' : 'horizontal',
             },
         });
-    }, [router, saveAll, isSmallScreen, poseVideoUri]);
+    }, [router, saveAll, isSmallScreen]);
 
     /* Set navigation params for header buttons
     --------------------------------------------------------------------------*/
@@ -366,12 +259,13 @@ const SketchPage = () => {
             viewMode: viewMode,
             eraseMode: erase,
             strokeColor: selectedColor,
-            onExportAll: exportAll,
+            svgData: svgData,
             onClear: clearAll,
             onToggleErase: toggleEraseMode,
             onShowBrushSizeSlider: toggleBrushSizeSlider,
             onShowColorPicker: toggleColorPicker,
             onShowDetectPoseOptions: toggleDetectPoseOptions,
+            onHandleUpload: handleUpload,
         });
     }, [
             navigation, 
@@ -382,9 +276,10 @@ const SketchPage = () => {
             viewMode, 
             selectedColor,
             erase,
-            exportAll,
             saveAll,
-            toggleEraseMode
+            toggleEraseMode, 
+            svgData,
+            handleUpload
         ]
     );
     
@@ -415,14 +310,12 @@ const SketchPage = () => {
                 />
             )}
 
-            <ThemedView style={styles.container}>
-                
+            <ThemedView style={styles.container}>                
                 <Head 
                     canvasProps={canvasProps}
                     canvasId="head"
                     headRef={headRef} 
                     headSize={sizes.HEAD_SIZE}
-
                 /> 
                 
                 <View style={styles.row}>

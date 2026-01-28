@@ -17,7 +17,7 @@ import {
 import { getIconSize } from '../../constants/Sizes';
 import React from 'react';
 
-import UploadJson from '../buttons/UploadJson';
+import UploadS3 from '../buttons/UploadS3';
 
 const SketchButtons = ({ 
   eraseMode,
@@ -29,6 +29,8 @@ const SketchButtons = ({
   onHoverTitle,
   onExportAll,
   onShowDetectPoseOptions,
+  svgData,
+  onHandleUpload,
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
@@ -46,22 +48,22 @@ const SketchButtons = ({
     <View style={styles.container}>    
 
       {/* EXPORT BUTTON -----------------------------------------------------*/}
-      <TouchableOpacity 
-        onPress={() => {onExportAll && onExportAll();}}
-        onMouseEnter={() => {
-          onHoverTitle && onHoverTitle('Export All')
-          setHoveredExport(true);
-        }}
-        onMouseLeave={() => {
-          onHoverTitle && onHoverTitle('Sketch')
-          setHoveredExport(false);
-        }}
-      >
-        <FaFileExport 
-          size={getIconSize()} 
-          color={hoveredExport ? theme.buttonHover : theme.button} 
-        />
-      </TouchableOpacity>
+      <UploadS3 
+          landmarks={null}
+          style={styles.button} 
+          svgs={svgData}
+          fileType="svg"  
+          onMouseEnter={() => {
+              onHoverTitle && onHoverTitle('Export All Sketches')
+              setHoveredExport(true);
+            } 
+          }
+          onMouseLeave={() => {
+            onHoverTitle && onHoverTitle('Sketch')
+            setHoveredExport(false);
+          }}
+          onHandleUpload={onHandleUpload}
+      />
 
       {/* CLEAR BUTTON ------------------------------------------------------*/}
       <TouchableOpacity 

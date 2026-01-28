@@ -5,7 +5,7 @@ import { Colors } from '../../constants/Colors';
 import { FaCamera, FaStopCircle } from 'react-icons/fa';
 import { BsRecordCircleFill } from "react-icons/bs";
 import { getIconSize } from '../../constants/Sizes';
-import UploadJson from '../buttons/UploadJson';
+import UploadS3 from '../buttons/UploadS3';
 
 const DetectPoseButtons = ({ 
     onDetectionStarted, 
@@ -23,9 +23,11 @@ const DetectPoseButtons = ({
             {viewMode === 'pose' && (
                 <>
                     {savedLandmarks && savedLandmarks.length > 0 && (
-                        <UploadJson 
+                        <UploadS3 
                             landmarks={savedLandmarks}
-                            style={styles.button}    
+                            style={styles.button} 
+                            svgs={null}
+                            fileType="json"   
                         />
                     )}
                     {!isDetecting ? (

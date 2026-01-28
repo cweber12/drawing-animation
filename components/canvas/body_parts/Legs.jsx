@@ -35,7 +35,6 @@ const Legs = ( {
             <View style={[styles.legColumn, {alignItems: "flex-end"}]}>
                 <CanvasWrapper 
                     style={[
-                        styles.canvasWrapper, 
                         { 
                             width: legWidth, 
                             height: legLength, 
@@ -54,7 +53,6 @@ const Legs = ( {
                 </CanvasWrapper>
                 <CanvasWrapper 
                     style={[
-                        styles.canvasWrapper, 
                         { 
                             width: legWidth, 
                             height: legLength, 
@@ -76,7 +74,6 @@ const Legs = ( {
             <View style={[styles.legColumn, {alignItems: "flex-start"}]}>
                 <CanvasWrapper 
                     style={[
-                        styles.canvasWrapper, 
                         { 
                             width: legWidth, 
                             height: legLength, 
@@ -94,7 +91,6 @@ const Legs = ( {
                 </CanvasWrapper>
                 <CanvasWrapper 
                     style={[
-                        styles.canvasWrapper, 
                         { 
                             width: legWidth, 
                             height: legLength, 
@@ -119,11 +115,6 @@ export default Legs
 
 const styles = StyleSheet.create({
     
-    canvasWrapper: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-    },
     canvas: {
         backgroundColor: 'transparent',
         width: '100%',

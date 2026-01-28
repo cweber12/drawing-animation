@@ -22,7 +22,6 @@ const Torso = ( {
     return (
         <CanvasWrapper 
             style={[
-                styles.canvasWrapper, 
                 { 
                     width: torsoWidth, 
                     height: torsoHeight, 
@@ -44,11 +43,6 @@ const Torso = ( {
 export default Torso
 
 const styles = StyleSheet.create({
-    canvasWrapper: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-    },
     canvas: {
         backgroundColor: 'transparent',
         width: '100%',

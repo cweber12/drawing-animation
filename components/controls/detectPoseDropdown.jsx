@@ -18,44 +18,32 @@ const detectPoseDropdown = ({
             {backgroundColor: theme.navBackground}, 
             style
             ]}>
-            <TouchableOpacity  
-            onPress={() => {
-                onPickVideo && onPickVideo();
-            }}
+            <TouchableOpacity
+                style={styles.optionButton}  
+                onPress={() => {
+                    onPickVideo && onPickVideo();
+                }}
             >
-                <Text 
-                style={[
-                    styles.optionButton, 
-                    {color: theme.button}
-                    ]}>Select Video
-                </Text>
+                <Text style={styles.text}>Select Video</Text>
         
             </TouchableOpacity>
             
             <TouchableOpacity 
-            onPress={() => {
-                setPoseView && setPoseView();
-            }}
+                style={styles.optionButton}
+                onPress={() => {
+                    setPoseView && setPoseView();
+                }}
             >
-            <Text 
-                style={[
-                    styles.optionButton, 
-                    {color: theme.button}
-                    ]}>Record Animation
-                </Text>
+                <Text style={styles.text}>Record Animation</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-            onPress={() => {
-                setSvgView && setSvgView();
-            }}
+                style={styles.optionButton}
+                onPress={() => {
+                    setSvgView && setSvgView();
+                }}
             >
-            <Text 
-                style={[
-                    styles.optionButton, 
-                    {color: theme.button}
-                    ]}>Live Animation
-                </Text>
+            <Text style={styles.text}>Live Animation</Text>
             </TouchableOpacity>
         </View>
     )
@@ -66,19 +54,31 @@ export default detectPoseDropdown
 const styles = StyleSheet.create({
     poseOptionsContainer: {
         display: 'flex',
+        width: 'fit-content',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'flex-start',
         textAlign: 'left',
         borderBottomLeftRadius: 8,
-        padding: 8,
-        gap: 8,
+        padding: "1rem",
+        gap: "0.2rem"
     },
 
     optionButton: {
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 4,
-        backgroundColor: 'transparent',
+        flex: 1, 
+        width: '100%', 
+        textAlign: 'center',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 4,  
+        paddingVertical: "1rem",
+        paddingHorizontal: "1.5rem",
+        color: '#362F4F',
+        border: '1px solid #362F4F',
+    },
+
+    text: {
+        fontSize: 20,
+        fontWeight: '500',
     },
 })

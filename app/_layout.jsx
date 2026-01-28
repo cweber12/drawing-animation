@@ -22,7 +22,7 @@ const HomeButton = () => {
     const theme = Colors[colorScheme] ?? Colors.light
 
     return (
-        <View style={{ marginHorizontal: 24, flexShrink: 0 }}>
+        <View style={{ marginHorizontal: 24, flexShrink: 0}}>
             <TouchableOpacity 
                 onPress={() => router.replace('/')}
             >
@@ -98,6 +98,8 @@ const RootLayout = () => {
                                     onHoverTitle={(title) => setHeaderTitle(title)}
                                     onExportAll={route.params?.onExportAll}
                                     onShowDetectPoseOptions={route.params?.onShowDetectPoseOptions}
+                                    svgData={route.params?.svgData}
+                                    onHandleUpload={route.params?.onHandleUpload}
                                 />
                                 <HomeButton />
                                 

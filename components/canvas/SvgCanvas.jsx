@@ -54,10 +54,10 @@ const SvgCanvas = ({
   const scaleWebcamY = height / webcamHeight; 
 
   // Debugging flags to display anchor points in svg rendering
-  const debugTorsoAnchors = false;
-  const debugHeadAnchors = false;
-  const debugArmAnchors = false;
-  const debugHandAnchors = false;
+  const debugTorsoAnchors = true;
+  const debugHeadAnchors = true;
+  const debugArmAnchors = true;
+  const debugHandAnchors = true;
   const debugLegAnchors = true;
   const debugFootAnchors = true;
 
@@ -87,37 +87,32 @@ const SvgCanvas = ({
   /* Cache SVG images when svgs prop changes
   ----------------------------------------------------------------------------*/
   useEffect(() => {
-    console.log('Caching SVG images in SvgCanvas...');
+    console.log('svgCanvas: Caching SVG images');
     console.log('SVG parts:', Object.keys(svgs));
     let cancelled = false;
 
     (async () => {
-      const entries = await Promise.all(
-        Object.entries(svgs).map(async ([part, svgString]) => {
-          const { width: svgW, height: svgH } = getSvgDimensions(svgString);
-          const svgStringClipped = addSvgClipPath(
-            svgString,
-            svgW,
-            svgH,
-            CANVAS_BORDER_RADIUS
-          );
-          const img = await svgStringToImage(svgStringClipped);
-          return [part, img];
-        })
-      );
-
-      if (cancelled) return;
-
       const next = {};
-      for (const [part, img] of entries) {
-        if (img) next[part] = img;
+
+      for (const [part, svgString] of Object.entries(svgs)) {
+        if (typeof svgString !== 'string' || svgString.trim().length === 0) continue;
+
+        try {
+          const { width: svgW, height: svgH } = getSvgDimensions(svgString);
+          const clipped = addSvgClipPath(svgString, svgW, svgH, CANVAS_BORDER_RADIUS);
+          const img = await svgStringToImage(clipped);
+          if (img) next[part] = img;
+        } catch (e) {
+          console.warn(`svgCanvas: failed to cache ${part}`, e);
+        }
       }
-      imagesRef.current = next;
+
+      if (!cancelled) {
+        imagesRef.current = next;
+      }
     })();
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [svgs]);
 
   /* Draw pose and SVGs on canvas when displayLandmarks change
@@ -134,6 +129,8 @@ const SvgCanvas = ({
     /* Draw SVGs for body parts
     --------------------------------------------------------------------------*/
     const images = imagesRef.current;
+    console.log('svgCanvas: Drawing SVGs for body parts');
+    console.log('svgCanvas: Number of images to draw:', Object.keys(images).length);
 
     // Conditionally scale landmarks for replay vs live
     // - replay: landmarks are already in canvas coords

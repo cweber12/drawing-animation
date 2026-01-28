@@ -7,7 +7,12 @@ const CanvasWrapper = ({ style, children }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     return (
-        <View style={[{ backgroundColor: theme.canvasBackground }, style]}>
+        <View style={[
+                style, 
+                styles.canvasWrapper,
+                { backgroundColor: theme.canvasBackground}, 
+            
+            ]}>
             {children}
         </View>
         
@@ -16,4 +21,10 @@ const CanvasWrapper = ({ style, children }) => {
 
 export default CanvasWrapper
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+    canvasWrapper: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+    },
+})

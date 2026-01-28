@@ -4,36 +4,49 @@ import { FaFileExport } from 'react-icons/fa';
 import { Colors } from '../../constants/Colors';
 import { getIconSize } from '../../constants/Sizes';
 
-const UploadJson = ({ landmarks, style }) => {
+const UploadS3 = ({ 
+  landmarks, 
+  style, 
+  svgs, 
+  fileType,   
+  onHandleUpload,
+}) => {
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
 
-  const uploadLandmarksToS3 = async () => {
-    if (!landmarks || landmarks.size === 0) {
+  const uploadToS3 = async () => {
+    if (fileType === 'json' && (!landmarks || landmarks.length === 0)) {
       Alert.alert('No landmarks to upload');
       return;
     }
-    console.log('Uploading landmarks to S3...');
-    console.log(landmarks);
+    if (fileType === 'svg' && (!svgs || svgs.length === 0)) {
+      Alert.alert('No SVGs to upload');
+      return;
+    }
+    if (fileType === 'json') {
+    console.log('Uploading JSON to S3...');
+    } else if (fileType === 'svg') {
+      console.log('Uploading SVG to S3...');
+    }
     setUploading(true);
     setUploadStatus('Uploading...');
     const bucket = 'pose-animations';
     const timestamp = Date.now();
-    const key = `pose_landmarks/${timestamp}.json`;
+    const key = fileType === 'json' ? `landmarks/${timestamp}.json` : `svgs/${timestamp}.svg`;
     const url = `https://kqaq8gwqvl.execute-api.us-east-2.amazonaws.com/prod/${bucket}/${key}`;
 
     try {
       const response = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(landmarks),
+        body: fileType === 'json' ? JSON.stringify(landmarks) : JSON.stringify(svgs),
       });
 
       if (response.ok) {
         setUploadStatus('Upload successful!');
-        Alert.alert('Success', 'Landmarks uploaded successfully!');
+        Alert.alert('Success', `${fileType === 'json' ? 'Landmarks' : 'SVGs'} uploaded successfully!`);
       } else {
         setUploadStatus('Upload failed');
         Alert.alert('Error', 'Upload failed');
@@ -48,7 +61,15 @@ const UploadJson = ({ landmarks, style }) => {
 
   return (
     <TouchableOpacity
-      onPress={uploadLandmarksToS3}
+        onPress={() => {
+          if (fileType === 'json') {
+            uploadToS3();
+          } else {
+            onHandleUpload && onHandleUpload();
+            
+            uploadToS3();
+          }
+        }}
       disabled={uploading}
       style={style}
     >
@@ -57,4 +78,4 @@ const UploadJson = ({ landmarks, style }) => {
   );
 };
 
-export default UploadJson;
+export default UploadS3;
