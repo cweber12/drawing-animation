@@ -1,5 +1,5 @@
 import { StyleSheet, useColorScheme} from 'react-native'
-import React, { useEffect, useNavigate, useRouter } from 'react'
+import React from 'react'
 import { Link } from 'expo-router'
 import ThemedView from '../components/themed_components/ThemedView';
 import { Colors } from '../constants/Colors';
@@ -9,19 +9,25 @@ const Home = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     
-    /* Automatically navigate to sketchPage on load 
-    ----------------------------------------------------------------------------
-    Other link on home page is not active yet, this makes it easier to access
-    the working part of the app during development
-    --------------------------------------------------------------------------*/
-    const router = useRouter();
-
-    useEffect(() => {
-        router.replace('/sketchPage');
-    }, [router]);
     
-    return null; // Temporarily disable home page
-
+    return (
+        <>
+            <ThemedView style={styles.container}>
+                <Link 
+                    href="/sketchPage" 
+                    style={[
+                        styles.link, 
+                        { 
+                            backgroundColor: theme.button, 
+                            color: theme.buttonText 
+                        }
+                    ]}
+                >
+                    Sketch 
+                </Link>
+            </ThemedView>
+        </>
+    )
 }
 
 export default Home
@@ -36,11 +42,12 @@ const styles = StyleSheet.create({
     },
 
     link: {
-        fontSize: 18,
+        fontSize: 24,
         padding: 10,
         borderRadius: 5,
         marginBottom: 10,
-        width: 300,
+        width: 400,
+        height: 52,
         textAlign: 'center',
     }
 })
