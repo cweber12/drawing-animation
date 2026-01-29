@@ -18,6 +18,8 @@ import { getIconSize } from '../../constants/Sizes';
 import React from 'react';
 
 import UploadS3 from '../buttons/UploadS3';
+import { LuInfo } from "react-icons/lu";
+
 
 const SketchButtons = ({ 
   eraseMode,
@@ -26,6 +28,7 @@ const SketchButtons = ({
   onToggleErase,
   onShowBrushSizeSlider,
   onShowColorPicker,
+  onShowSketchInfo,
   onHoverTitle,
   onExportAll,
   onShowDetectPoseOptions,
@@ -41,12 +44,32 @@ const SketchButtons = ({
     const [hoveredBrushSize, setHoveredBrushSize] = React.useState(null);
     const [hoveredColorPicker, setHoveredColorPicker] = React.useState(null);
     const [hoveredAnimate, setHoveredAnimate] = React.useState(null);
+    const [hoveredInfo, setHoveredInfo] = React.useState(null);
     
 
   
     return (
     <View style={styles.container}>    
 
+      {/* INFO BUTTON -------------------------------------------------------*/}
+      <TouchableOpacity 
+        onPress={() => {
+          onShowSketchInfo && onShowSketchInfo();
+        }}
+        onMouseEnter={() => {
+          onHoverTitle && onHoverTitle('Sketch Info')
+          setHoveredInfo(true);
+        }}
+        onMouseLeave={() => {
+          onHoverTitle && onHoverTitle('Sketch')
+          setHoveredInfo(false);
+        }}
+      >
+        <LuInfo
+          size={getIconSize() * 1.5} 
+          color={hoveredInfo ? theme.actionButtonHover : theme.actionButton} 
+        />
+      </TouchableOpacity>
       {/* EXPORT BUTTON -----------------------------------------------------*/}
       <UploadS3 
           landmarks={null}

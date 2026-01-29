@@ -22,6 +22,7 @@ import { smoothLandmarks } from '../utils/poseUtils';
 import { FootCalculator } from '../utils/FootCalculator';
 import ThemedPoseView from '../components/themed_components/ThemedPoseView';
 import { usePoseDetection } from '../hooks/usePoseDetection';
+import PoseInfo from '../components/info/PoseInfo';
 
 const DetectPose = () => {
   
@@ -63,6 +64,8 @@ const DetectPose = () => {
 
   const [naturalVideoWidth, setNaturalVideoWidth] = useState(null);
   const [naturalVideoHeight, setNaturalVideoHeight] = useState(null);
+
+  const [ showPoseInfo, setShowPoseInfo ] = useState(false);
 
   const footCalculator = useRef(new FootCalculator());
   
@@ -140,6 +143,9 @@ const DetectPose = () => {
         setIsDetecting(false); // detection stopped
         if (!firstStartRef.current) setShowPoseAnimation(true); // show after fists start
       },
+      onShowPoseInfo: () => {
+        setShowPoseInfo(prev => !prev);
+      },
       viewMode,
       showPoseAnimation,
       estimatedLandmarks,
@@ -212,6 +218,7 @@ const DetectPose = () => {
   ------------------------------------------------------------------------------------------------*/
   return (
      <ThemedPoseView>
+        {showPoseInfo && <PoseInfo />}
         {(viewMode === 'svg' || showPoseAnimation) && (
           <SvgCanvas
             width={CANVAS_WIDTH}

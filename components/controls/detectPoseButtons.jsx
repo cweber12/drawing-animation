@@ -6,10 +6,12 @@ import { FaCamera, FaStopCircle } from 'react-icons/fa';
 import { BsRecordCircleFill } from "react-icons/bs";
 import { getIconSize } from '../../constants/Sizes';
 import UploadS3 from '../buttons/UploadS3';
+import { LuInfo } from "react-icons/lu";
 
 const DetectPoseButtons = ({ 
     onDetectionStarted, 
-    onDetectionStopped, 
+    onDetectionStopped,
+    onShowPoseInfo, 
     viewMode, 
     savedLandmarks, 
     isDetecting,
@@ -20,8 +22,16 @@ const DetectPoseButtons = ({
     return (
         <View style={styles.container}>
 
+            
             {viewMode === 'pose' && (
                 <>
+                    <TouchableOpacity 
+                        style={styles.button} 
+                        onPress={onShowPoseInfo}
+                    >
+                        <LuInfo size={getIconSize()} color={theme.actionButton} />
+                    </TouchableOpacity>
+
                     {savedLandmarks && savedLandmarks.length > 0 && (
                         <UploadS3 
                             landmarks={savedLandmarks}

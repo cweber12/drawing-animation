@@ -37,6 +37,7 @@ import RightArm from '../components/canvas/body_parts/RightArm';
 import LeftArm from '../components/canvas/body_parts/LeftArm';
 import Legs from '../components/canvas/body_parts/Legs';
 import Feet from '../components/canvas/body_parts/Feet';
+import SketchInfo from '../components/info/SketchInfo';
 
 const SketchPage = () => {
     
@@ -73,6 +74,7 @@ const SketchPage = () => {
     const [showDetectPoseOptions, setShowDetectPoseOptions] = useState(false);
     const [svgData, setSvgData] = useState(null);
 
+    const [showSketchInfo, setShowSketchInfo] = useState(false);
     
     /* Refs for each body part canvas
     - Ensures canvases can be updated and accessed separately
@@ -265,7 +267,9 @@ const SketchPage = () => {
             onShowBrushSizeSlider: toggleBrushSizeSlider,
             onShowColorPicker: toggleColorPicker,
             onShowDetectPoseOptions: toggleDetectPoseOptions,
+            onShowSketchInfo: () => setShowSketchInfo(prev => !prev),
             onHandleUpload: handleUpload,
+
         });
     }, [
             navigation, 
@@ -309,6 +313,11 @@ const SketchPage = () => {
                     setSvgView={() => goToDetectPose('svg', null)}
                 />
             )}
+            {showSketchInfo && (
+                 <SketchInfo />
+            )}
+
+
 
             <ThemedView style={styles.container}>                
                 <Head 

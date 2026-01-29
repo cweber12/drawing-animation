@@ -71,6 +71,7 @@ const RootLayout = () => {
                                     onToggleWebcam={route.params?.onToggleWebcam} 
                                     onDetectionStarted={route.params?.onDetectionStarted}
                                     onDetectionStopped={route.params?.onDetectionStopped}
+                                    onShowPoseInfo={route.params?.onShowPoseInfo}
                                     savedLandmarks={route.params?.estimatedLandmarks}
                                     isDetecting={route.params?.isDetecting}
                                 />
@@ -93,6 +94,7 @@ const RootLayout = () => {
                                     onToggleErase={route.params?.onToggleErase}
                                     onShowBrushSizeSlider={route.params?.onShowBrushSizeSlider}
                                     onShowColorPicker={route.params?.onShowColorPicker}
+                                    onShowSketchInfo={route.params?.onShowSketchInfo}
                                     onHoverTitle={(title) => setHeaderTitle(title)}
                                     onExportAll={route.params?.onExportAll}
                                     onShowDetectPoseOptions={route.params?.onShowDetectPoseOptions}
