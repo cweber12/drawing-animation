@@ -70,6 +70,8 @@ A web-based drawing and pose animation application built with React, Expo, and T
 
 ---
 
-## License
+## Future Improvements
 
-This project is for educational and demonstration purposes.
+- Header buttons will be improved to be less confusing. Layout will be adjusted to display icon s with labels in side bar at full screen and only icons across top for screen width < 600.
+- Reset button will be added to detectPose header to reset landmarks and display video for new pose detection. This is currently accomplished by pressing the record button again, but it is not very intuitive.
+- Will add hooks/services to upload svgs and pose landmarks to s3 so they can be previewed without drawing new svgs and re-recording animation. 

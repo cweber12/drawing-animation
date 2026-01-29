@@ -2,8 +2,8 @@ import { StyleSheet, Text, View, useColorScheme, TouchableOpacity} from 'react-n
 import { Colors } from '../../constants/Colors';
 import React from 'react'
 
-const detectPoseDropdown = ({ 
-        style,
+const detectPoseDropdown = ({
+        style, 
         onPickVideo, 
         setPoseView, 
         setSvgView,
@@ -14,9 +14,10 @@ const detectPoseDropdown = ({
 
     return (
         <View style={[
+            style,
             styles.poseOptionsContainer, 
             {backgroundColor: theme.navBackground}, 
-            style
+            
             ]}>
             <TouchableOpacity
                 style={styles.optionButton}  
@@ -24,7 +25,11 @@ const detectPoseDropdown = ({
                     onPickVideo && onPickVideo();
                 }}
             >
-                <Text style={styles.text}>Select Video</Text>
+                <Text 
+                    style={[
+                        styles.text, 
+                        { color: theme.text }
+                    ]}>Select Video</Text>
         
             </TouchableOpacity>
             
@@ -34,7 +39,11 @@ const detectPoseDropdown = ({
                     setPoseView && setPoseView();
                 }}
             >
-                <Text style={styles.text}>Record Animation</Text>
+                <Text 
+                    style={[
+                        styles.text, 
+                        { color: theme.text }
+                    ]}>Record Animation</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -43,7 +52,11 @@ const detectPoseDropdown = ({
                     setSvgView && setSvgView();
                 }}
             >
-            <Text style={styles.text}>Live Animation</Text>
+            <Text 
+            style={[
+                styles.text, 
+                { color: theme.text }
+            ]}>Live Animation</Text>
             </TouchableOpacity>
         </View>
     )
@@ -52,16 +65,17 @@ const detectPoseDropdown = ({
 export default detectPoseDropdown
 
 const styles = StyleSheet.create({
+    
     poseOptionsContainer: {
         display: 'flex',
         width: 'fit-content',
         flexDirection: 'column',
         justifyContent: 'center',
-        alignItems: 'flex-start',
+        alignItems: 'flex-end',
         textAlign: 'left',
         borderBottomLeftRadius: 8,
-        padding: "1rem",
-        gap: "0.2rem"
+        padding: 0,
+        gap: "0.2rem", 
     },
 
     optionButton: {
@@ -70,11 +84,8 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 4,  
         paddingVertical: "1rem",
-        paddingHorizontal: "1.5rem",
-        color: '#362F4F',
-        border: '1px solid #362F4F',
+        paddingHorizontal: "3rem",
     },
 
     text: {

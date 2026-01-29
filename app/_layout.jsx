@@ -26,7 +26,7 @@ const HomeButton = () => {
             <TouchableOpacity 
                 onPress={() => router.replace('/')}
             >
-                <FaHome size={getIconSize()} color={theme.homeButton} />
+                <FaHome size={getIconSize()} color={theme.button} />
             </TouchableOpacity>
         </View>
     );
@@ -64,8 +64,7 @@ const RootLayout = () => {
                     options={({ route }) => ({
                         title: route.params?.viewMode === 'svg' ? 'Live Animation' : 'Create Animation',
                         headerRight: () => (
-                            <>
-                                
+                            <>                               
                                 <DetectPoseButtons
                                     viewMode={route.params?.viewMode}
                                     showPoseAnimation={route.params?.showPoseAnimation}
@@ -75,8 +74,7 @@ const RootLayout = () => {
                                     savedLandmarks={route.params?.estimatedLandmarks}
                                     isDetecting={route.params?.isDetecting}
                                 />
-                                <HomeButton />
-                                
+                                <HomeButton />                               
                             </>
                         ),
                     })}
