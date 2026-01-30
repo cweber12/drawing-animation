@@ -89,6 +89,8 @@ const SvgCanvas = ({
   useEffect(() => {
     console.log('svgCanvas: Caching SVG images');
     console.log('SVG parts:', Object.keys(svgs));
+    console.log('SVG strings:', svgs);
+    console.log('Mapping:', mapping);
     let cancelled = false;
 
     (async () => {
@@ -129,9 +131,7 @@ const SvgCanvas = ({
     /* Draw SVGs for body parts
     --------------------------------------------------------------------------*/
     const images = imagesRef.current;
-    console.log('svgCanvas: Drawing SVGs for body parts');
-    console.log('svgCanvas: Number of images to draw:', Object.keys(images).length);
-
+    
     // Conditionally scale landmarks for replay vs live
     // - replay: landmarks are already in canvas coords
     // - live: landmarks are in smaller webcam coords, need scaling
@@ -238,7 +238,6 @@ const SvgCanvas = ({
           ctx.scale(1, 1); 
           ctx.drawImage(img, 0, 0, svgW, svgH);
           ctx.restore();
-          console.log('Drew torso SVG with corners:', tl, tr, bl, br);
           /* Draw anchor points for debugging
           ----------------------------------------------------------------------*/
           if (debugTorsoAnchors) {
@@ -283,7 +282,6 @@ const SvgCanvas = ({
               )
             );
             drawHeadSvg(ctx, img, leftEar, rightEar);
-            console.log('Drew head SVG between ears:', leftEar, rightEar);
 
             // Draw anchor points for debugging
             if (debugHeadAnchors) {
@@ -314,8 +312,8 @@ const SvgCanvas = ({
               to = scaledLandmarks[map.end];
             } else {
               if (part === 'rightUpperArm' || part === 'rightLowerArm') {
-                from = scaledLandmarks[map.rightCenter];
-                to = scaledLandmarks[map.leftCenter];
+                from = scaledLandmarks[map.leftCenter];
+                to = scaledLandmarks[map.rightCenter];
               } else {
                 from = scaledLandmarks[map.leftCenter];
                 to = scaledLandmarks[map.rightCenter];

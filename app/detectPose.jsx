@@ -40,6 +40,7 @@ const DetectPose = () => {
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};
   console.log('detectPose: svgs loaded from params:', svgs);
   const mapping = params.mapping ? JSON.parse(params.mapping) : {};
+  console.log('detectPose: mapping loaded from params:', mapping);
   const armOrientation = params.armOrientation;
   const videoUri = params.videoUri || null;
 

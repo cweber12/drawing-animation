@@ -1,37 +1,56 @@
 /* FootCalculator.js
 --------------------------------------------------------------------------------
-   A class to calculate and track leg angles and directions over time.
+Calculate and track leg angles and leg angle averages over time to estimate foot
+positions based on knee positions.
+
+- knee -> ankle <- foot angle assumed to always have opposite sign to
+  hip -> knee <- ankle angle.
+
+- foot position is estimated from ankle position, knee->ankle vector, and
+  a foot angle derived from the knee angle.
+
+- Used to add foot landmarks (17=left foot, 18=right foot) to pose landmarks.
 ------------------------------------------------------------------------------*/
-
-// import { update } from "lodash"; // <- not used, can remove
-
 export class FootCalculator {
   constructor() {
+    // Average Hip Width for scaling and detecting flips
     this.avgHipWidth = 0;
     this.hipAlpha = 0.1;
     this.initFlipFlag = false;
     this.sameAfterFlipCount = 0;
 
+    // Leg angles to calculating ankle angle and foot position
     this.avgRightLegAngle = 0;
     this.currentRightLegAngle = 0;
     this.avgLeftLegAngle = 0;
     this.currentLeftLegAngle = 0;
 
+    // Direction of leg bend
     this.currentRightLegDirection = 0; // sign (+1/-1)
     this.currentLeftLegDirection = 0;  // sign (+1/-1)
 
-    // --- NEW: reference angles for “knee drives foot” mapping ---
+    // Reference angles and alphas for foot estimation
     this.leftThetaRef = null;
     this.rightThetaRef = null;
     this.leftAlphaRef = 0;   
     this.rightAlphaRef = 0;
 
+    // Smoothed alphas for foot angle
     this.leftAlpha = 0;
     this.rightAlpha = 0;
 
+    // Gain for knee to foot angle relation
     this.kneeToFootGain = 1.0; // k in alpha = alphaRef + s*k*(theta-thetaRef)
   }
 
+  /* Update average hip width with smoothing and flip detection
+  ------------------------------------------------------------------------------
+  1. Calculates difference between left and right hip x coord. 
+     - Sign change indicates possible flip.
+     - Ignore large sudden changes in hip width (>50%) to avoid outliers.
+  2. If flip detected, wait for 3 consecutive frames with same sign to confirm.
+  3. Update average hip width with exponential smoothing.
+  ----------------------------------------------------------------------------*/
   _updateAvgHipWidth(newWidth) {
     if (this.avgHipWidth !== 0) {
       if (newWidth > 1.5 * this.avgHipWidth || newWidth < 0.5 * this.avgHipWidth) {
@@ -63,6 +82,8 @@ export class FootCalculator {
     }
   }
 
+  /* Update average right leg angle 
+  ----------------------------------------------------------------------------*/
   _updateAvgRightLegAngle(newAngle) {
     const angleAlpha = 0.1;
     if (this.avgRightLegAngle === 0) {
@@ -70,9 +91,10 @@ export class FootCalculator {
     } else {
       this.avgRightLegAngle = angleAlpha * newAngle + (1 - angleAlpha) * this.avgRightLegAngle;
     }
-    //console.log("Avg Right Leg Angle (deg): ", (this.avgRightLegAngle * 180 / Math.PI).toFixed(1));
   }
 
+  /* Update average left leg angle
+  ----------------------------------------------------------------------------*/
   _updateAvgLeftLegAngle(newAngle) {
     const angleAlpha = 0.1;
     if (this.avgLeftLegAngle === 0) {
@@ -80,9 +102,10 @@ export class FootCalculator {
     } else {
       this.avgLeftLegAngle = angleAlpha * newAngle + (1 - angleAlpha) * this.avgLeftLegAngle;
     }
-    //console.log("Avg Left Leg Angle (deg): ", (this.avgLeftLegAngle * 180 / Math.PI).toFixed(1));
   }
 
+  /* Calculate angle between two vectors with direction
+  ----------------------------------------------------------------------------*/
   _calculateAngleBetweenVectors(v1, v2) {
     const dot = v1.x * v2.x + v1.y * v2.y;
     const m1 = Math.hypot(v1.x, v1.y);
@@ -96,16 +119,22 @@ export class FootCalculator {
     return { angle, direction };
   }
 
+  /* Rotate vector by angle t (radians)
+  ----------------------------------------------------------------------------*/
   _rotate(v, t) {
     const c = Math.cos(t), s = Math.sin(t);
     return { x: v.x * c - v.y * s, y: v.x * s + v.y * c };
   }
 
+  /* Normalize vector
+  ----------------------------------------------------------------------------*/
   _norm(v) {
     const m = Math.hypot(v.x, v.y) || 1e-9;
     return { x: v.x / m, y: v.y / m };
   }
 
+  /* Update left leg angle and direction
+  ----------------------------------------------------------------------------*/
   _updateLeftLegAngle(leftHip, leftKnee, leftAnkle) {
     const vThigh = { // knee -> hip
         x: leftHip.x - leftKnee.x, 
@@ -121,13 +150,15 @@ export class FootCalculator {
     this.currentLeftLegAngle = angle;
     this.currentLeftLegDirection = direction;
     this._updateAvgLeftLegAngle(angle);
-    //console.log("Left Leg Angle (deg): ", (angle * 180 / Math.PI).toFixed(1), " Dir: ", direction);
+
 
     if (this.leftThetaRef === null) {
-      this.leftThetaRef = Math.min(angle - Math.PI / 8, 3 * Math.PI / 4); // init reference
+      this.leftThetaRef = Math.min(angle - Math.PI / 8, 3 * Math.PI / 4); 
     } 
   }
 
+  /* Update right leg angle and direction
+  ----------------------------------------------------------------------------*/
   _updateRightLegAngle(rightHip, rightKnee, rightAnkle) {
     const vThigh = { // knee -> hip
         x: rightHip.x - rightKnee.x, 
@@ -150,15 +181,25 @@ export class FootCalculator {
     }
   }
 
+  /* Estimate foot coordinate from knee and ankle positions and angles
+  ------------------------------------------------------------------------------
+  1. Calculate knee->ankle unit vector.
+  2. Estimate foot length as ratio of shank length.
+  3. Calculate ankle->foot direction by rotating knee->ankle vector by alpha
+    (angle between ankle->foot and ankle->knee).
+  4. Calculate foot position as ankle position + ankle->foot vector.
+  5. Smooth alpha over time to avoid sudden jumps.
+  6. Return foot position and alpha.
+  ----------------------------------------------------------------------------*/
   _estimateFootCoordinate({
-    theta,           // knee angle (rad)
-    thetaRef,        // reference knee angle (rad)
-    alphaRef,        // reference ankle-foot angle (rad)
-    sideSign,        // +1/-1 to pick rotation side
-    knee,
-    ankle,
-    footLenRatio = 0.5,
-    side,
+    theta,     // knee angle (rad)
+    thetaRef,  // reference knee angle (rad)
+    alphaRef,  // reference ankle-foot angle (rad)
+    sideSign,  // +1/-1 to pick rotation side
+    knee,      // knee position
+    ankle,     // ankle position
+    footLenRatio = 0.5, // foot length as ratio of shank length
+    side,      // 'left' or 'right'
   }) {
     // ankle->knee vector (swapped so foot points away from knee)
     const kneeToAnkle = { x: ankle.x - knee.x, y: ankle.y - knee.y };
@@ -191,6 +232,13 @@ export class FootCalculator {
     };
   }
 
+  /* Estimate left foot coordinate
+  ------------------------------------------------------------------------------
+  1. Get current left leg angle and direction.
+  2. Use reference angle if available, otherwise use current angle.
+  3. Call _estimateFootCoordinate with left leg parameters.
+  4. Return estimated foot coordinate.
+  ----------------------------------------------------------------------------*/
   _estimateLeftFootCoordinate(leftKnee, leftAnkle) {
     const theta = this.avgLeftLegAngle;
     const thetaRef = this.leftThetaRef ?? theta;
@@ -207,6 +255,8 @@ export class FootCalculator {
     });
   }
 
+  /* Estimate right foot coordinate
+  ----------------------------------------------------------------------------*/
   _estimateRightFootCoordinate(rightKnee, rightAnkle) {
     const theta = this.avgRightLegAngle;
     const thetaRef = this.rightThetaRef ?? theta;
@@ -224,6 +274,16 @@ export class FootCalculator {
     });
   }
 
+  /* Add foot landmarks to landmarks array
+  ------------------------------------------------------------------------------
+  1. Check if required landmarks (hips, knees, ankles) are present. If not, no 
+     need to estimate feet.
+  2. Update average hip width for scaling and flip detection.
+  3. Update left and right leg angles.
+  4. Estimate left and right foot coordinates.
+  5. Add foot landmarks (17=left foot, 18=right foot) to landmarks.
+  6. Return updated landmarks array.
+  ----------------------------------------------------------------------------*/
   addFeetToLandmarks(landmarksArray) {
     for (let i = 0; i < landmarksArray.length; i++) {
       const landmarks = landmarksArray[i];

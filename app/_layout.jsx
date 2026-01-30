@@ -21,12 +21,17 @@ const HomeButton = () => {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
 
+    const [hoveredHome, setHoveredHome] = useState(false);
+
     return (
         <View style={{ marginHorizontal: 24, flexShrink: 0}}>
             <TouchableOpacity 
                 onPress={() => router.replace('/')}
+                onMouseEnter={() => setHoveredHome(true)}
+                onMouseLeave={() => setHoveredHome(false)}
             >
-                <FaHome size={getIconSize()} color={theme.button} />
+                <FaHome size={getIconSize()} 
+                color={hoveredHome ? theme.button : theme.text} />
             </TouchableOpacity>
         </View>
     );
@@ -75,6 +80,7 @@ const RootLayout = () => {
                                     onShowPoseInfo={route.params?.onShowPoseInfo}
                                     savedLandmarks={route.params?.estimatedLandmarks}
                                     isDetecting={route.params?.isDetecting}
+                                    onHoverTitle={(title) => setHeaderTitle(title)}
                                 />
                                 <HomeButton />                               
                             </>
@@ -99,7 +105,7 @@ const RootLayout = () => {
                                     onExportAll={route.params?.onExportAll}
                                     onShowDetectPoseOptions={route.params?.onShowDetectPoseOptions}
                                     svgData={route.params?.svgData}
-                                    onHandleUpload={route.params?.onHandleUpload}
+                                    onHandleUploadSvg={route.params?.onHandleUploadSvg}
                                 />
                                 <HomeButton />
                                 

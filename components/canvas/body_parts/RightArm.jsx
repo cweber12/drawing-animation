@@ -23,9 +23,12 @@ const RightArm = ( {
     // Determine canvas dimensions based on screen size// Get current theme colors
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
+
+    // Replace parent with this once vertical arm drawing logic implemented. 
+    // <View style={isSmallScreen ? styles.armColumn : styles.armRow}></View>
                             
     return (
-        <View style={isSmallScreen ? styles.armColumn : styles.armRow}>
+        <View style={styles.armRow}>
             <CanvasWrapper 
                 style={[
                     { 

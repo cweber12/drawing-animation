@@ -26,6 +26,7 @@ import { CANVAS_LANDMARK_MAP} from '../constants/LandmarkData';
 import ThemedView from '../components/themed_components/ThemedView';
 import { Colors } from '../constants/Colors';
 import { getSvgSizes } from '../constants/Sizes';
+import { uploadToS3 } from '../utils/s3Utils';
 /* Import components
 -----------------------------------------------------------------------------*/
 import BrushSizeSlider from '../components/controls/BrushSizeSlider';
@@ -198,7 +199,7 @@ const SketchPage = () => {
             const svgs = {};
             for (const [key, ref] of Object.entries(refs)) {
             if (ref.current?.exportSvg) {
-                const svgString = await ref.current.exportSvg();   // ✅ await
+                const svgString = await ref.current.exportSvg();
                 svgs[key] = svgString;
                 console.log(`sketchPage: Saved SVG for ${key}`);
             } else {
@@ -208,19 +209,24 @@ const SketchPage = () => {
             }
 
             bodySvgsRef.current = svgs;
-            return svgs; // ✅ return so callers can use it immediately
+            return svgs;
         } catch (e) {
             console.error('sketchPage: Error saving SVGs:', e);
             return null;
         }
     }, []);
 
-    const handleUpload = useCallback(async () => {
+    
+    const handleUploadSvg = useCallback(async () => {
         console.log('sketchPage: handleUpload called');
         const svgs = await saveAll();
-        setSvgData(svgs);
+        setSvgData(svgs); 
+        uploadToS3({
+            landmarks: null,
+            svgs: svgs,
+            fileType: 'svg',
+        });
     }, [saveAll]);
-
 
     /* Handle picking video for pose detection
     --------------------------------------------------------------------------*/
@@ -239,7 +245,7 @@ const SketchPage = () => {
     NOTE: will implement better saving/loading of SVGs later.
     --------------------------------------------------------------------------*/
     const goToDetectPose = useCallback(async (mode, poseVideoUri) => {
-        const svgsToSend = await saveAll();   // ✅ await
+        const svgsToSend = await saveAll();
         if (!svgsToSend) return;
 
         router.push({
@@ -268,7 +274,7 @@ const SketchPage = () => {
             onShowColorPicker: toggleColorPicker,
             onShowDetectPoseOptions: toggleDetectPoseOptions,
             onShowSketchInfo: () => setShowSketchInfo(prev => !prev),
-            onHandleUpload: handleUpload,
+            onHandleUploadSvg: handleUploadSvg,
 
         });
     }, [
@@ -283,14 +289,14 @@ const SketchPage = () => {
             saveAll,
             toggleEraseMode, 
             svgData,
-            handleUpload
+            handleUploadSvg
         ]
     );
     
     /* Render page
     --------------------------------------------------------------------------*/
     return (       
-        <View style={styles.mainContainer}>
+        <View style={[styles.mainContainer, { minWidth: sizes.TOTAL_WIDTH }]}>
             {showBrushSizeSlider && (
                 <BrushSizeSlider 
                     style={styles.sketchControls} 

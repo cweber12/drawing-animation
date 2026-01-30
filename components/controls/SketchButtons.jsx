@@ -17,8 +17,10 @@ import {
 import { getIconSize } from '../../constants/Sizes';
 import React from 'react';
 
-import UploadS3 from '../buttons/UploadS3';
+import { uploadToS3 } from '../../utils/s3Utils';
 import { LuInfo } from "react-icons/lu";
+import { GiRaiseZombie } from "react-icons/gi";
+import HeaderButton from '../buttons/HeaderButton';
 
 
 const SketchButtons = ({ 
@@ -33,7 +35,7 @@ const SketchButtons = ({
   onExportAll,
   onShowDetectPoseOptions,
   svgData,
-  onHandleUpload,
+  onHandleUploadSvg,
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
@@ -44,15 +46,13 @@ const SketchButtons = ({
     const [hoveredBrushSize, setHoveredBrushSize] = React.useState(null);
     const [hoveredColorPicker, setHoveredColorPicker] = React.useState(null);
     const [hoveredAnimate, setHoveredAnimate] = React.useState(null);
-    const [hoveredInfo, setHoveredInfo] = React.useState(null);
-    
-
+    const [hoveredInfo, setHoveredInfo] = React.useState(null);    
   
     return (
     <View style={styles.container}>    
 
       {/* INFO BUTTON -------------------------------------------------------*/}
-      <TouchableOpacity 
+      <HeaderButton
         onPress={() => {
           onShowSketchInfo && onShowSketchInfo();
         }}
@@ -66,27 +66,32 @@ const SketchButtons = ({
         }}
       >
         <LuInfo
-          size={getIconSize() * 1.5} 
-          color={hoveredInfo ? theme.actionButtonHover : theme.actionButton} 
+          size={getIconSize()} 
+          color={hoveredInfo ? theme.button : theme.text} 
+        />
+      </HeaderButton>
+      {/* EXPORT BUTTON -----------------------------------------------------*/}
+      <TouchableOpacity
+        onPress={() => {
+          if (typeof onHandleUploadSvg === 'function') {
+            onHandleUploadSvg();
+          }
+        }}
+        onMouseEnter={() => {
+          onHoverTitle && onHoverTitle('Export All Sketches')
+          setHoveredExport(true);
+        }}
+        onMouseLeave={() => {
+          onHoverTitle && onHoverTitle('Sketch')
+          setHoveredExport(false);
+        }}
+        disabled={false}
+      >
+        <FaFileExport
+          size={getIconSize()}
+          color={hoveredExport ? theme.button : theme.text}
         />
       </TouchableOpacity>
-      {/* EXPORT BUTTON -----------------------------------------------------*/}
-      <UploadS3 
-          landmarks={null}
-          style={styles.button} 
-          svgs={svgData}
-          fileType="svg"  
-          onMouseEnter={() => {
-              onHoverTitle && onHoverTitle('Export All Sketches')
-              setHoveredExport(true);
-            } 
-          }
-          onMouseLeave={() => {
-            onHoverTitle && onHoverTitle('Sketch')
-            setHoveredExport(false);
-          }}
-          onHandleUpload={onHandleUpload}
-      />
 
       {/* CLEAR BUTTON ------------------------------------------------------*/}
       <TouchableOpacity 
@@ -102,7 +107,7 @@ const SketchButtons = ({
       >
         <FaTrashAlt 
           size={getIconSize()} 
-          color={hoveredClear ? theme.buttonHover : theme.button} 
+          color={hoveredClear ? theme.button : theme.text} 
         />
       </TouchableOpacity>
 
@@ -125,12 +130,12 @@ const SketchButtons = ({
         {eraseMode ? (
           <FaPaintBrush 
             size={getIconSize()} 
-            color={ hoveredErase ? theme.buttonHover : theme.button}  
+            color={hoveredErase ? theme.button : theme.text}  
           />
         ) : (
           <FaEraser 
             size={getIconSize()} 
-            color={ hoveredErase ? theme.buttonHover : theme.button}  
+            color={hoveredErase ? theme.button : theme.text}  
           />
         )}
       </TouchableOpacity>
@@ -147,7 +152,7 @@ const SketchButtons = ({
           ) : (
             <FaPaintBrush 
             size={getIconSize() / 2} 
-            color={theme.button}  
+            color={theme.text}  
             style={styles.brushButton}
             />
           )}
@@ -168,7 +173,7 @@ const SketchButtons = ({
         >
           <FaChevronDown 
             size={getIconSize()} 
-            color={hoveredBrushSize ? theme.buttonHover : theme.button}  
+            color={hoveredBrushSize ? theme.button : theme.text}  
           />
         </TouchableOpacity>
       </View>
@@ -193,7 +198,7 @@ const SketchButtons = ({
         >
           <FaChevronDown 
             size={getIconSize()} 
-            color={hoveredColorPicker ? theme.buttonHover : theme.button}  
+            color={hoveredColorPicker ? theme.button : theme.text}  
           />
         </TouchableOpacity>
       </View>
@@ -213,8 +218,8 @@ const SketchButtons = ({
           setHoveredAnimate(false);
         }}
       >
-        <FaRunning 
-          size={getIconSize() * 1.5} 
+        <GiRaiseZombie 
+          size={getIconSize() * 2} 
           color={hoveredAnimate ? theme.actionButtonHover : theme.actionButton} 
         />
       </TouchableOpacity>
@@ -228,7 +233,7 @@ const styles = StyleSheet.create({
   container: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     marginRight: 24,
     gap: 24,
   },

@@ -35,6 +35,8 @@ export function getSvgSizes(height) {
     const HAND_WIDTH = ARM_WIDTH; 
     const FOOT_LENGTH = LEG_WIDTH * 2;
     const FOOT_WIDTH = LEG_LENGTH * 0.5;
+    // Minimum width of parent container
+    const TOTAL_WIDTH = TORSO_WIDTH + (ARM_LENGTH * 4) + (HAND_LENGTH * 2);
 
     return {
         TORSO_WIDTH,
