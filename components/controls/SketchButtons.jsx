@@ -32,113 +32,49 @@ const SketchButtons = ({
   onShowColorPicker,
   onShowSketchInfo,
   onHoverTitle,
-  onExportAll,
   onShowDetectPoseOptions,
-  svgData,
   onHandleUploadSvg,
 }) => {
     const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] ?? Colors.light;
-
-    const [hoveredExport, setHoveredExport] = React.useState(null);
-    const [hoveredClear, setHoveredClear] = React.useState(null);
-    const [hoveredErase, setHoveredErase] = React.useState(null);
-    const [hoveredBrushSize, setHoveredBrushSize] = React.useState(null);
-    const [hoveredColorPicker, setHoveredColorPicker] = React.useState(null);
-    const [hoveredAnimate, setHoveredAnimate] = React.useState(null);
-    const [hoveredInfo, setHoveredInfo] = React.useState(null);    
+    const theme = Colors[colorScheme] ?? Colors.light;  
   
     return (
     <View style={styles.container}>    
 
       {/* INFO BUTTON -------------------------------------------------------*/}
       <HeaderButton
-        onPress={() => {
-          onShowSketchInfo && onShowSketchInfo();
-        }}
-        onMouseEnter={() => {
-          onHoverTitle && onHoverTitle('Sketch Info')
-          setHoveredInfo(true);
-        }}
-        onMouseLeave={() => {
-          onHoverTitle && onHoverTitle('Sketch')
-          setHoveredInfo(false);
-        }}
+        onPress={onShowSketchInfo}
+        onHoverTitle={onHoverTitle}
+        title="Info"
       >
-        <LuInfo
-          size={getIconSize()} 
-          color={hoveredInfo ? theme.button : theme.text} 
-        />
+        <LuInfo/>
       </HeaderButton>
       {/* EXPORT BUTTON -----------------------------------------------------*/}
-      <TouchableOpacity
-        onPress={() => {
-          if (typeof onHandleUploadSvg === 'function') {
-            onHandleUploadSvg();
-          }
-        }}
-        onMouseEnter={() => {
-          onHoverTitle && onHoverTitle('Export All Sketches')
-          setHoveredExport(true);
-        }}
-        onMouseLeave={() => {
-          onHoverTitle && onHoverTitle('Sketch')
-          setHoveredExport(false);
-        }}
-        disabled={false}
+      <HeaderButton
+        onPress={onHandleUploadSvg}
+        onHoverTitle={onHoverTitle}
+        title="Save"
       >
-        <FaFileExport
-          size={getIconSize()}
-          color={hoveredExport ? theme.button : theme.text}
-        />
-      </TouchableOpacity>
+        <FaFileExport/>
+      </HeaderButton>
 
       {/* CLEAR BUTTON ------------------------------------------------------*/}
-      <TouchableOpacity 
+      <HeaderButton 
         onPress={onClear}
-        onMouseEnter={() => {
-          onHoverTitle && onHoverTitle('Clear Canvas')
-          setHoveredClear(true);
-        }}
-        onMouseLeave={() => {
-          onHoverTitle && onHoverTitle('Sketch')
-          setHoveredClear(false);
-        }}
+        onHoverTitle={onHoverTitle}
+        title="Clear"
       >
-        <FaTrashAlt 
-          size={getIconSize()} 
-          color={hoveredClear ? theme.button : theme.text} 
-        />
-      </TouchableOpacity>
+        <FaTrashAlt/>
+      </HeaderButton>
 
       {/* ERASE BUTTON ------------------------------------------------------*/}
-      <TouchableOpacity 
+      <HeaderButton 
         onPress={onToggleErase}
-        onMouseEnter={() => {
-          {eraseMode ? (
-          onHoverTitle && onHoverTitle('Brush')
-          ) : (
-          onHoverTitle && onHoverTitle('Eraser')
-          )}
-          setHoveredErase(true);
-        }}
-        onMouseLeave={() => {
-          onHoverTitle && onHoverTitle('Sketch')
-          setHoveredErase(false);
-        }}
+        onHoverTitle={onHoverTitle}
+        title={eraseMode ? "Brush" : "Eraser"}
       >
-        {eraseMode ? (
-          <FaPaintBrush 
-            size={getIconSize()} 
-            color={hoveredErase ? theme.button : theme.text}  
-          />
-        ) : (
-          <FaEraser 
-            size={getIconSize()} 
-            color={hoveredErase ? theme.button : theme.text}  
-          />
-        )}
-      </TouchableOpacity>
+        {eraseMode ? <FaPaintBrush /> : <FaEraser /> }
+      </HeaderButton>
 
       
       {/* BRUSH SIZE BUTTON -------------------------------------------------*/}
@@ -156,26 +92,13 @@ const SketchButtons = ({
             style={styles.brushButton}
             />
           )}
-        <TouchableOpacity 
+        <HeaderButton 
           onPress={onShowBrushSizeSlider}
-          onMouseEnter={() => {
-            (eraseMode ? (
-            onHoverTitle && onHoverTitle('Select Eraser Size')
-            ) : (
-            onHoverTitle && onHoverTitle('Select Brush Size')
-            ))
-            setHoveredBrushSize(true);
-          }}
-          onMouseLeave={() => {
-            onHoverTitle && onHoverTitle('Sketch')
-            setHoveredBrushSize(false);
-          }}
+          onHoverTitle={onHoverTitle}
+          title="Adjust Brush Size"
         >
-          <FaChevronDown 
-            size={getIconSize()} 
-            color={hoveredBrushSize ? theme.button : theme.text}  
-          />
-        </TouchableOpacity>
+          <FaChevronDown />
+        </HeaderButton>
       </View>
       
       {/* COLOR PICKER BUTTON -----------------------------------------------*/}
@@ -185,46 +108,25 @@ const SketchButtons = ({
           color={strokeColor}
           style={styles.brushButton} 
         />
-        <TouchableOpacity 
+        <HeaderButton 
           onPress={onShowColorPicker}
-          onMouseEnter={() => {
-            onHoverTitle && onHoverTitle('Select Color')
-            setHoveredColorPicker(true);
-          }}
-          onMouseLeave={() => {
-            onHoverTitle && onHoverTitle('Sketch')
-            setHoveredColorPicker(false);
-          }}
+          onHoverTitle={onHoverTitle}
+          title="Select Brush Color"
         >
-          <FaChevronDown 
-            size={getIconSize()} 
-            color={hoveredColorPicker ? theme.button : theme.text}  
-          />
-        </TouchableOpacity>
+          <FaChevronDown />
+        </HeaderButton>
       </View>
 
       
       {/* ANIMATE BUTTON ----------------------------------------------------*/}
-      <TouchableOpacity
-        onPress={() => {
-          onShowDetectPoseOptions && onShowDetectPoseOptions();
-        }}
-        onMouseEnter={() => {
-          onHoverTitle && onHoverTitle('Animate Sketch')
-          setHoveredAnimate(true);
-        }}
-        onMouseLeave={() => {
-          onHoverTitle && onHoverTitle('Sketch')
-          setHoveredAnimate(false);
-        }}
+      <HeaderButton
+        onPress={onShowDetectPoseOptions}
+        onHoverTitle={onHoverTitle}
+        title="Animate"
+        size={getIconSize() * 2}
       >
-        <GiRaiseZombie 
-          size={getIconSize() * 2} 
-          color={hoveredAnimate ? theme.actionButtonHover : theme.actionButton} 
-        />
-      </TouchableOpacity>
-
-
+        <GiRaiseZombie />
+      </HeaderButton>
     </View>
   );
 };
@@ -243,12 +145,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     gap: 2,
-  },
-
-  button: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginHorizontal: 2,
   },
 
   buttonText: {
