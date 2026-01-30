@@ -21,7 +21,7 @@ const Home = () => {
                 }]}
             >
                 <img
-                    src="/icon.png"
+                    src="icon.png"
                     alt="App Icon"
                     style={{ width: "30vw", height: "auto", marginBottom: 32 }}
                 />
