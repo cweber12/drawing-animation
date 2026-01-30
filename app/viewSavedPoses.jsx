@@ -1,9 +1,18 @@
 
-import { ActivityIndicator, TouchableOpacity, Text, StyleSheet, FlatList } from 'react-native';
+import { 
+  ActivityIndicator, 
+  TouchableOpacity, 
+  Text, 
+  StyleSheet, 
+  FlatList, 
+  useWindowDimensions, 
+} from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import ThemedView from '../components/themed_components/ThemedView';
 import PoseCanvas from '../components/canvas/PoseCanvas';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
+import { Colors } from '../constants/Colors';
+import { useColorScheme } from 'react-native';
 
 const API_BASE = 'https://kqaq8gwqvl.execute-api.us-east-2.amazonaws.com/prod';
 const BUCKET = 'pose-animations';
@@ -12,9 +21,15 @@ const ViewSavedPoses = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [frames, setFrames] = useState([]); // Array of landmark frames
+  const [videoDimensions, setVideoDimensions] = useState({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
+  const [width, setWidth] = useState(CANVAS_WIDTH);
+  const [height, setHeight] = useState(CANVAS_HEIGHT);
   const [selectedFile, setSelectedFile] = useState(null);
   const [currentFrame, setCurrentFrame] = useState(0);
   const animationRef = useRef(null);
+  const window = useWindowDimensions();
+  const colorScheme = useColorScheme();
+  const theme = Colors[colorScheme] ?? Colors.light;
 
   const fetchFiles = async () => {
     setLoading(true);
@@ -51,23 +66,59 @@ const ViewSavedPoses = () => {
       let parsed;
       try {
         parsed = JSON.parse(content);
+        console.log('viewSavedPoses : Parsed landmarks:', parsed);
       } catch (e) {
-        parsed = [];
+        parsed = {};
       }
-      // If the file is a single frame, wrap in array
+
+      // Extract landmarks and videoDimensions
+      let loadedLandmarks = [];
+      let loadedDimensions = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
+
       if (Array.isArray(parsed)) {
-        setFrames(parsed);
+        loadedLandmarks = parsed;
       } else if (parsed && typeof parsed === 'object') {
-        setFrames([parsed]);
+        loadedLandmarks = parsed.landmarks || [];
+        if (parsed.videoDimensions) {
+          loadedDimensions = parsed.videoDimensions;
+        }
+      }
+
+      // If the file is a single frame, wrap in array
+      if (Array.isArray(loadedLandmarks[0])) {
+        setFrames(loadedLandmarks);
+      } else if (loadedLandmarks && typeof loadedLandmarks === 'object') {
+        setFrames([loadedLandmarks]);
       } else {
         setFrames([]);
       }
+      setVideoDimensions(loadedDimensions);
+      setHeight(window.height * 0.7);
+      setWidth((loadedDimensions.width / loadedDimensions.height) * (window.height * 0.7));
+
+
     } catch (err) {
       setFrames([]);
+      setVideoDimensions({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
     } finally {
       setLoading(false);
     }
   };
+
+  function scaleLandmarks(landmarks, original, target) {
+    if (!landmarks || !Array.isArray(landmarks)) return [];
+    const { width: origW, height: origH } = original;
+    const { width: targetW, height: targetH } = target;
+    return landmarks.map(kp =>
+      kp && kp.x != null && kp.y != null
+        ? {
+            ...kp,
+            x: (kp.x / origW) * targetW,
+            y: (kp.y / origH) * targetH,
+          }
+        : kp
+    );
+  }
 
   // Animation effect
   useEffect(() => {
@@ -87,17 +138,39 @@ const ViewSavedPoses = () => {
   }, []);
 
   return (
-    <ThemedView style={{ flex: 1, flexDirection: 'row', padding: 16 }}>
+    <ThemedView style={{ flex: 1, flexDirection: 'row', alignItems: "flex-start", padding: "2rem" }}>
       <FlatList
-        style={styles.list}
+        style={[
+          styles.list, 
+          {
+            backgroundColor: theme.navBackground, 
+            borderTop: `1px solid ${theme.border}`,
+            borderRight: `1px solid ${theme.border}`,
+            borderLeft: `1px solid ${theme.border}`
+          }]}
         data={files}
         keyExtractor={(item) => item}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={[styles.listItem, item === selectedFile && styles.selectedListItem]}
+            style={[
+              styles.listItem, 
+              item === selectedFile && styles.selectedListItem, 
+              {borderBottom: `1px solid ${theme.border}`}
+            ]}
             onPress={() => downloadFile(item)}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = theme.border;
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+            }}
           >
-            <Text style={styles.listItemText}>{item}</Text>
+            <Text 
+              style={[
+                styles.listItemText, 
+                { color: item === selectedFile ? theme.actionButton : theme.text }]}>
+                {item}
+            </Text>
           </TouchableOpacity>
         )}
       />
@@ -105,9 +178,13 @@ const ViewSavedPoses = () => {
         {loading && <ActivityIndicator />}
         {frames.length > 0 && (
           <PoseCanvas
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
-            landmarks={frames[currentFrame]}
+            width={width}
+            height={height}
+            landmarks={scaleLandmarks(
+              frames[currentFrame],
+              videoDimensions,
+              { width, height }
+            )}
             style={{ border: '1px solid #555', background: '#111' }}
           />
         )}
@@ -120,30 +197,17 @@ export default ViewSavedPoses;
 
 const styles = StyleSheet.create({
   list: {
-    marginVertical: 8,
-    width: 200,
+    width: 320,
     maxHeight: '80vh',
-    maxWidth: 300,
-    padding: 8,
+    maxWidth: 320,
     flexShrink: 0,
   },
   listItem: {
-    paddingVertical: "8px",
-    paddingHorizontal: "12px",
-    marginVertical: "4px",
-    borderRadius: 4,
-    backgroundColor: '#222',
-    border: '1px solid #444',
+    paddingVertical: "1rem",
+    paddingHorizontal: "1.5rem",
     cursor: 'pointer',
   },
-  selectedListItem: {
-    backgroundColor: '#444',
-  },
   listItemText: {
-    fontSize: 16,
-    color: 'white',
-    borderRadius: 4,
-    padding: 8,
-    backgroundColor: '#222',
+    fontSize: 18,
   },
 });

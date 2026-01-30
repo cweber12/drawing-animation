@@ -20,6 +20,9 @@ export const Colors = {
         colorPickerDefault: "white",
         mutedText: "#d8d7d7ff",
         boxShadowColor: "white",
+        border: "#444444",
+        landmarkPoints: "#00FF00",
+        landmarkConnectors: "#FF0000",
     },
 
     light: {
@@ -40,6 +43,9 @@ export const Colors = {
         colorPickerDefault: "black",
         mutedText: "#202020ff",
         boxShadowColor: "black",
+        border: "#CCCCCC",
+        landmarkPoints: "#00FF00",
+        landmarkConnectors: "#FF0000",
     },
 
 }

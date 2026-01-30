@@ -26,6 +26,7 @@
       "edgeToEdgeEnabled": true
     },
     "web": {
+      "title": "Living Sketch",
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
       "output": "static"

@@ -10,9 +10,9 @@ export const CANVAS_HEIGHT = height * 0.88;
 export const CANVAS_BORDER_RADIUS = 50;
 
 export function getIconSize() {
-    if (width < 400) return 20;
-    if (width < 600) return 24;
-    return 28;
+    if (width < 400) return 24;
+    if (width < 600) return 30;
+    return 32;
 }
 
 export function getWebcamDimensions() {

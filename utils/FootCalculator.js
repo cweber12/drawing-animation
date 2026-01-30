@@ -251,10 +251,6 @@ export class FootCalculator {
 
       landmarks[17] = { x: leftFoot.x, y: leftFoot.y, score: 0.9 };
       landmarks[18] = { x: rightFoot.x, y: rightFoot.y, score: 0.9 };
-
-      // (optional) if you want the angles available downstream:
-      // landmarks.leftFootAlpha = leftFoot.alpha;
-      // landmarks.rightFootAlpha = rightFoot.alpha;
     }
 
     return landmarksArray;

@@ -58,13 +58,13 @@ const RootLayout = () => {
                    
                 },
                 }}>
-                <Stack.Screen name="index" options={{ title: 'Home' }}/>
+                <Stack.Screen name="index" options={{ title: '' }}/>
                 <Stack.Screen
                     name="detectPose"
                     options={({ route }) => ({
                         title: route.params?.viewMode === 'svg' ? 'Live Animation' : 'Create Animation',
                         headerRight: () => (
-                            <>                               
+                            <>                              
                                 <DetectPoseButtons
                                     viewMode={route.params?.viewMode}
                                     showPoseAnimation={route.params?.showPoseAnimation}
@@ -85,8 +85,7 @@ const RootLayout = () => {
                     options={({ route }) => ({
                         title: headerTitle,
                         headerRight: () => (
-                            <>
-                                
+                            <>       
                                 <SketchButtons
                                     eraseMode={route.params?.eraseMode}
                                     strokeColor={route.params?.strokeColor}
@@ -107,7 +106,16 @@ const RootLayout = () => {
                         ),
                     })}
                 />
-                <Stack.Screen name="viewSavedPoses" options={{ title: 'Saved Poses' }}/>
+                <Stack.Screen 
+                    name="viewSavedPoses" 
+                    options={({ route }) => ({ 
+                        title: 'Saved Poses' ,
+                        headerRight: () => (
+                        <HomeButton />
+                    ),
+                })}
+
+                />
             </Stack>
         </>
     )

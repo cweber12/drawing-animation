@@ -18,11 +18,9 @@ const DetectPoseButtons = ({
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-  
+
     return (
         <View style={styles.container}>
-
-            
             {viewMode === 'pose' && (
                 <>
                     <TouchableOpacity 

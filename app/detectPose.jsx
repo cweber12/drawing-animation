@@ -99,8 +99,7 @@ const DetectPose = () => {
     if (smoothedSavedLandmarks.length === 0) return smoothedSavedLandmarks;
     return footCalculator.current.addFeetToLandmarks(smoothedSavedLandmarks);
   }, [smoothedSavedLandmarks]);
-
-  
+ 
   /* Update isDetecting based on viewMode
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
@@ -156,7 +155,9 @@ const DetectPose = () => {
     toggleWebcam,
     viewMode,
     showPoseAnimation,
-    isDetecting
+    estimatedLandmarks,
+    isDetecting,
+    
   ]);
 
   /* Load TensorFlow.js and Pose Detection Model

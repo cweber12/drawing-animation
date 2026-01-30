@@ -3,9 +3,10 @@ import { Alert, Text, View, TouchableOpacity, useColorScheme } from 'react-nativ
 import { FaFileExport } from 'react-icons/fa';
 import { Colors } from '../../constants/Colors';
 import { getIconSize } from '../../constants/Sizes';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants/Sizes';
 
 const UploadS3 = ({ 
-  landmarks, 
+  landmarks,
   style, 
   svgs, 
   fileType,   
@@ -15,8 +16,11 @@ const UploadS3 = ({
   const [uploadStatus, setUploadStatus] = useState('');
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
+  console.log("UploadS3 - landmarks:", landmarks);
 
   const uploadToS3 = async () => {
+    const videoDimensions = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
+    
     if (fileType === 'json' && (!landmarks || landmarks.length === 0)) {
       Alert.alert('No landmarks to upload');
       return;
@@ -36,12 +40,12 @@ const UploadS3 = ({
     const timestamp = Date.now();
     const key = fileType === 'json' ? `landmarks/${timestamp}.json` : `svgs/${timestamp}.svg`;
     const url = `https://kqaq8gwqvl.execute-api.us-east-2.amazonaws.com/prod/${bucket}/${key}`;
-
     try {
       const response = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: fileType === 'json' ? JSON.stringify(landmarks) : JSON.stringify(svgs),
+        body: fileType === 'json' 
+        ? JSON.stringify({ landmarks, videoDimensions }) : JSON.stringify(svgs),
       });
 
       if (response.ok) {
