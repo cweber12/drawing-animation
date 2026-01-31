@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { CONNECTED_KEYPOINTS } from '../../constants/LandmarkData';
+import { CONNECTED_KEYPOINTS } from '../../constants/landmarkData';
 
 const PoseCanvas = ({ width, height, landmarks, style }) => {
     const canvasRef = useRef(null);

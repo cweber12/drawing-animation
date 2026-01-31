@@ -5,7 +5,7 @@
   ----------------------------------------------------------------------------
 */
 import React, { useRef, useEffect, useState } from 'react';
-import { LANDMARKS, CONNECTED_KEYPOINTS } from '../../constants/LandmarkData';
+import { LANDMARKS, CONNECTED_KEYPOINTS } from '../../constants/landmarkData';
 import { 
   CANVAS_WIDTH, 
   CANVAS_HEIGHT, 

@@ -13,7 +13,7 @@ import PoseCanvas from '../components/canvas/PoseCanvas';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
 import { Colors } from '../constants/Colors';
 import { useColorScheme } from 'react-native';
-import { CANVAS_LANDMARK_MAP } from '../constants/LandmarkData';
+import { CANVAS_LANDMARK_MAP } from '../constants/landmarkData';
 import SvgCanvas from '../components/canvas/SvgCanvas';
 
 const API_BASE = 'https://kqaq8gwqvl.execute-api.us-east-2.amazonaws.com/prod';
