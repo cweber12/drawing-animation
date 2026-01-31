@@ -223,6 +223,7 @@ const ViewSavedPoses = () => {
         )}
       />
       {/* SVG List */}
+      {selectedLandmarkFile &&
       <FlatList
         style={[
           styles.list, 
@@ -259,6 +260,7 @@ const ViewSavedPoses = () => {
           </TouchableOpacity>
         )}
       />
+      }
       {/* Canvas Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
         {loading && <ActivityIndicator />}

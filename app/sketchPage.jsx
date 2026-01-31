@@ -235,7 +235,6 @@ const SketchPage = () => {
             type: 'video/*',
         });
         if (!result.canceled) {
-            console.log('sketchPage: Picked video:', result);
             goToDetectPose('pose', result.assets[0].uri);    
         }
     };
@@ -436,11 +435,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         position: 'absolute',
-        top: 0,
-        right: 0,
+        top: "2rem",
+        right: "4rem",
         zIndex: 10,
         padding: "2rem", 
-        borderBottomLeftRadius: 8,
+        borderRadius: 8,
     },
 
     row: {

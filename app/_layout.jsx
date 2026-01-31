@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { 
     StyleSheet, 
     useColorScheme, 
-    TouchableOpacity, 
     useWindowDimensions 
 } from 'react-native'
 import { Stack, useRouter } from 'expo-router'
@@ -11,8 +10,8 @@ import { View } from 'react-native-web'
 import { Colors } from '../constants/Colors'
 import SketchButtons from '../components/controls/SketchButtons';
 import DetectPoseButtons from '../components/controls/detectPoseButtons';
-import { FaHome } from 'react-icons/fa';
-import { getIconSize } from '../constants/Sizes';
+import { FaHouseDamage } from "react-icons/fa";
+import HeaderButton from '../components/buttons/HeaderButton'
 
 /* Home Button in Header
 ------------------------------------------------------------------------------*/
@@ -24,15 +23,10 @@ const HomeButton = () => {
     const [hoveredHome, setHoveredHome] = useState(false);
 
     return (
-        <View style={{ marginHorizontal: 24, flexShrink: 0}}>
-            <TouchableOpacity 
-                onPress={() => router.replace('/')}
-                onMouseEnter={() => setHoveredHome(true)}
-                onMouseLeave={() => setHoveredHome(false)}
-            >
-                <FaHome size={getIconSize()} 
-                color={hoveredHome ? theme.button : theme.text} />
-            </TouchableOpacity>
+        <View style={{ marginRight: "2rem" }}>
+            <HeaderButton  onPress={() => router.replace('/')} >
+                <FaHouseDamage />
+            </HeaderButton>
         </View>
     );
 };
@@ -45,18 +39,19 @@ const RootLayout = () => {
     // Responsive layout based on screen width
     const { width } = useWindowDimensions();
     const isSmallScreen = width < 600;
-    const [headerTitle, setHeaderTitle] = useState('Sketch');
+    const [headerTitle, setHeaderTitle] = useState('');
     return (
         <>
             <StatusBar style="auto"/>
             <Stack screenOptions={{ 
                 headerTitleAlign: 'center',
                 headerStyle: { 
-                    backgroundColor: theme.background, 
-                        borderBottomWidth: 0,
-                        elevation: 0, // remove shadow on Android
-                        shadowOpacity: 0, // remove shadow on iOS
-                        height: isSmallScreen ? 60 : 80,
+                    backgroundColor: theme.background,
+                    color: theme.title, 
+                    borderBottomWidth: 0,
+                    elevation: 0, // remove shadow on Android
+                    shadowOpacity: 0, // remove shadow on iOS
+                    height: isSmallScreen ? 60 : 80,
                 },
                 headerTintColor: theme.title,
                 headerTitleStyle: {

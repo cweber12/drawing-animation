@@ -22,7 +22,16 @@ import { LuInfo } from "react-icons/lu";
 import { GiRaiseZombie } from "react-icons/gi";
 import HeaderButton from '../buttons/HeaderButton';
 
-
+/* Header buttons for the SketchPage
+--------------------------------------------------------------------------------
+Info: Opens info tab about SketchPage
+Save: Uploads current SVG to S3
+Clear: Clears the current sketch
+Erase: Toggles between eraser and brush mode
+Brush Size: Opens brush size slider
+Color Picker: Opens color picker
+Animate: Opens detect pose options to animate sketch
+------------------------------------------------------------------------------*/
 const SketchButtons = ({ 
   eraseMode,
   strokeColor,

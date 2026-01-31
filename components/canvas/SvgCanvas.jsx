@@ -54,12 +54,12 @@ const SvgCanvas = ({
   const scaleWebcamY = height / webcamHeight; 
 
   // Debugging flags to display anchor points in svg rendering
-  const debugTorsoAnchors = true;
-  const debugHeadAnchors = true;
-  const debugArmAnchors = true;
-  const debugHandAnchors = true;
-  const debugLegAnchors = true;
-  const debugFootAnchors = true;
+  const debugTorsoAnchors = false;
+  const debugHeadAnchors = false;
+  const debugArmAnchors = false;
+  const debugHandAnchors = false;
+  const debugLegAnchors = false;
+  const debugFootAnchors = false;
 
   // Animation frame state for pose replay
   const [frame, setFrame] = useState(0);

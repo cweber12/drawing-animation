@@ -1,7 +1,7 @@
 /* app/detectPose.jsx
 ----------------------------------------------------------------------------------------------------
 This page uses TensorFlow.js to detect human poses from the webcam feed and uses detected pose
-landmarks as anchors to overlay SVGs body parts sketched in SketchPage. It supports two view 
+landmarks as anchors to overlay SVGs body parts sketched in sketchPage. It supports two view 
 modes:
 
 - 'svg': Live animation mode where SVGs are animated in real-time based on detected poses.

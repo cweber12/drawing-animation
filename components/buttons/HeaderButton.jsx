@@ -1,9 +1,20 @@
+// components/buttons/HeaderButton.jsx
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React, { useEffect } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useColorScheme } from 'react-native';
 import { getIconSize } from '../../constants/Sizes';
 
+/* A reusable button component for header buttons with hover and press effects
+--------------------------------------------------------------------------------
+Props:
+- children: The icon component to display inside the button
+- style: Additional styles for the button
+- onPress: Function to call when the button is pressed
+- onHoverTitle: Function to call when the button is hovered, to set title
+- title: The title to set on hover
+- size: Optional size for the icon
+------------------------------------------------------------------------------*/
 const HeaderButton = ({children, style, onPress, onHoverTitle, title, size}) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
@@ -30,7 +41,7 @@ const HeaderButton = ({children, style, onPress, onHoverTitle, title, size}) => 
             }}
             onMouseLeave={() => {
             setHovered(false);
-            onHoverTitle && onHoverTitle('Sketch');
+            onHoverTitle && onHoverTitle('');
             }}
             onPressIn={() => setPressed(true)}
             onPressOut={() => setPressed(false)}
