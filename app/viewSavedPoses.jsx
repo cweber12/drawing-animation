@@ -15,9 +15,8 @@ import { Colors } from '../constants/Colors';
 import { useColorScheme } from 'react-native';
 import { CANVAS_LANDMARK_MAP } from '../constants/landmarkData';
 import SvgCanvas from '../components/canvas/SvgCanvas';
-
-const API_BASE = 'https://kqaq8gwqvl.execute-api.us-east-2.amazonaws.com/prod';
-const BUCKET = 'pose-animations';
+import { fetchFiles, downloadLandmarkFile, downloadSvgFile } from '../utils/s3Utils';
+import { Select } from '@tensorflow/tfjs';
 
 const ViewSavedPoses = () => {
   const [files, setFiles] = useState([]);
@@ -36,120 +35,6 @@ const ViewSavedPoses = () => {
   const window = useWindowDimensions();
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
-
-  // Helper to encode S3 keys
-  const encodeS3KeyForPath = (key) =>
-    key.split("/").map(encodeURIComponent).join("/");
-
-  // Fetch file lists
-  const fetchFiles = async () => {
-    setLoading(true);
-    setSelectedLandmarkFile(null);
-    setSelectedSvgFile(null);
-    setFrames([]);
-    setSelectedSvgString(null);
-    try {
-      const url = `${API_BASE}/${BUCKET}`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`Failed: ${response.status}`);
-      const xml = await response.text();
-      const keys = [...xml.matchAll(/<Key>(.*?)<\/Key>/g)].map(m => m[1]);
-      const landmarkFiles = keys.filter(k => k.startsWith('landmarks/') && k.endsWith('.json'));
-      const svgFiles = keys.filter(k => k.startsWith('svgs/') && k.endsWith('.svg'));
-      setLandmarkFiles(landmarkFiles);
-      setSvgFiles(svgFiles);
-      setFiles(keys);
-    } catch (err) {
-      setLandmarkFiles([]);
-      setSvgFiles([]);
-      setFiles([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Download and parse landmark file
-  const downloadLandmarkFile = async (fileKey) => {
-    setLoading(true);
-    setSelectedLandmarkFile(fileKey);
-    setFrames([]);
-    setCurrentFrame(0);
-    try {
-      const downloadUrl = `${API_BASE}/${BUCKET}/${encodeS3KeyForPath(fileKey)}`;
-      const response = await fetch(downloadUrl, { method: "GET" });
-      if (!response.ok) throw new Error(`Failed: ${response.status}`);
-      const content = await response.text();
-      let parsed;
-      try {
-        parsed = JSON.parse(content);
-      } catch (e) {
-        parsed = {};
-      }
-
-      let loadedLandmarks = [];
-      let loadedDimensions = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
-
-      if (Array.isArray(parsed)) {
-        loadedLandmarks = parsed;
-      } else if (parsed && typeof parsed === 'object') {
-        loadedLandmarks = parsed.landmarks || [];
-        if (parsed.videoDimensions) {
-          loadedDimensions = parsed.videoDimensions;
-        }
-      }
-
-      if (Array.isArray(loadedLandmarks[0])) {
-        setFrames(loadedLandmarks);
-      } else if (loadedLandmarks && typeof loadedLandmarks === 'object') {
-        setFrames([loadedLandmarks]);
-      } else {
-        setFrames([]);
-      }
-      setVideoDimensions(loadedDimensions);
-      setHeight(window.height * 0.7);
-      setWidth((loadedDimensions.width / loadedDimensions.height) * (window.height * 0.7));
-    } catch (err) {
-      setFrames([]);
-      setVideoDimensions({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Download SVG file as string
-  const downloadSvgFile = async (fileKey) => {
-    setLoading(true);
-    setSelectedSvgFile(fileKey);
-    setSelectedSvgString(null);
-    try {
-      const downloadUrl = `${API_BASE}/${BUCKET}/${encodeS3KeyForPath(fileKey)}`;
-      const response = await fetch(downloadUrl, { method: "GET" });
-      if (!response.ok) throw new Error(`Failed: ${response.status}`);
-      const text = await response.text();
-      let svgString = text;
-      console.log('Raw downloaded SVG text:', text);
-    let svgObj = {};
-    try {
-      const parsed = JSON.parse(text);
-      if (parsed && typeof parsed === "object") {
-        svgObj = parsed; // Use all SVG parts
-        console.log('Parsed SVG object:', svgObj);
-      } else {
-        svgObj = { custom: svgString };
-      }
-    } catch (e) {
-      // Not JSON, treat as raw SVG
-      svgObj = { custom: svgString };
-    }
-    setSelectedSvgString(svgObj);
-      console.log('Downloaded SVG string:', svgString);
-      console.log('Mapping passed:', CANVAS_LANDMARK_MAP);
-    } catch (err) {
-      setSelectedSvgString(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Scale landmarks to canvas
   function scaleLandmarks(landmarks, original, target) {
@@ -180,9 +65,50 @@ const ViewSavedPoses = () => {
   }, [frames]);
 
   useEffect(() => {
-    fetchFiles();
+    fetchFiles(
+      setLoading,
+      setLandmarkFiles,
+      setSvgFiles,
+      setFiles,
+      setSelectedLandmarkFile,
+      setSelectedSvgFile,
+      setFrames,
+      setSelectedSvgString
+    );
     return () => animationRef.current && clearInterval(animationRef.current);
   }, []);
+
+  const downloadSvgs = async (fileKey) => {
+    await downloadSvgFile(
+      fileKey,
+      setLoading,
+      setSelectedSvgFile,
+      setSelectedSvgString, 
+      selectedSvgString, 
+    );
+  }
+
+  const downloadLandmarks = async (fileKey) => {
+    await downloadLandmarkFile(
+      fileKey,
+      setLoading,
+      setSelectedLandmarkFile,
+      setFrames,
+      setCurrentFrame,
+      setVideoDimensions,
+      setHeight,
+      setWidth,
+      window,
+    );
+  }
+
+  useEffect(() => {
+    console.log("selectedSvgFile changed:", selectedSvgFile);
+  }, [selectedSvgFile]);
+
+  useEffect(() => {
+    console.log("selectedSvgString changed:", selectedSvgString);
+  }, [selectedSvgString]);
 
   return (
     <ThemedView style={{ flex: 1, flexDirection: 'row', alignItems: "flex-start", padding: "2rem" }}>
@@ -205,7 +131,7 @@ const ViewSavedPoses = () => {
               item === selectedLandmarkFile && styles.selectedListItem, 
               {borderBottom: `1px solid ${theme.border}`}
             ]}
-            onPress={() => downloadLandmarkFile(item)}
+            onPress={() => downloadLandmarks(item)}
             onMouseEnter={(e) => {
               e.target.style.backgroundColor = theme.border;
             }}
@@ -243,7 +169,7 @@ const ViewSavedPoses = () => {
               item === selectedSvgFile && styles.selectedListItem, 
               {borderBottom: `1px solid ${theme.border}`}
             ]}
-            onPress={() => downloadSvgFile(item)}
+            onPress={() => downloadSvgs(item)}
             onMouseEnter={(e) => {
               e.target.style.backgroundColor = theme.border;
             }}
@@ -264,7 +190,7 @@ const ViewSavedPoses = () => {
       {/* Canvas Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
         {loading && <ActivityIndicator />}
-        {selectedLandmarkFile && selectedSvgString && !loading && (
+        {selectedLandmarkFile && selectedSvgString && (
           <SvgCanvas
             width={width}
             height={height}

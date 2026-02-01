@@ -46,6 +46,8 @@ const SvgCanvas = ({
   style
 }) => {
 
+  console.log('SvgCanvas: rendering with landmarks:', landmarks);
+  console.log('SvgCanvas: svgs prop:', svgs);
   // Refs for canvas and cached images
   const canvasRef = useRef(null);
   const imagesRef = useRef({});
@@ -500,8 +502,8 @@ const SvgCanvas = ({
   return (
     <canvas
         ref={canvasRef}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
+        width={width}
+        height={height}
         style={{
             width: CANVAS_WIDTH,
             height: CANVAS_HEIGHT,

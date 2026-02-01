@@ -26,6 +26,8 @@ import PoseInfo from '../components/info/PoseInfo';
 
 const DetectPose = () => {
   
+  /* Refs and Navigation
+  ------------------------------------------------------------------------------------------------*/
   const webcamRef = useRef(null);
   const videoRef = useRef(null); 
   const navigation = useNavigation(); 
@@ -38,9 +40,7 @@ const DetectPose = () => {
   /* Parse SVGs and mapping from URL Params
   ------------------------------------------------------------------------------------------------*/
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};
-  console.log('detectPose: svgs loaded from params:', svgs);
   const mapping = params.mapping ? JSON.parse(params.mapping) : {};
-  console.log('detectPose: mapping loaded from params:', mapping);
   const armOrientation = params.armOrientation;
   const videoUri = params.videoUri || null;
 
@@ -61,12 +61,16 @@ const DetectPose = () => {
   ------------------------------------------------------------------------------------------------*/
   const [showWebcam, setShowWebcam] = useState(true); 
   const [showPoseAnimation, setShowPoseAnimation] = useState(false);
+  const [showPoseInfo, setShowPoseInfo] = useState(false); 
+
+  /* State to track if video is loaded (for video mode)
+  ------------------------------------------------------------------------------------------------*/
   const [videoLoaded, setVideoLoaded] = useState(false);
 
+  /* Natural video dimensions: used to transform landmarks to canvas coordinates
+  ------------------------------------------------------------------------------------------------*/
   const [naturalVideoWidth, setNaturalVideoWidth] = useState(null);
   const [naturalVideoHeight, setNaturalVideoHeight] = useState(null);
-
-  const [ showPoseInfo, setShowPoseInfo ] = useState(false);
 
   const footCalculator = useRef(new FootCalculator());
   
@@ -111,6 +115,8 @@ const DetectPose = () => {
     }
   }, [viewMode]);
 
+  /* Set videoLoaded to true when videoUri is provided
+  ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
     if (videoUri) {
       setVideoLoaded(true); 

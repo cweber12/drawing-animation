@@ -3,6 +3,7 @@ import React from 'react'
 import { Link } from 'expo-router'
 import ThemedView from '../components/themed_components/ThemedView';
 import { Colors } from '../constants/Colors';
+import LinkButton from '../components/buttons/LinkButton';
 
 const Home = () => {
 
@@ -25,42 +26,12 @@ const Home = () => {
                     alt="App Icon"
                     style={{ width: "30vw", height: "auto", marginBottom: 32 }}
                 />
-                <Link 
-                    href="/sketchPage" 
-                    style={[
-                        styles.link, 
-                        { 
-                            backgroundColor: theme.button, 
-                            color: theme.buttonText 
-                        }
-                    ]}
-                    onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = theme.actionButton;
-                    }}
-                    onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = theme.button;
-                    }}
-                >
+                <LinkButton href="/sketchPage">
                     Sketch 
-                </Link>
-                <Link
-                    href="/viewSavedPoses"
-                    style={[
-                        styles.link, 
-                        { 
-                            backgroundColor: theme.button, 
-                            color: theme.buttonText 
-                        }
-                    ]}
-                    onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = theme.actionButton;
-                    }}
-                    onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = theme.button;
-                    }}
-                >
-                    View Saved Animations
-                </Link>
+                </LinkButton>
+                <LinkButton href="/viewSavedPoses">
+                    View Saved Animations 
+                </LinkButton>
             </ThemedView>
         </>
     )

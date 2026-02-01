@@ -1,4 +1,4 @@
-  import { useEffect } from 'react';
+import { useEffect } from 'react';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
 
