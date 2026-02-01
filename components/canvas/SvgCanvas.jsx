@@ -33,7 +33,14 @@ import { update } from 'lodash';
 
 import { useSvgCaching } from '../../hooks/useSvgCaching';
 
-import { setTorsoAnchors } from '../../utils/anchorUtils'
+import { 
+  setTorsoAnchors, 
+  setHeadAnchors, 
+  setArmAnchors, 
+  setHandAnchors, 
+  setLegAnchors, 
+  setFootAnchors
+} from '../../utils/anchorUtils'
 
 const SvgCanvas = ({ 
   width, 
@@ -170,98 +177,47 @@ const SvgCanvas = ({
           if (success) continue;
         }
           
-
-        /* HEAD 
+        /* HEAD
         ----------------------------------------------------------------------*/
         if (
-            part === 'head' &&
-            map.leftAnchor !== undefined &&
-            map.rightAnchor !== undefined
-            ) {
-            const leftEar = scaledLandmarks[map.leftAnchor];
-            const rightEar = scaledLandmarks[map.rightAnchor];
-            if (!leftEar || !rightEar || leftEar.score < 0.3 || rightEar.score < 0.3) continue;
-  
-            updateAvgEarDistance(Math.hypot(
-              rightEar.x - leftEar.x, 
-              rightEar.y - leftEar.y
-              )
-            );
-            drawHeadSvg(ctx, img, leftEar, rightEar);
-
-            // Draw anchor points for debugging
-            if (debugHeadAnchors) {
-              ctx.save();
-              ctx.fillStyle = 'lime'; // or any color you want
-              ctx.beginPath();
-              ctx.arc(leftEar.x, leftEar.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.beginPath();
-              ctx.arc(rightEar.x, rightEar.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.restore();
-            }
-            continue;
+          part === 'head' &&
+          map.leftAnchor !== undefined &&
+          map.rightAnchor !== undefined
+        ) {
+          const success = setHeadAnchors({
+            ctx,
+            img,
+            scaledLandmarks,
+            map,
+            svgW,
+            svgH,
+            debugHeadAnchors,
+            updateAvgEarDistance,
+            drawHeadSvg,
+          });
+          if (success) continue;
         }
 
         /* ARMS
         ----------------------------------------------------------------------*/
         if (
-            (part === 'rightUpperArm' || part === 'rightLowerArm' ||
+          (part === 'rightUpperArm' || part === 'rightLowerArm' ||
             part === 'leftUpperArm' || part === 'leftLowerArm') &&
-            map.leftCenter !== undefined && map.rightCenter !== undefined 
+          map.leftCenter !== undefined && map.rightCenter !== undefined
         ) {
-            let from, to;
-            let fromAdjusted, toAdjusted;
-            if (armOrientation === 'vertical') {
-              from = scaledLandmarks[map.start];
-              to = scaledLandmarks[map.end];
-            } else {
-              if (part === 'rightUpperArm' || part === 'rightLowerArm') {
-                from = scaledLandmarks[map.leftCenter];
-                to = scaledLandmarks[map.rightCenter];
-              } else {
-                from = scaledLandmarks[map.leftCenter];
-                to = scaledLandmarks[map.rightCenter];
-              }
-            } 
-            
-            if (
-              !from || 
-              !to || 
-              from.score < 0.3 || 
-              to.score < 0.3 ||
-              (from.x === to.x && from.y === to.y)
-            ) continue;
-            if (armOrientation === 'vertical') {
-              drawVerticalSegmentSvg(ctx, img, from, to, part);
-            } else {
-              fromAdjusted = { x: from.x, y: from.y + svgH / 4 };
-              toAdjusted = { x: to.x, y: to.y + svgH / 4 };
-              drawHorizontalSegmentSvg(ctx, img, fromAdjusted, toAdjusted, part);
-            }
-
-            // Draw from/to points as circles
-            if (debugArmAnchors) {
-              ctx.save();
-              ctx.fillStyle = 'lime'; // or any color you want
-              ctx.beginPath();
-              ctx.arc(from.x, from.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.beginPath();
-              ctx.arc(to.x, to.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.fillStyle = 'red';
-              ctx.beginPath();
-              ctx.arc(fromAdjusted.x, fromAdjusted.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.fillStyle = 'cyan';
-              ctx.beginPath();
-              ctx.arc(toAdjusted.x, toAdjusted.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.restore();
-            }
-            continue;
+          const success = setArmAnchors({
+            ctx,
+            img,
+            part,
+            map,
+            scaledLandmarks,
+            svgH,
+            armOrientation,
+            debugArmAnchors,
+            drawVerticalSegmentSvg,
+            drawHorizontalSegmentSvg,
+          });
+          if (success) continue;
         }
         
 
@@ -270,106 +226,51 @@ const SvgCanvas = ({
         if ((part === 'leftHand' || part === 'rightHand') &&
             map.wrist !== undefined && map.elbow !== undefined
         ) {
-            const wrist = scaledLandmarks[map.wrist];
-            const elbow = scaledLandmarks[map.elbow];
-            let wristAdjusted, elbowAdjusted;
-            wristAdjusted = { x: wrist.x, y: wrist.y + svgH / 4 };
-            elbowAdjusted = { x: elbow.x, y: elbow.y + svgH / 4 };
-            if (!wrist || !elbow || wrist.score < 0.3 || elbow.score < 0.3) continue;
-            drawHandSvg(
-              ctx, 
-              img, 
-              wristAdjusted, 
-              elbowAdjusted, 
-              armOrientation, 
-              part);
-            
-
-            if (debugHandAnchors) {
-              ctx.save();
-              ctx.fillStyle = 'lime'; // or any color you want
-              ctx.beginPath();
-              ctx.arc(wrist.x, wrist.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.beginPath();
-              ctx.arc(elbow.x, elbow.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.fillStyle = "yellow";
-              ctx.beginPath();
-              ctx.arc(wristAdjusted.x, wristAdjusted.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.beginPath();
-              ctx.arc(elbowAdjusted.x, elbowAdjusted.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.restore();
-            }
-            continue;
+          const success = setHandAnchors({
+            ctx,
+            img,
+            scaledLandmarks,
+            map,
+            svgH,
+            armOrientation,
+            part,
+            debugHandAnchors,
+            drawHandSvg,
+          });
+          if (success) continue;
         }
 
         /* LEGS
         ----------------------------------------------------------------------*/
-        if ( 
-          part === 'leftUpperLeg' || part === 'leftLowerLeg' || 
+        if (
+          part === 'leftUpperLeg' || part === 'leftLowerLeg' ||
           part === 'rightUpperLeg' || part === 'rightLowerLeg'
-
         ) {
-            if (map.start === undefined || map.end === undefined) continue;
-            const from = scaledLandmarks[map.start];
-            const to = scaledLandmarks[map.end];
-            if (!from || !to || from.score < 0.3 || to.score < 0.3) continue;
-            drawLegSvg(ctx, img, from, to, part);
-
-            // Draw anchor points for debugging
-            if (debugLegAnchors) {
-              ctx.save();
-              ctx.fillStyle = 'lime';
-              ctx.beginPath();
-              ctx.arc(from.x, from.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.beginPath();
-              ctx.arc(to.x, to.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.restore();
-            }
-            continue;
+          const success = setLegAnchors({
+            ctx,
+            img,
+            scaledLandmarks,
+            map,
+            part,
+            debugLegAnchors,
+            drawLegSvg,
+          });
+          if (success) continue;
         }
 
         /* FEET
         ----------------------------------------------------------------------*/
-        if ( part === 'leftFoot' || part === 'rightFoot' ) {
-            if (map.leftCenter === undefined || map.rightCenter === undefined) continue;
-            const leftCenter = scaledLandmarks[map.leftCenter];
-            const rightCenter = scaledLandmarks[map.rightCenter];
-            if (!leftCenter || !rightCenter || leftCenter.score < 0.3 || rightCenter.score < 0.3) continue;
-            let from, to;
-            if (part === 'rightFoot') {
-                from = rightCenter;
-                to = leftCenter;
-            } else {
-                from = leftCenter;
-                to = rightCenter;
-            }
-
-            drawFootSvg(ctx, img, from, to, part);
-            
-            if (debugFootAnchors) {
-              ctx.save();
-              if (part === 'rightFoot') {
-                  ctx.fillStyle = 'orange';
-              } else {
-                  ctx.fillStyle = 'aqua';
-              }
-              ctx.beginPath();
-              ctx.arc(from.x, from.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.beginPath();
-              ctx.arc(to.x, to.y, 2, 0, 2 * Math.PI);
-              ctx.fill();
-              ctx.restore();
-            }
-            
-        
-            continue;
+        if (part === 'leftFoot' || part === 'rightFoot') {
+          const success = setFootAnchors({
+            ctx,
+            img,
+            scaledLandmarks,
+            map,
+            part,
+            debugFootAnchors,
+            drawFootSvg,
+          });
+          if (success) continue;
         }
 
     }
