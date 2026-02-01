@@ -31,6 +31,10 @@ import {
 } from '../../utils/drawingUtils';
 import { update } from 'lodash';
 
+import { useSvgCaching } from '../../hooks/useSvgCaching';
+
+import { setTorsoAnchors } from '../../utils/anchorUtils'
+
 const SvgCanvas = ({ 
   width, 
   height, 
@@ -50,7 +54,7 @@ const SvgCanvas = ({
   console.log('SvgCanvas: svgs prop:', svgs);
   // Refs for canvas and cached images
   const canvasRef = useRef(null);
-  const imagesRef = useRef({});
+  const imagesRef = useSvgCaching(svgs, mapping);
   // Scaling factors from webcam to canvas size
   const scaleWebcamX = width / webcamWidth;
   const scaleWebcamY = height / webcamHeight; 
@@ -85,39 +89,6 @@ const SvgCanvas = ({
     replay && savedLandmarks.length > 0
       ? savedLandmarks[frame]
       : landmarks;
-
-  /* Cache SVG images when svgs prop changes
-  ----------------------------------------------------------------------------*/
-  useEffect(() => {
-    console.log('svgCanvas: Caching SVG images');
-    console.log('SVG parts:', Object.keys(svgs));
-    console.log('SVG strings:', svgs);
-    console.log('Mapping:', mapping);
-    let cancelled = false;
-
-    (async () => {
-      const next = {};
-
-      for (const [part, svgString] of Object.entries(svgs)) {
-        if (typeof svgString !== 'string' || svgString.trim().length === 0) continue;
-
-        try {
-          const { width: svgW, height: svgH } = getSvgDimensions(svgString);
-          const clipped = addSvgClipPath(svgString, svgW, svgH, CANVAS_BORDER_RADIUS);
-          const img = await svgStringToImage(clipped);
-          if (img) next[part] = img;
-        } catch (e) {
-          console.warn(`svgCanvas: failed to cache ${part}`, e);
-        }
-      }
-
-      if (!cancelled) {
-        imagesRef.current = next;
-      }
-    })();
-
-    return () => { cancelled = true; };
-  }, [svgs]);
 
   /* Draw pose and SVGs on canvas when displayLandmarks change
   ----------------------------------------------------------------------------*/
@@ -187,85 +158,18 @@ const SvgCanvas = ({
           map.topLeft !== undefined && map.topRight !== undefined &&
           map.bottomLeft !== undefined && map.bottomRight !== undefined
         ) {
-          const tl = scaledLandmarks[map.topLeft];
-          const tr = scaledLandmarks[map.topRight];
-          const bl = scaledLandmarks[map.bottomLeft];
-          const br = scaledLandmarks[map.bottomRight];
-
-          // Ensure all four corners are present and have sufficient score
-          if (!tl || !tr || !bl || !br) continue;
-          if (tl.score < 0.3 || tr.score < 0.3 || bl.score < 0.3 || br.score < 0.3) continue;
-
-
-          
-          const shoulderWidth = tr.x - tl.x;
-          const offset = shoulderWidth / 2;
-          
-          updateAvgTorsoHeight( 
-            Math.hypot( 
-              (tl.x + tr.x)/2 - (bl.x + br.x)/2, 
-              (tl.y + tr.y)/2 - (bl.y + br.y)/2 
-            ) 
-          );
-
-          updateAvgTorsoWidth(Math.abs(tr.x - tl.x));
-
-  
-          // Calculate hip center and shoulder width
-          const hipCenter = {
-            x: (bl.x + br.x) / 2,
-            y: (bl.y + br.y) / 2,
-          };
-
-          // Use the offset to define the third point (left side shown)
-          const thirdPoint = {
-            x: hipCenter.x - offset,
-            y: hipCenter.y,
-          };
-
-          // Use thirdPoint in the affine transform
-          const M = affineFrom3Points(
-              { x: 0, y: 0 },
-              { x: svgW, y: 0 },
-              { x: 0, y: svgH },
-              { x: tl.x, y: tl.y },
-              { x: tr.x, y: tr.y },
-              thirdPoint
-          );
-
-          if (!M) continue;
-
-          ctx.save();
-          ctx.setTransform(M.a, M.b, M.c, M.d, M.e, M.f);
-          ctx.scale(1, 1); 
-          ctx.drawImage(img, 0, 0, svgW, svgH);
-          ctx.restore();
-          /* Draw anchor points for debugging
-          ----------------------------------------------------------------------*/
-          if (debugTorsoAnchors) {
-            ctx.save();
-            ctx.fillStyle = 'lime'; 
-            ctx.beginPath();
-            ctx.arc(tl.x, tl.y, 2, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(tr.x, tr.y, 2, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(bl.x, bl.y, 2, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(br.x, br.y, 2, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(hipCenter.x, hipCenter.y, 2, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.restore();
-            
-            }
-          continue;
-
+          const success = setTorsoAnchors({
+            ctx,
+            img,
+            svgW,
+            svgH,
+            scaledLandmarks,
+            map,
+            debugTorsoAnchors,
+          });
+          if (success) continue;
         }
+          
 
         /* HEAD 
         ----------------------------------------------------------------------*/

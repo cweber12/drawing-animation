@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { getSvgDimensions, addSvgClipPath, svgStringToImage } from '../../utils/svgUtils';
-import { CANVAS_BORDER_RADIUS } from '../../constants/Sizes';
+import { getSvgDimensions, addSvgClipPath, svgStringToImage } from '../utils/svgUtils';
+import { CANVAS_BORDER_RADIUS } from '../constants/Sizes';
 
 export function useSvgCaching(svgs, mapping) {
   const imagesRef = useRef({});
