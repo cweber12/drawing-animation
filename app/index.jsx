@@ -27,10 +27,10 @@ const Home = () => {
                     style={{ width: "30vw", height: "auto", marginBottom: 32 }}
                 />
                 <LinkButton href="/sketchPage">
-                    Sketch 
+                    Sketch and Animate
                 </LinkButton>
                 <LinkButton href="/viewSavedPoses">
-                    View Saved Animations 
+                    View Saved Content 
                 </LinkButton>
             </ThemedView>
         </>

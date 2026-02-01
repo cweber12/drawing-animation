@@ -57,8 +57,9 @@ const SvgCanvas = ({
   style
 }) => {
 
-  console.log('SvgCanvas: rendering with landmarks:', landmarks);
-  console.log('SvgCanvas: svgs prop:', svgs);
+  useEffect(() => {
+    console.log('SvgCanvas: rendering with landmarks:', savedLandmarks);
+  }, []);
   // Refs for canvas and cached images
   const canvasRef = useRef(null);
   const imagesRef = useSvgCaching(svgs, mapping);
@@ -118,6 +119,7 @@ const SvgCanvas = ({
     let scaledLandmarks = null;
     if (replay) {
       scaledLandmarks = displayLandmarks; 
+      console.log('Using replay landmarks without scaling');
     } else {
       scaledLandmarks = displayLandmarks.map(kp =>
         kp
@@ -159,6 +161,9 @@ const SvgCanvas = ({
 
         
         /* TORSO 
+        -----------------------------------------------------------------------
+        Set torso anchors and draw torso SVG on canvas
+        Anchors: topLeft, topRight, bottomLeft, bottomRight
         ----------------------------------------------------------------------*/
         if (
           part === 'torso' &&
@@ -178,6 +183,9 @@ const SvgCanvas = ({
         }
           
         /* HEAD
+        ------------------------------------------------------------------------
+        Set head anchors and draw head SVG on canvas
+        Anchors: leftAnchor, rightAnchor
         ----------------------------------------------------------------------*/
         if (
           part === 'head' &&
@@ -276,7 +284,7 @@ const SvgCanvas = ({
     }
     /* Draw pose skeleton
     --------------------------------------------------------------------------*/
-    ctx.strokeStyle = 'lime';
+    ctx.strokeStyle = 'transparent';
     ctx.lineWidth = 2;
     CONNECTED_KEYPOINTS.forEach(([i, j]) => {
       const kp1 = scaledLandmarks[i];
@@ -291,7 +299,7 @@ const SvgCanvas = ({
 
     /* Draw keypoints
     --------------------------------------------------------------------------*/
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = 'transparent';
     scaledLandmarks.forEach((kp) => {
       if (kp && kp.score > 0.3) {
         ctx.beginPath();
@@ -310,8 +318,8 @@ const SvgCanvas = ({
         width={width}
         height={height}
         style={{
-            width: CANVAS_WIDTH,
-            height: CANVAS_HEIGHT,
+            width,
+            height,
             pointerEvents: 'none',
             backgroundColor: 'transparent', 
             ...style,

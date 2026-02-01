@@ -2,7 +2,8 @@
 import { 
   ActivityIndicator, 
   TouchableOpacity, 
-  Text, 
+  Text,
+  View, 
   StyleSheet, 
   FlatList, 
   useWindowDimensions, 
@@ -17,6 +18,9 @@ import { CANVAS_LANDMARK_MAP } from '../constants/landmarkData';
 import SvgCanvas from '../components/canvas/SvgCanvas';
 import { fetchFiles, downloadLandmarkFile, downloadSvgFile } from '../utils/s3Utils';
 import { Select } from '@tensorflow/tfjs';
+import { GiRaiseZombie } from "react-icons/gi";
+import { FaPencilAlt } from "react-icons/fa";
+
 
 const ViewSavedPoses = () => {
   const [files, setFiles] = useState([]);
@@ -111,8 +115,37 @@ const ViewSavedPoses = () => {
   }, [selectedSvgString]);
 
   return (
-    <ThemedView style={{ flex: 1, flexDirection: 'row', alignItems: "flex-start", padding: "2rem" }}>
-      {/* Landmark List */}
+    <ThemedView 
+      style={{ 
+        flex: 1,
+        flexDirection: 'row', 
+        alignItems: "flex-start", 
+        padding: "2rem",  
+        }}>
+
+      <View style={{ flexDirection: 'column'}}>
+      <View 
+        style={{
+          flexDirection: 'row', 
+          alignItems: 'flex-end',
+          justifyContent: 'space-between', 
+          marginBottom: 16, 
+          borderBottom: `2px solid ${theme.actionButton}`,
+          }}>
+        <GiRaiseZombie 
+          size={42} 
+          color={theme.actionButton} 
+          style={{ marginRight: "1rem" }} />
+        <Text 
+          style={{ 
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: theme.text,
+          }}>
+          Animations
+        </Text>
+      </View>
+      {/* Landmark Files List */}
       <FlatList
         style={[
           styles.list, 
@@ -120,7 +153,8 @@ const ViewSavedPoses = () => {
             backgroundColor: theme.navBackground, 
             borderTop: `1px solid ${theme.border}`,
             borderRight: `1px solid ${theme.border}`,
-            borderLeft: `1px solid ${theme.border}`
+            borderLeft: `1px solid ${theme.border}`, 
+            marginBottom: 20,
           }]}
         data={landmarkFiles}
         keyExtractor={(item) => item}
@@ -148,45 +182,71 @@ const ViewSavedPoses = () => {
           </TouchableOpacity>
         )}
       />
-      {/* SVG List */}
+      
       {selectedLandmarkFile &&
-      <FlatList
-        style={[
-          styles.list, 
-          {
-            backgroundColor: theme.navBackground, 
-            borderTop: `1px solid ${theme.border}`,
-            borderRight: `1px solid ${theme.border}`,
-            borderLeft: `1px solid ${theme.border}`,
-            marginLeft: 16,
-          }]}
-        data={svgFiles}
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.listItem, 
-              item === selectedSvgFile && styles.selectedListItem, 
-              {borderBottom: `1px solid ${theme.border}`}
-            ]}
-            onPress={() => downloadSvgs(item)}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = theme.border;
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = 'transparent';
-            }}
-          >
+        <>
+          <View 
+          style={{
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            marginBottom: 16, 
+            borderBottom: `2px solid ${theme.actionButton}`,
+            }}>
+            <FaPencilAlt 
+              size={32} 
+              color={theme.actionButton} 
+              style={{ marginRight: "1rem" }} />
             <Text 
-              style={[
-                styles.listItemText, 
-                { color: item === selectedSvgFile ? theme.actionButton : theme.text }]}>
-                {item}
+              style={{ 
+                fontSize: 24,
+                fontWeight: 'bold',
+                color: theme.text,
+                marginBottom: 0,
+              }}>
+              Sketches
             </Text>
-          </TouchableOpacity>
-        )}
-      />
+          </View>
+          {/* SVG Files List */}
+          <FlatList
+            style={[
+              styles.list, 
+              {
+                backgroundColor: theme.navBackground, 
+                borderTop: `1px solid ${theme.border}`,
+                borderRight: `1px solid ${theme.border}`,
+                borderLeft: `1px solid ${theme.border}`,
+                marginBottom: 20,
+              }]}
+            data={svgFiles}
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.listItem, 
+                  item === selectedSvgFile && styles.selectedListItem, 
+                  {borderBottom: `1px solid ${theme.border}`}
+                ]}
+                onPress={() => downloadSvgs(item)}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = theme.border;
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                }}
+              >
+                <Text 
+                  style={[
+                    styles.listItemText, 
+                    { color: item === selectedSvgFile ? theme.actionButton : theme.text }]}>
+                    {item}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+        </>
       }
+      </View>
       {/* Canvas Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
         {loading && <ActivityIndicator />}
@@ -196,18 +256,18 @@ const ViewSavedPoses = () => {
             height={height}
             webcamWidth={videoDimensions.width}
             webcamHeight={videoDimensions.height}
-            landmarks={scaleLandmarks(
-              frames[currentFrame],
-              videoDimensions,
-              { width, height }
-            )}
+            landmarks={null}
             savedLandmarks={frames}
             replay={frames.length > 1}
-            svgs={selectedSvgString}            
+            svgs={selectedSvgString}
             mapping={CANVAS_LANDMARK_MAP}
             armOrientation={"horizontal"}
-            style={{ border: '1px solid #555', background: '#111' }}
-          />
+            style={{
+              border: '1px solid #555',
+              background: '#111',
+              zIndex: 2
+            }}
+        />
         )}
         {frames.length > 0 && selectedLandmarkFile && !selectedSvgFile && (
           <PoseCanvas

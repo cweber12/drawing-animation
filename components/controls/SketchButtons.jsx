@@ -12,7 +12,8 @@ import {
   FaRunning, 
   FaFileExport,
   FaEraser, 
-  FaChevronDown
+  FaChevronDown, 
+  FaPencilAlt
 } from 'react-icons/fa';
 import { getIconSize } from '../../constants/Sizes';
 import React from 'react';
@@ -21,6 +22,7 @@ import { uploadToS3 } from '../../utils/s3Utils';
 import { LuInfo } from "react-icons/lu";
 import { GiRaiseZombie } from "react-icons/gi";
 import HeaderButton from '../buttons/HeaderButton';
+import { FaPencil } from 'react-icons/fa6';
 
 /* Header buttons for the SketchPage
 --------------------------------------------------------------------------------
@@ -80,9 +82,9 @@ const SketchButtons = ({
       <HeaderButton 
         onPress={onToggleErase}
         onHoverTitle={onHoverTitle}
-        title={eraseMode ? "Brush" : "Eraser"}
+        title={eraseMode ? "Sketch" : "Erase"}
       >
-        {eraseMode ? <FaPaintBrush /> : <FaEraser /> }
+        {eraseMode ? <FaPencilAlt /> : <FaEraser /> }
       </HeaderButton>
 
       
@@ -95,7 +97,7 @@ const SketchButtons = ({
             style={styles.brushButton}
             />
           ) : (
-            <FaPaintBrush 
+            <FaPencilAlt
             size={getIconSize() / 2} 
             color={theme.text}  
             style={styles.brushButton}
@@ -104,7 +106,7 @@ const SketchButtons = ({
         <HeaderButton 
           onPress={onShowBrushSizeSlider}
           onHoverTitle={onHoverTitle}
-          title="Adjust Brush Size"
+          title="Adjust Line Width"
         >
           <FaChevronDown />
         </HeaderButton>
@@ -120,7 +122,7 @@ const SketchButtons = ({
         <HeaderButton 
           onPress={onShowColorPicker}
           onHoverTitle={onHoverTitle}
-          title="Select Brush Color"
+          title="Select Color"
         >
           <FaChevronDown />
         </HeaderButton>

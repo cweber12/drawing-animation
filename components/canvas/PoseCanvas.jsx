@@ -5,8 +5,10 @@ const PoseCanvas = ({ width, height, landmarks, style }) => {
     const canvasRef = useRef(null);
 
     useEffect(() => {
-      
-      console.log('PoseCanvas : Updating canvas with landmarks:', landmarks);
+      console.log('PoseCanvas: rendering with landmarks:', landmarks);
+    }, []);
+
+    useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
   
