@@ -129,7 +129,8 @@ const ViewSavedPoses = () => {
           flexDirection: 'row', 
           alignItems: 'flex-end',
           justifyContent: 'space-between', 
-          marginBottom: 16, 
+          marginBottom: '1rem', 
+          paddingBottom: '0.2rem',
           borderBottom: `2px solid ${theme.actionButton}`,
           }}>
         <GiRaiseZombie 
@@ -154,7 +155,7 @@ const ViewSavedPoses = () => {
             borderTop: `1px solid ${theme.border}`,
             borderRight: `1px solid ${theme.border}`,
             borderLeft: `1px solid ${theme.border}`, 
-            marginBottom: 20,
+            marginBottom: '2rem',
           }]}
         data={landmarkFiles}
         keyExtractor={(item) => item}
@@ -186,13 +187,14 @@ const ViewSavedPoses = () => {
       {selectedLandmarkFile &&
         <>
           <View 
-          style={{
-            flexDirection: 'row', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            marginBottom: 16, 
-            borderBottom: `2px solid ${theme.actionButton}`,
-            }}>
+            style={{
+              flexDirection: 'row', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: '1rem', 
+              borderBottom: `2px solid ${theme.actionButton}`,
+              paddingBottom: '0.2rem',
+              }}>
             <FaPencilAlt 
               size={32} 
               color={theme.actionButton} 

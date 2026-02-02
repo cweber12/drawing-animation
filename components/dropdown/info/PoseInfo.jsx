@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { Colors } from '../../constants/Colors';
+import { Colors } from '../../../constants/Colors';
 import { useColorScheme } from 'react-native';
 
 const SketchInfo = () => {

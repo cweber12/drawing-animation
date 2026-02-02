@@ -22,7 +22,7 @@ import { smoothLandmarks } from '../utils/poseUtils';
 import { FootCalculator } from '../utils/FootCalculator';
 import ThemedPoseView from '../components/themed_components/ThemedPoseView';
 import { usePoseDetection } from '../hooks/usePoseDetection';
-import PoseInfo from '../components/info/PoseInfo';
+import PoseInfo from '../components/dropdown/info/PoseInfo';
 
 const DetectPose = () => {
   

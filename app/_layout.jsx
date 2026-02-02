@@ -8,10 +8,10 @@ import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native-web'
 import { Colors } from '../constants/Colors'
-import SketchButtons from '../components/controls/SketchButtons';
-import DetectPoseButtons from '../components/controls/detectPoseButtons';
+import SketchButtons from '../components/button_group/SketchButtons';
+import DetectPoseButtons from '../components/button_group/detectPoseButtons';
 import { FaHouseDamage } from "react-icons/fa";
-import HeaderButton from '../components/buttons/HeaderButton'
+import HeaderButton from '../components/button/HeaderButton'
 
 /* Home Button in Header
 ------------------------------------------------------------------------------*/
@@ -92,15 +92,14 @@ const RootLayout = () => {
                                     eraseMode={route.params?.eraseMode}
                                     strokeColor={route.params?.strokeColor}
                                     onClear={route.params?.onClear}
-                                    onToggleErase={route.params?.onToggleErase}
-                                    onShowBrushSizeSlider={route.params?.onShowBrushSizeSlider}
-                                    onShowColorPicker={route.params?.onShowColorPicker}
+                                    setEraseMode={route.params?.setEraseMode}
                                     onShowSketchInfo={route.params?.onShowSketchInfo}
                                     onHoverTitle={(title) => setHeaderTitle(title)}
                                     onExportAll={route.params?.onExportAll}
                                     onShowDetectPoseOptions={route.params?.onShowDetectPoseOptions}
                                     svgData={route.params?.svgData}
                                     onHandleUploadSvg={route.params?.onHandleUploadSvg}
+                                    onToggleSettings={route.params?.onToggleSettings}
                                 />
                                 <HomeButton />
                                 
@@ -111,7 +110,7 @@ const RootLayout = () => {
                 <Stack.Screen 
                     name="viewSavedPoses" 
                     options={({ route }) => ({ 
-                        title: 'Saved Poses' ,
+                        title: 'Saved Content' ,
                         headerRight: () => (
                         <HomeButton />
                     ),

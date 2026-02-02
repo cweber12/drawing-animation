@@ -29,16 +29,17 @@ import { getSvgSizes } from '../constants/Sizes';
 import { uploadToS3 } from '../utils/s3Utils';
 /* Import components
 -----------------------------------------------------------------------------*/
-import BrushSizeSlider from '../components/controls/BrushSizeSlider';
-import ColorPicker from '../components/controls/ColorPicker';
-import DetectPoseDropdown from '../components/controls/detectPoseDropdown';
+import BrushSizeSlider from '../components/dropdown/sketch_controls/BrushSizeSlider';
+import ColorPicker from '../components/dropdown/sketch_controls/ColorPicker';
+import DetectPoseDropdown from '../components/dropdown/select/detectPoseDropdown';
 import Head from '../components/canvas/body_parts/Head';
 import Torso from '../components/canvas/body_parts/Torso';
 import RightArm from '../components/canvas/body_parts/RightArm';
 import LeftArm from '../components/canvas/body_parts/LeftArm';
 import Legs from '../components/canvas/body_parts/Legs';
 import Feet from '../components/canvas/body_parts/Feet';
-import SketchInfo from '../components/info/SketchInfo';
+import SketchInfo from '../components/dropdown/info/SketchInfo';
+import SketchControls from '../components/dropdown/sketch_controls/SketchControls';
 
 const SketchPage = () => {
     
@@ -65,9 +66,8 @@ const SketchPage = () => {
     --------------------------------------------------------------------------*/
     // Sketch controls states
     const [selectedColor, setSelectedColor] = useState(theme.svgStrokeColor);
-    const [strokeWidth, setStrokeWidth] = useState(2);
-    const [showBrushSizeSlider, setShowBrushSizeSlider] = useState(false);
-    const [showColorPicker, setShowColorPicker] = useState(false);   
+    const [strokeWidth, setStrokeWidth] = useState(20);
+    const [showSketchControls, setShowSketchControls] = useState(true);  
     const [erase, setErase] = useState(false);
     
     // viewMode for Detect Pose Display: 'svg' or 'pose'
@@ -112,28 +112,15 @@ const SketchPage = () => {
 
     /* Toggle display of sketch controls
     --------------------------------------------------------------------------*/
-    const toggleBrushSizeSlider = useCallback(() => {
-        setShowColorPicker(false);
-        setShowDetectPoseOptions(false);
-        setShowBrushSizeSlider(prev => !prev);
-        
-    }, []);
-
-    const toggleColorPicker = useCallback(() => {
-        setShowBrushSizeSlider(false);
-        setShowDetectPoseOptions(false);
-        setShowColorPicker(prev => !prev);
-        
-    }, []);
 
     const toggleDetectPoseOptions = useCallback(() => {
-        setShowBrushSizeSlider(false);
-        setShowColorPicker(false);
+        setShowSketchControls(false);
         setShowDetectPoseOptions(prev => !prev);
     }, []);
 
-    const toggleEraseMode = useCallback(() => {
-        setErase(prev => !prev);
+    const toggleSettings = useCallback(() => {
+        setShowDetectPoseOptions(false);
+        setShowSketchControls(prev => !prev);
     }, []);
 
     /* Update erase mode on all canvases when erase state changes
@@ -265,12 +252,11 @@ const SketchPage = () => {
         navigation.setParams({
             viewMode: viewMode,
             eraseMode: erase,
+            setEraseMode: setErase,
             strokeColor: selectedColor,
             svgData: svgData,
             onClear: clearAll,
-            onToggleErase: toggleEraseMode,
-            onShowBrushSizeSlider: toggleBrushSizeSlider,
-            onShowColorPicker: toggleColorPicker,
+            onToggleSettings: toggleSettings,
             onShowDetectPoseOptions: toggleDetectPoseOptions,
             onShowSketchInfo: () => setShowSketchInfo(prev => !prev),
             onHandleUploadSvg: handleUploadSvg,
@@ -280,34 +266,35 @@ const SketchPage = () => {
             navigation, 
             clearAll, 
             goToDetectPose, 
-            toggleBrushSizeSlider, 
-            toggleColorPicker, 
             viewMode, 
             selectedColor,
             erase,
             saveAll,
-            toggleEraseMode, 
             svgData,
-            handleUploadSvg
+            handleUploadSvg,
+            toggleDetectPoseOptions, 
+            toggleSettings
         ]
     );
     
     /* Render page
+    ----------------------------------------------------------------------------
+    Elements: 
+    Sketch controls: brush size, color picker, detect pose options
+    - NOTE: React ColorPicker only supported on web platform. Mobile will use
+      native color picker in future update.
+    Info popup: Instructions for using sketch tools
+    Canvases: body part SVG canvases for drawing
     --------------------------------------------------------------------------*/
     return (       
         <View style={[styles.mainContainer, { minWidth: sizes.TOTAL_WIDTH }]}>
-            {showBrushSizeSlider && (
-                <BrushSizeSlider 
-                    style={styles.sketchControls} 
-                    strokeWidth={strokeWidth}
-                    onStrokeWidthChange={setStrokeWidth} 
-                />
-            )}
-            {showColorPicker && (
-                <ColorPicker
-                    style={styles.sketchControls}
+            {showSketchControls && (
+                <SketchControls
                     selectedColor={selectedColor}
-                    onColorChange={setSelectedColor}
+                    setSelectedColor={setSelectedColor}
+                    strokeWidth={strokeWidth}
+                    setStrokeWidth={setStrokeWidth}
+                    setShowSketchControls={setShowSketchControls}
                 />
             )}
             {showDetectPoseOptions && (
@@ -430,16 +417,13 @@ const styles = StyleSheet.create({
     },
 
     sketchControls: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
         position: 'absolute',
         top: "2rem",
-        right: "4rem",
+        right: 0,
+        borderTopLeftRadius: 8,
+        borderBottomLeftRadius: 8,
         zIndex: 10,
-        padding: "2rem", 
-        borderRadius: 8,
+        width: 300,
     },
 
     row: {

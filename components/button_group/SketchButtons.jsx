@@ -1,28 +1,26 @@
 import { 
   View, 
-  TouchableOpacity, 
   StyleSheet, 
   useColorScheme,
 } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { 
-  FaPaintBrush, 
   FaPalette,
   FaTrashAlt, 
-  FaRunning, 
   FaFileExport,
   FaEraser, 
-  FaChevronDown, 
-  FaPencilAlt
+  FaChevronDown,
+  FaChevronUp, 
+  FaPencilAlt, 
+  FaCircle
 } from 'react-icons/fa';
 import { getIconSize } from '../../constants/Sizes';
 import React from 'react';
-
-import { uploadToS3 } from '../../utils/s3Utils';
+import { FaGear } from "react-icons/fa6";
 import { LuInfo } from "react-icons/lu";
 import { GiRaiseZombie } from "react-icons/gi";
-import HeaderButton from '../buttons/HeaderButton';
-import { FaPencil } from 'react-icons/fa6';
+import HeaderButton from '../button/HeaderButton';
+
 
 /* Header buttons for the SketchPage
 --------------------------------------------------------------------------------
@@ -38,16 +36,16 @@ const SketchButtons = ({
   eraseMode,
   strokeColor,
   onClear, 
-  onToggleErase,
-  onShowBrushSizeSlider,
-  onShowColorPicker,
+  setEraseMode,
   onShowSketchInfo,
   onHoverTitle,
   onShowDetectPoseOptions,
   onHandleUploadSvg,
+  onToggleSettings,
 }) => {
     const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] ?? Colors.light;  
+    const theme = Colors[colorScheme] ?? Colors.light; 
+    const [showSettings, setShowSettings] = React.useState(false);
   
     return (
     <View style={styles.container}>    
@@ -56,7 +54,7 @@ const SketchButtons = ({
       <HeaderButton
         onPress={onShowSketchInfo}
         onHoverTitle={onHoverTitle}
-        title="Info"
+        title="INFO"
       >
         <LuInfo/>
       </HeaderButton>
@@ -64,7 +62,7 @@ const SketchButtons = ({
       <HeaderButton
         onPress={onHandleUploadSvg}
         onHoverTitle={onHoverTitle}
-        title="Save"
+        title="SAVE"
       >
         <FaFileExport/>
       </HeaderButton>
@@ -73,67 +71,60 @@ const SketchButtons = ({
       <HeaderButton 
         onPress={onClear}
         onHoverTitle={onHoverTitle}
-        title="Clear"
+        title="CLEAR"
       >
         <FaTrashAlt/>
       </HeaderButton>
 
       {/* ERASE BUTTON ------------------------------------------------------*/}
       <HeaderButton 
-        onPress={onToggleErase}
+        onPress={() => setEraseMode(true)}
         onHoverTitle={onHoverTitle}
-        title={eraseMode ? "Sketch" : "Erase"}
+        selected={eraseMode}
+        title={"ERASE"}
+        style={{opacity: eraseMode ? 1 : 0.5}}
+        {...(eraseMode ? {disabled: true} : {})}
       >
-        {eraseMode ? <FaPencilAlt /> : <FaEraser /> }
+        <FaEraser /> 
       </HeaderButton>
 
+      {/* SKETCH BUTTON -----------------------------------------------------*/}
+      <HeaderButton
+        onPress={() => setEraseMode(false)}
+        onHoverTitle={onHoverTitle}
+        selected={!eraseMode}
+        title={"SKETCH"}
+        style={{
+          opacity: eraseMode ? 0.5 : 1, 
+        }}
+        {...(!eraseMode ? {disabled: true} : {})}
+      >
+        <FaPencilAlt />
+      </HeaderButton>
       
-      {/* BRUSH SIZE BUTTON -------------------------------------------------*/}
-      <View style={styles.buttonColumn}>
-          {eraseMode ? (
-            <FaEraser 
-            size={getIconSize() / 2} 
-            color={theme.button}  
-            style={styles.brushButton}
-            />
-          ) : (
-            <FaPencilAlt
-            size={getIconSize() / 2} 
-            color={theme.text}  
-            style={styles.brushButton}
-            />
-          )}
-        <HeaderButton 
-          onPress={onShowBrushSizeSlider}
-          onHoverTitle={onHoverTitle}
-          title="Adjust Line Width"
-        >
-          <FaChevronDown />
-        </HeaderButton>
-      </View>
-      
-      {/* COLOR PICKER BUTTON -----------------------------------------------*/}
-      <View style={styles.buttonColumn}>
-        <FaPalette 
-          size={getIconSize() / 2} 
-          color={strokeColor}
-          style={styles.brushButton} 
-        />
-        <HeaderButton 
-          onPress={onShowColorPicker}
-          onHoverTitle={onHoverTitle}
-          title="Select Color"
-        >
-          <FaChevronDown />
-        </HeaderButton>
-      </View>
+      {/* SKETCH CONTROLS BUTTON -------------------------------------------------*/}
+        
+        <View style={styles.buttonColumn}>
+          <HeaderButton 
+            onPress={() => {
+              setShowSettings(!showSettings);
+              onToggleSettings && onToggleSettings(!showSettings);
+            }}
+            onHoverTitle={onHoverTitle}
+            title="BRUSH SIZE & COLOR"
+            >
+              <FaGear />
+            </HeaderButton>
+        </View>
+
+
 
       
       {/* ANIMATE BUTTON ----------------------------------------------------*/}
       <HeaderButton
         onPress={onShowDetectPoseOptions}
         onHoverTitle={onHoverTitle}
-        title="Animate"
+        title="ANIMATE"
         size={getIconSize() * 2}
       >
         <GiRaiseZombie />

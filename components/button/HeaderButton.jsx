@@ -15,13 +15,24 @@ Props:
 - title: The title to set on hover
 - size: Optional size for the icon
 ------------------------------------------------------------------------------*/
-const HeaderButton = ({children, style, onPress, onHoverTitle, title, size}) => {
+const HeaderButton = ({
+    children, 
+    style, 
+    onPress, 
+    onHoverTitle, 
+    title, 
+    size, 
+    disabled, 
+    selected
+}) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     const [hovered, setHovered] = React.useState(false);
     const [pressed, setPressed] = React.useState(false);
-    const iconColor = hovered ? theme.actionButton : theme.text;
     const [iconSize, setIconSize] = React.useState(size ?? getIconSize());
+
+    const iconColor = hovered ? theme.actionButton : theme.button;
+    
 
     useEffect(() => {
         setIconSize(pressed ? (
@@ -33,11 +44,16 @@ const HeaderButton = ({children, style, onPress, onHoverTitle, title, size}) => 
     return (
         <TouchableOpacity 
             onPress={onPress}
-            style={[styles.button, style]}
+            style={[
+                styles.button, 
+                style, 
+            ]}
+            disabled={disabled}
+            selected={selected}
             activeOpacity={1}
             onMouseEnter={() => {
-            setHovered(true);
-            onHoverTitle && onHoverTitle(title);
+                setHovered(true);
+                onHoverTitle && onHoverTitle(title);
             }}
             onMouseLeave={() => {
             setHovered(false);
@@ -49,13 +65,13 @@ const HeaderButton = ({children, style, onPress, onHoverTitle, title, size}) => 
             {React.cloneElement(
                 children, 
                 {
-                    color: iconColor, 
-                    size: iconSize
+                    color: disabled ? theme.text : iconColor, 
+                    size: iconSize,
                 }
                 )}
         </TouchableOpacity>
     )
-    }
+}
 
 export default HeaderButton
 
@@ -63,5 +79,10 @@ const styles = StyleSheet.create({
     button: {
         marginHorizontal: "0.5rem",
         padding: 0,
+        padding: '0.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.1s cubic-bezier(.4,0,.2,1)',
     },
 })

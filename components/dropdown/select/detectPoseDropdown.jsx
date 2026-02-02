@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, useColorScheme, TouchableOpacity} from 'react-native'
-import { Colors } from '../../constants/Colors';
+import { Colors } from '../../../constants/Colors';
 import React from 'react'
 
 const detectPoseDropdown = ({
