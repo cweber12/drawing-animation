@@ -98,7 +98,7 @@ const RootLayout = () => {
                                     onExportAll={route.params?.onExportAll}
                                     onShowDetectPoseOptions={route.params?.onShowDetectPoseOptions}
                                     svgData={route.params?.svgData}
-                                    onHandleUploadSvg={route.params?.onHandleUploadSvg}
+                                    onToggleExportOptions={route.params?.onToggleExportOptions}
                                     onToggleSettings={route.params?.onToggleSettings}
                                 />
                                 <HomeButton />

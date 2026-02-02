@@ -40,6 +40,9 @@ import Legs from '../components/canvas/body_parts/Legs';
 import Feet from '../components/canvas/body_parts/Feet';
 import SketchInfo from '../components/dropdown/info/SketchInfo';
 import SketchControls from '../components/dropdown/sketch_controls/SketchControls';
+import { downloadSvgToDevice } from '../utils/storageUtils';
+import { set } from 'lodash';
+import ExportSvgDropdown from '../components/dropdown/select/exportSvgDropdown';
 
 const SketchPage = () => {
     
@@ -76,6 +79,7 @@ const SketchPage = () => {
     const [svgData, setSvgData] = useState(null);
 
     const [showSketchInfo, setShowSketchInfo] = useState(false);
+    const [showExportOptions, setShowExportOptions] = useState(false);
     
     /* Refs for each body part canvas
     - Ensures canvases can be updated and accessed separately
@@ -115,12 +119,23 @@ const SketchPage = () => {
 
     const toggleDetectPoseOptions = useCallback(() => {
         setShowSketchControls(false);
+        setShowExportOptions(false);
+        setShowSketchInfo(false);
         setShowDetectPoseOptions(prev => !prev);
     }, []);
 
     const toggleSettings = useCallback(() => {
         setShowDetectPoseOptions(false);
+        setShowExportOptions(false);
+        setShowSketchInfo(false);
         setShowSketchControls(prev => !prev);
+    }, []);
+
+    const toggleExportOptions = useCallback(() => {
+        setShowDetectPoseOptions(false);
+        setShowSketchControls(false);
+        setShowSketchInfo(false);
+        setShowExportOptions(prev => !prev);
     }, []);
 
     /* Update erase mode on all canvases when erase state changes
@@ -215,6 +230,14 @@ const SketchPage = () => {
         });
     }, [saveAll]);
 
+    const handleDownloadSvg = useCallback(async () => {
+        console.log('sketchPage: handleDownloadSvg called');
+        const svgs = await saveAll();
+        setSvgData(svgs); 
+        console.log('sketchPage: Downloading SVGs:', svgs);
+        downloadSvgToDevice(svgs);
+    }, [saveAll]);
+
     /* Handle picking video for pose detection
     --------------------------------------------------------------------------*/
     const handlePickVideo = async () => {
@@ -259,7 +282,7 @@ const SketchPage = () => {
             onToggleSettings: toggleSettings,
             onShowDetectPoseOptions: toggleDetectPoseOptions,
             onShowSketchInfo: () => setShowSketchInfo(prev => !prev),
-            onHandleUploadSvg: handleUploadSvg,
+            onToggleExportOptions: toggleExportOptions,
 
         });
     }, [
@@ -271,9 +294,9 @@ const SketchPage = () => {
             erase,
             saveAll,
             svgData,
-            handleUploadSvg,
-            toggleDetectPoseOptions, 
-            toggleSettings
+            toggleDetectPoseOptions,
+            toggleExportOptions, 
+            toggleSettings,
         ]
     );
     
@@ -303,6 +326,13 @@ const SketchPage = () => {
                     onPickVideo={handlePickVideo}
                     setPoseView={() => goToDetectPose('pose', null)}
                     setSvgView={() => goToDetectPose('svg', null)}
+                />
+            )}
+            {showExportOptions && (
+                <ExportSvgDropdown
+                    style={styles.sketchControls}
+                    downloadSvgToDevice={handleDownloadSvg}
+                    uploadToS3={handleUploadSvg}
                 />
             )}
             

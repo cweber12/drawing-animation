@@ -3,14 +3,15 @@ import { Colors } from '../../../constants/Colors';
 import React from 'react'
 import DropdownSelect from '../../button/DropdownSelect';
 import { FaFileVideo } from "react-icons/fa";
-import { RiWebcamFill } from "react-icons/ri";
-import { FaVideo } from "react-icons/fa";
+import { IoCloudUploadOutline } from "react-icons/io5";
+import { IoDownloadOutline } from "react-icons/io5";
+import { downloadSvgToDevice } from '../../../utils/storageUtils';
+import { uploadToS3 } from '../../../utils/s3Utils';
 
-const detectPoseDropdown = ({
-        style, 
-        onPickVideo, 
-        setPoseView, 
-        setSvgView,
+const ExportSvgDropdown = ({
+        style,
+        downloadSvgToDevice,
+        uploadToS3, 
 
 }) => {
     const colorScheme = useColorScheme();
@@ -20,51 +21,39 @@ const detectPoseDropdown = ({
         <View 
             style={[
                 style,
-                styles.poseOptionsContainer, 
+                styles.exportOptionsContainer, 
             ]}>
             <DropdownSelect
-                onPress={() => {onPickVideo && onPickVideo();}} >
-                <FaFileVideo
+                onPress={() => {downloadSvgToDevice && downloadSvgToDevice();}} >
+                <IoDownloadOutline
                     size={24}
                     color={theme.actionButton} 
                 /> 
                 <Text 
                     style={[styles.text, { color: theme.text }]}> 
-                    Select Video </Text>        
+                    Download to Device </Text>        
             </DropdownSelect>
             
             <DropdownSelect
-                onPress={() => {  setPoseView && setPoseView();}}>
-                <FaVideo
+                onPress={() => {  uploadToS3 && uploadToS3();}}>
+                <IoCloudUploadOutline
                     size={24}
                     color={theme.actionButton}
                 />
                 <Text 
                     style={[ styles.text,  { color: theme.text }]}>
-                    Record Animation</Text>
+                    Upload to S3</Text>
             </DropdownSelect>
 
-            <DropdownSelect
-                onPress={() => {
-                    setSvgView && setSvgView();
-                }}
-            >
-                <RiWebcamFill size={24} color={theme.actionButton}/>
-                <Text 
-                style={[
-                    styles.text, 
-                    { color: theme.text }
-                ]}>Live Animation</Text>
-            </DropdownSelect>
         </View>
     )
 }
 
-export default detectPoseDropdown
+export default ExportSvgDropdown
 
 const styles = StyleSheet.create({
     
-    poseOptionsContainer: {
+    exportOptionsContainer: {
         display: 'flex',
         width: '280px',
         flexDirection: 'column',

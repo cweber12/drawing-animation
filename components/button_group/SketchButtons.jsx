@@ -5,14 +5,10 @@ import {
 } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { 
-  FaPalette,
   FaTrashAlt, 
   FaFileExport,
   FaEraser, 
-  FaChevronDown,
-  FaChevronUp, 
   FaPencilAlt, 
-  FaCircle
 } from 'react-icons/fa';
 import { getIconSize } from '../../constants/Sizes';
 import React from 'react';
@@ -40,7 +36,7 @@ const SketchButtons = ({
   onShowSketchInfo,
   onHoverTitle,
   onShowDetectPoseOptions,
-  onHandleUploadSvg,
+  onToggleExportOptions,
   onToggleSettings,
 }) => {
     const colorScheme = useColorScheme();
@@ -70,7 +66,7 @@ const SketchButtons = ({
 
       {/* EXPORT BUTTON -----------------------------------------------------*/}
       <HeaderButton
-        onPress={onHandleUploadSvg}
+        onPress={onToggleExportOptions}
         onHoverTitle={onHoverTitle}
         title="SAVE"
       >
