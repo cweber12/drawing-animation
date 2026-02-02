@@ -67,7 +67,7 @@ const SketchPage = () => {
     // Sketch controls states
     const [selectedColor, setSelectedColor] = useState(theme.svgStrokeColor);
     const [strokeWidth, setStrokeWidth] = useState(20);
-    const [showSketchControls, setShowSketchControls] = useState(true);  
+    const [showSketchControls, setShowSketchControls] = useState(false);  
     const [erase, setErase] = useState(false);
     
     // viewMode for Detect Pose Display: 'svg' or 'pose'
@@ -305,8 +305,11 @@ const SketchPage = () => {
                     setSvgView={() => goToDetectPose('svg', null)}
                 />
             )}
+            
             {showSketchInfo && (
-                 <SketchInfo />
+                 <SketchInfo 
+                    setShowSketchInfo={setShowSketchInfo}
+                 />
             )}
 
 

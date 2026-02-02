@@ -21,11 +21,10 @@ return (
         <div className="header"
             style={{ 
                 color: theme.text,
-                backgroundColor: theme.navBackground,
-            }}>
-            Sketch Controls 
+            }}> 
+            Tools
             <FaMinus 
-                size={16} 
+                size={24} 
                 style={{ cursor: 'pointer' }}
                 onClick={() => setShowSketchControls(false)}
             />

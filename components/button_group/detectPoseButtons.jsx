@@ -8,6 +8,8 @@ import { getIconSize } from '../../constants/Sizes';
 import { uploadToS3 } from '../../utils/s3Utils'; 
 import { LuInfo } from "react-icons/lu";
 import { FaFileExport } from 'react-icons/fa';
+import HeaderButton from '../button/HeaderButton';
+import { record } from 'aws-amplify/analytics';
 
 const DetectPoseButtons = ({ 
     onDetectionStarted, 
@@ -29,7 +31,7 @@ const DetectPoseButtons = ({
         <View style={styles.container}>
             {viewMode === 'pose' && (
                 <>
-                    <TouchableOpacity 
+                    <HeaderButton
                         style={styles.button} 
                         onPress={onShowPoseInfo}
                         onMouseEnter={() => setHoveredInfo(true)}
@@ -38,10 +40,10 @@ const DetectPoseButtons = ({
                         <LuInfo 
                         size={getIconSize()} 
                         color={hoveredInfo ? theme.button : theme.text} />
-                    </TouchableOpacity>
+                    </HeaderButton>
 
                     {savedLandmarks && savedLandmarks.length > 0 && (
-                        <TouchableOpacity
+                        <HeaderButton
                                 onPress={async () => uploadToS3({
                                     landmarks: savedLandmarks,
                                     svgs: null,
@@ -61,12 +63,13 @@ const DetectPoseButtons = ({
                                   size={getIconSize()}
                                   color={hoveredExport ? theme.button : theme.text}
                                 />
-                              </TouchableOpacity>
+                              </HeaderButton>
                         
                     )}
                     {!isDetecting ? (
-                    <TouchableOpacity 
+                    <HeaderButton 
                         style={styles.button} 
+                        size={getIconSize() * 1.5}
                         onPress={onDetectionStarted}
                         onMouseEnter={() => setHoveredRecord(true)}
                         onMouseLeave={() => setHoveredRecord(false)}
@@ -74,10 +77,11 @@ const DetectPoseButtons = ({
                         <BsRecordCircleFill 
                         size={getIconSize()} 
                         color={hoveredRecord ? theme.button : theme.text} />
-                    </TouchableOpacity>
+                    </HeaderButton>
                     ) : (
-                    <TouchableOpacity 
-                        style={styles.button} 
+                    <HeaderButton 
+                        style={styles.button}
+                        size={getIconSize() * 1.5} 
                         onPress={onDetectionStopped}
                         onMouseEnter={() => setHoveredStop(true)}
                         onMouseLeave={() => setHoveredStop(false)}
@@ -85,7 +89,7 @@ const DetectPoseButtons = ({
                         <FaStopCircle 
                         size={getIconSize()} 
                         color={hoveredStop ? theme.button : theme.text} />
-                    </TouchableOpacity>
+                    </HeaderButton>
                     )}
                 </>
             )}
@@ -114,4 +118,5 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+
 })

@@ -8,7 +8,13 @@ modes:
 - 'pose': Pose recording mode where detected poses are recorded and can be replayed as an animation.
 --------------------------------------------------------------------------------------------------*/
 
-import React, { useEffect, useRef, useState, useCallback, useMemo, use } from 'react';
+import React, { 
+  useEffect, 
+  useRef, 
+  useState, 
+  useCallback, 
+  useMemo, 
+} from 'react';
 import Webcam from 'react-webcam';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
@@ -23,6 +29,7 @@ import { FootCalculator } from '../utils/FootCalculator';
 import ThemedPoseView from '../components/themed_components/ThemedPoseView';
 import { usePoseDetection } from '../hooks/usePoseDetection';
 import PoseInfo from '../components/dropdown/info/PoseInfo';
+import { View } from 'react-native';
 
 const DetectPose = () => {
   
@@ -226,8 +233,15 @@ const DetectPose = () => {
   ------------------------------------------------------------------------------------------------*/
   return (
      <ThemedPoseView>
+      <View 
+      style={{ 
+        position: 'relative', 
+        width: CANVAS_WIDTH, 
+        height: CANVAS_HEIGHT 
+        }}>
         {showPoseInfo && <PoseInfo />}
         {(viewMode === 'svg' || showPoseAnimation) && (
+
           <SvgCanvas
             width={CANVAS_WIDTH}
             height={CANVAS_HEIGHT}
@@ -323,7 +337,8 @@ const DetectPose = () => {
             />
 
           </>
-        )}  
+        )}
+        </View>  
     </ThemedPoseView>
   );
 };

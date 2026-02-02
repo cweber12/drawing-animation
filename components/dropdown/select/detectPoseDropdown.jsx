@@ -1,6 +1,10 @@
 import { StyleSheet, Text, View, useColorScheme, TouchableOpacity} from 'react-native'
 import { Colors } from '../../../constants/Colors';
 import React from 'react'
+import DropdownSelect from '../../button/DropdownSelect';
+import { FaFileVideo } from "react-icons/fa";
+import { RiWebcamFill } from "react-icons/ri";
+import { FaVideo } from "react-icons/fa";
 
 const detectPoseDropdown = ({
         style, 
@@ -11,53 +15,50 @@ const detectPoseDropdown = ({
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
+    const [hoveredVideoSelect, setHoveredVideoSelect] = React.useState(false);
+    const [hoveredRecord, setHoveredRecord] = React.useState(false);
+    const [hoveredLive, setHoveredLive] = React.useState(false);
 
     return (
-        <View style={[
-            style,
-            styles.poseOptionsContainer, 
-            {backgroundColor: theme.navBackground}, 
-            
+        <View 
+            style={[
+                style,
+                styles.poseOptionsContainer, 
             ]}>
-            <TouchableOpacity
-                style={styles.optionButton}  
-                onPress={() => {
-                    onPickVideo && onPickVideo();
-                }}
-            >
+            <DropdownSelect
+                onPress={() => {onPickVideo && onPickVideo();}} >
+                <FaFileVideo
+                    size={24}
+                    color={theme.actionButton} 
+                /> 
                 <Text 
-                    style={[
-                        styles.text, 
-                        { color: theme.text }
-                    ]}>Select Video</Text>
-        
-            </TouchableOpacity>
+                    style={[styles.text, { color: theme.text }]}> 
+                    Select Video </Text>        
+            </DropdownSelect>
             
-            <TouchableOpacity 
-                style={styles.optionButton}
-                onPress={() => {
-                    setPoseView && setPoseView();
-                }}
-            >
+            <DropdownSelect
+                onPress={() => {  setPoseView && setPoseView();}}>
+                <FaVideo
+                    size={24}
+                    color={theme.actionButton}
+                />
                 <Text 
-                    style={[
-                        styles.text, 
-                        { color: theme.text }
-                    ]}>Record Animation</Text>
-            </TouchableOpacity>
+                    style={[ styles.text,  { color: theme.text }]}>
+                    Record Animation</Text>
+            </DropdownSelect>
 
-            <TouchableOpacity 
-                style={styles.optionButton}
+            <DropdownSelect
                 onPress={() => {
                     setSvgView && setSvgView();
                 }}
             >
-            <Text 
-            style={[
-                styles.text, 
-                { color: theme.text }
-            ]}>Live Animation</Text>
-            </TouchableOpacity>
+                <RiWebcamFill size={24} color={theme.actionButton}/>
+                <Text 
+                style={[
+                    styles.text, 
+                    { color: theme.text }
+                ]}>Live Animation</Text>
+            </DropdownSelect>
         </View>
     )
 }
@@ -68,24 +69,27 @@ const styles = StyleSheet.create({
     
     poseOptionsContainer: {
         display: 'flex',
-        width: 'fit-content',
+        width: '280px',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'flex-end',
         textAlign: 'left',
         borderBottomLeftRadius: 8,
         padding: 0,
-        gap: "0.2rem", 
+        gap: "0.2rem",
+        backgroundColor: 'rgba(0,0,0,0.25)',
+        backdropFilter: 'blur(6px)', 
     },
 
     optionButton: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         flex: 1, 
         width: '100%', 
-        textAlign: 'center',
-        alignItems: 'center',
-        justifyContent: 'center',
         paddingVertical: "1rem",
-        paddingHorizontal: "3rem",
+        paddingHorizontal: "1rem",
     },
 
     text: {

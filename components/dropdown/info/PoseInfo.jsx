@@ -42,21 +42,41 @@ export default SketchInfo
 const styles = StyleSheet.create({
     poseInfo: {
         position: 'absolute',
-        top: 10,
-        right: 10,
+        top: 20,
+        right: 0,
         maxWidth: "30vw",
         padding: 10,
         zIndex: 1000,
+        backgroundColor: 'rgba(0,0,0,0.25)',
+        backdropFilter: 'blur(6px)',
+        padding: '1rem',
+        borderBottomLeftRadius: 10,
     }, 
 
     header: {
         fontWeight: 'bold',
         fontSize: 24,
-        marginBottom: "1rem",
+        margin: 0,
+        textDecoration: 'underline',
     },
 
     text: {
-        marginBottom: "1rem",
+        margin: 0,
         fontSize: 20,
+    },
+
+    listItem: {
+        flexDirection: 'row', 
+        alignItems: 'center',
+        marginBottom: '1rem',
+        marginTop: '1rem', 
+        gap: '1rem', 
+    },
+
+    inconColumn: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 2,
     },
 })

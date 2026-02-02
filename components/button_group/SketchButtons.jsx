@@ -58,14 +58,6 @@ const SketchButtons = ({
       >
         <LuInfo/>
       </HeaderButton>
-      {/* EXPORT BUTTON -----------------------------------------------------*/}
-      <HeaderButton
-        onPress={onHandleUploadSvg}
-        onHoverTitle={onHoverTitle}
-        title="SAVE"
-      >
-        <FaFileExport/>
-      </HeaderButton>
 
       {/* CLEAR BUTTON ------------------------------------------------------*/}
       <HeaderButton 
@@ -74,6 +66,15 @@ const SketchButtons = ({
         title="CLEAR"
       >
         <FaTrashAlt/>
+      </HeaderButton>
+
+      {/* EXPORT BUTTON -----------------------------------------------------*/}
+      <HeaderButton
+        onPress={onHandleUploadSvg}
+        onHoverTitle={onHoverTitle}
+        title="SAVE"
+      >
+        <FaFileExport/>
       </HeaderButton>
 
       {/* ERASE BUTTON ------------------------------------------------------*/}
@@ -116,9 +117,6 @@ const SketchButtons = ({
               <FaGear />
             </HeaderButton>
         </View>
-
-
-
       
       {/* ANIMATE BUTTON ----------------------------------------------------*/}
       <HeaderButton
