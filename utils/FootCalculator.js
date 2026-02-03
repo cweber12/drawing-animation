@@ -174,7 +174,6 @@ export class FootCalculator {
     this.currentRightLegAngle = angle;
     this.currentRightLegDirection = direction;
     this._updateAvgRightLegAngle(angle);
-    //console.log("Right Leg Angle (deg): ", (angle * 180 / Math.PI).toFixed(1), " Dir: ", direction);
 
     if (this.rightThetaRef === null) {
       this.rightThetaRef = Math.min(angle - Math.PI / 8, 3 * Math.PI / 4); // init reference

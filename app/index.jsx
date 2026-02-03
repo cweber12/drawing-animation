@@ -1,6 +1,13 @@
-import { StyleSheet, useColorScheme, Platform, Image, View} from 'react-native'
+import { 
+    StyleSheet, 
+    useColorScheme, 
+    Platform, 
+    Image, 
+    View, 
+    Text
+} from 'react-native'
 import React from 'react'
-import { Link } from 'expo-router'
+import { useRouter } from "expo-router";
 import ThemedView from '../components/themed_components/ThemedView';
 import { Colors } from '../constants/Colors';
 import LinkButton from '../components/button/LinkButton';
@@ -12,7 +19,7 @@ const Home = () => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     
-    
+    const router = useRouter();
     return (
         <>
             <ThemedView 
@@ -40,26 +47,26 @@ const Home = () => {
                 <View style={{
                     display: 'flex',
                     flexWrap: 'wrap', 
-                    flexDirection: 'row', 
+                    flexDirection: 'column', 
                     alignItems: 'center', 
                     justifyContent: 'center',
                     gap: 20,
                     
                 }}
                 >
-                    <LinkButton href="/sketchPage">
+                    <LinkButton  href="/sketchPage" >
                         <GiShamblingZombie 
                         color={theme.actionButtonPressed}
                         size={32}
                         style={{ marginRight: 10 }}/>                    
-                        SKETCH & ANIMATE
+                        <Text>SKETCH & ANIMATE</Text>
                     </LinkButton>
-                    <LinkButton href="/viewSavedPoses">
+                    <LinkButton href="/viewSavedPoses" >
                         <GiSpellBook 
                         color={theme.actionButtonPressed}
                         size={32}
                         style={{ marginRight: 10 }}/>
-                        SAVED ANIMATIONS
+                        <Text>SAVED ANIMATIONS</Text>
                     </LinkButton>
                 </View>
             </ThemedView>

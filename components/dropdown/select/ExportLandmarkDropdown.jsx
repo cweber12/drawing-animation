@@ -1,14 +1,13 @@
-import { StyleSheet, Text, View, useColorScheme} from 'react-native'
+import { StyleSheet, Text, View, useColorScheme } from 'react-native'
 import { Colors } from '../../../constants/Colors';
 import React from 'react'
 import DropdownSelect from '../../button/DropdownSelect';
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { IoDownloadOutline } from "react-icons/io5";
 
-
-const ExportSvgDropdown = ({
+const ExportLandmarkDropdown = ({
         style,
-        onDownloadSvgToDevice,
+        onDownloadLandmarksToDevice,
         onUploadToS3, 
 
 }) => {
@@ -22,7 +21,7 @@ const ExportSvgDropdown = ({
                 styles.exportOptionsContainer, 
             ]}>
             <DropdownSelect
-                onPress={() => {onDownloadSvgToDevice && onDownloadSvgToDevice();}} >
+                onPress={() => {onDownloadLandmarksToDevice && onDownloadLandmarksToDevice();}} >
                 <IoDownloadOutline
                     size={24}
                     color={theme.actionButton} 
@@ -47,7 +46,7 @@ const ExportSvgDropdown = ({
     )
 }
 
-export default ExportSvgDropdown
+export default ExportLandmarkDropdown
 
 const styles = StyleSheet.create({
     

@@ -4,34 +4,22 @@
 Main drawing interface for sketching, editing, and exporting SVG body parts.
 ------------------------------------------------------------------------------*/
 
-import React, { 
-    useRef, 
-    useState, 
-    useEffect, 
-    useCallback
-} from 'react';
-import { 
-    View, 
-    StyleSheet, 
-    useWindowDimensions, 
-    useColorScheme, 
-    Platform
-} from 'react-native';
+/* Import libraries
+-----------------------------------------------------------------------------*/
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, useWindowDimensions, useColorScheme, } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useRouter, useNavigation } from 'expo-router';
-import * as FileSystem from 'expo-file-system';
+
 /* Import constants
 -----------------------------------------------------------------------------*/
 import { CANVAS_LANDMARK_MAP} from '../constants/landmarkData';
 import ThemedView from '../components/themed_components/ThemedView';
 import { Colors } from '../constants/Colors';
 import { getSvgSizes } from '../constants/Sizes';
-import { uploadToS3 } from '../utils/s3Utils';
+
 /* Import components
 -----------------------------------------------------------------------------*/
-import BrushSizeSlider from '../components/dropdown/sketch_controls/BrushSizeSlider';
-import ColorPicker from '../components/dropdown/sketch_controls/ColorPicker';
-import DetectPoseDropdown from '../components/dropdown/select/detectPoseDropdown';
 import Head from '../components/canvas/body_parts/Head';
 import Torso from '../components/canvas/body_parts/Torso';
 import RightArm from '../components/canvas/body_parts/RightArm';
@@ -40,49 +28,66 @@ import Legs from '../components/canvas/body_parts/Legs';
 import Feet from '../components/canvas/body_parts/Feet';
 import SketchInfo from '../components/dropdown/info/SketchInfo';
 import SketchControls from '../components/dropdown/sketch_controls/SketchControls';
+import ExportSvgDropdown from '../components/dropdown/select/ExportSvgDropdown';
+import DetectPoseDropdown from '../components/dropdown/select/DetectPoseDropdown';
+
+/* Import utils
+-----------------------------------------------------------------------------*/
+import { uploadToS3 } from '../utils/s3Utils';
 import { downloadSvgToDevice } from '../utils/storageUtils';
-import { set } from 'lodash';
-import ExportSvgDropdown from '../components/dropdown/select/exportSvgDropdown';
 
 const SketchPage = () => {
     
-    /* Navigation and routing for screen transitions
+    /* =========================================================================
+                                CONSTANTS
+    ==========================================================================*/
+    
+    /* Navigation and routing 
     --------------------------------------------------------------------------*/
     const router = useRouter();
     const navigation = useNavigation();
 
-    /* Responsive layout based on screen width
+    /* Get window dimensions and determine if small screen
     --------------------------------------------------------------------------*/
     const { width, height } = useWindowDimensions();
     const isSmallScreen = width < 768;
 
-    /* returns appropriate sizes for SVG canvases based on screen height
+    /* Get SVG sizes based on window height
     --------------------------------------------------------------------------*/
     const sizes = getSvgSizes(height);
-    
-    /* Theme and color scheme
+
+    /* Get current color scheme and theme (light/dark)
     --------------------------------------------------------------------------*/
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     
-    /* States passed to navigation for header buttons
-    --------------------------------------------------------------------------*/
-    // Sketch controls states
-    const [selectedColor, setSelectedColor] = useState(theme.svgStrokeColor);
-    const [strokeWidth, setStrokeWidth] = useState(20);
-    const [showSketchControls, setShowSketchControls] = useState(false);  
-    const [erase, setErase] = useState(false);
+    /*==========================================================================
+                                    STATES
+    ==========================================================================*/
     
-    // viewMode for Detect Pose Display: 'svg' or 'pose'
-    const [viewMode, setViewMode] = useState('svg'); 
-    const [showDetectPoseOptions, setShowDetectPoseOptions] = useState(false);
-    const [svgData, setSvgData] = useState(null);
+    /* Drawing states
+    --------------------------------------------------------------------------*/
+    const [selectedColor, setSelectedColor] = useState(theme.svgStrokeColor);
+    const [strokeWidth, setStrokeWidth] = useState(20);  
+    const [erase, setErase] = useState(false);
 
+    /* Dropdown visibility states
+    --------------------------------------------------------------------------*/
+    const [showDetectPoseOptions, setShowDetectPoseOptions] = useState(false);
+    const [showSketchControls, setShowSketchControls] = useState(false);
     const [showSketchInfo, setShowSketchInfo] = useState(false);
     const [showExportOptions, setShowExportOptions] = useState(false);
+
+    /* SVG data state for upload/download
+    --------------------------------------------------------------------------*/
+    const [svgData, setSvgData] = useState(null);
+    const [viewMode, setViewMode] = useState('svg'); 
     
-    /* Refs for each body part canvas
-    - Ensures canvases can be updated and accessed separately
+    /* =========================================================================
+                                    REFS
+    ==========================================================================*/
+    
+    /* Refs for body part canvases
     --------------------------------------------------------------------------*/
     const bodySvgsRef = useRef({}); 
     const headRef = useRef(null);
@@ -99,63 +104,45 @@ const SketchPage = () => {
     const leftUpperLegRef = useRef(null);
     const leftLowerLegRef = useRef(null);
     const leftFootRef = useRef(null);
+
     
-    /* Common canvas props
-    - CSS doesn't support spreading props, so define common props here
-    - Passed to each body part canvas component
+    /* =========================================================================
+                                    CALLBACKS
+    ==========================================================================*/
+    
+    /* Toggle options for detect pose (upload video, record, or live)
     --------------------------------------------------------------------------*/
-    const canvasProps = {    
-        exportWithBackgroundImage: false, 
-        canvasColor: 'transparent',     
-        svgStyle: { background: 'transparent'} ,
-        strokeWidth: strokeWidth,
-        strokeColor: selectedColor,
-        eraserWidth: strokeWidth, 
-        eraseMode: erase,
-    };
-
-    /* Toggle display of sketch controls
-    --------------------------------------------------------------------------*/
-
     const toggleDetectPoseOptions = useCallback(() => {
+        console.log('SketchPage: Toggling detect pose options: ', showDetectPoseOptions);
         setShowSketchControls(false);
         setShowExportOptions(false);
         setShowSketchInfo(false);
         setShowDetectPoseOptions(prev => !prev);
     }, []);
 
+    /* Toggle sketch settings (brush size, color picker)
+    --------------------------------------------------------------------------*/
     const toggleSettings = useCallback(() => {
+        console.log('SketchPage: Toggling sketch settings: ', showSketchControls);
         setShowDetectPoseOptions(false);
         setShowExportOptions(false);
         setShowSketchInfo(false);
         setShowSketchControls(prev => !prev);
     }, []);
 
+    /* Toggle export options (upload to S3, download to device)
+    --------------------------------------------------------------------------*/
     const toggleExportOptions = useCallback(() => {
         setShowDetectPoseOptions(false);
         setShowSketchControls(false);
         setShowSketchInfo(false);
-        setShowExportOptions(prev => !prev);
+        setShowExportOptions(prev => {
+            console.log('SketchPage: Toggling export options: ', !prev);
+            return !prev;
+        });
     }, []);
 
-    /* Update erase mode on all canvases when erase state changes
-    --------------------------------------------------------------------------*/
-    useEffect(() => {
-        const refs = [
-            headRef, torsoRef,
-            rightUpperArmRef, rightLowerArmRef, rightHandRef,
-            leftUpperArmRef, leftLowerArmRef, leftHandRef,
-            rightUpperLegRef, rightLowerLegRef, rightFootRef,
-            leftUpperLegRef, leftLowerLegRef, leftFootRef
-        ];
-        refs.forEach(ref => {
-            if (ref.current && ref.current.eraseMode) {
-                ref.current.eraseMode(erase);
-            }
-        });
-    }, [erase]);
-
-    /* Clear all canvases (reset) 
+     /* Clear all canvases (reset) 
     --------------------------------------------------------------------------*/
     const clearAll = useCallback(() => {
         headRef.current?.clearCanvas();
@@ -175,9 +162,7 @@ const SketchPage = () => {
         bodySvgsRef.current = {};
     }, []);
 
-    /* Save all canvases as SVGs
-    - saves all body part canvases as SVG strings in bodySvgsRef
-    - exports SVGs as JSON file if exportSvg is true (export button pressed)
+    /* Save all SVGs from body part canvases
     --------------------------------------------------------------------------*/
     const saveAll = useCallback(async () => {
         try {
@@ -218,7 +203,8 @@ const SketchPage = () => {
         }
     }, []);
 
-    
+    /* Handle upload SVGs to S3
+    --------------------------------------------------------------------------*/
     const handleUploadSvg = useCallback(async () => {
         console.log('sketchPage: handleUpload called');
         const svgs = await saveAll();
@@ -230,6 +216,8 @@ const SketchPage = () => {
         });
     }, [saveAll]);
 
+    /* Handle download SVGs to device
+    --------------------------------------------------------------------------*/
     const handleDownloadSvg = useCallback(async () => {
         console.log('sketchPage: handleDownloadSvg called');
         const svgs = await saveAll();
@@ -250,13 +238,12 @@ const SketchPage = () => {
     };
 
     /* Navigate to detectPose screen with SVGs
-    - passes saved SVGs, viewMode, and videoUri as params
-    NOTE: will implement better saving/loading of SVGs later.
     --------------------------------------------------------------------------*/
     const goToDetectPose = useCallback(async (mode, poseVideoUri) => {
         const svgsToSend = await saveAll();
         if (!svgsToSend) return;
 
+        // Navigate to detectPose with SVGs and mode
         router.push({
             pathname: '/detectPose',
             params: {
@@ -268,6 +255,27 @@ const SketchPage = () => {
             },
         });
     }, [router, saveAll, isSmallScreen]);
+
+    /* =========================================================================
+                                    HOOKS
+    ==========================================================================*/
+    
+    /* Update erase mode on all canvases when erase state changes
+    --------------------------------------------------------------------------*/
+    useEffect(() => {
+        const refs = [
+            headRef, torsoRef,
+            rightUpperArmRef, rightLowerArmRef, rightHandRef,
+            leftUpperArmRef, leftLowerArmRef, leftHandRef,
+            rightUpperLegRef, rightLowerLegRef, rightFootRef,
+            leftUpperLegRef, leftLowerLegRef, leftFootRef
+        ];
+        refs.forEach(ref => {
+            if (ref.current && ref.current.eraseMode) {
+                ref.current.eraseMode(erase);
+            }
+        });
+    }, [erase]);
 
     /* Set navigation params for header buttons
     --------------------------------------------------------------------------*/
@@ -299,15 +307,26 @@ const SketchPage = () => {
             toggleSettings,
         ]
     );
+
+    /* =========================================================================
+                                    PROPS
+    ==========================================================================*/
+
+    /* Canvas properties for body part canvases
+    --------------------------------------------------------------------------*/
+    const canvasProps = {    
+        exportWithBackgroundImage: false, 
+        canvasColor: 'transparent',     
+        svgStyle: { background: 'transparent'} ,
+        strokeWidth: strokeWidth,
+        strokeColor: selectedColor,
+        eraserWidth: strokeWidth, 
+        eraseMode: erase,
+    };
     
     /* Render page
     ----------------------------------------------------------------------------
-    Elements: 
-    Sketch controls: brush size, color picker, detect pose options
-    - NOTE: React ColorPicker only supported on web platform. Mobile will use
-      native color picker in future update.
-    Info popup: Instructions for using sketch tools
-    Canvases: body part SVG canvases for drawing
+    Renders body part canvases and dropdowns
     --------------------------------------------------------------------------*/
     return (       
         <View style={[styles.mainContainer, { minWidth: sizes.TOTAL_WIDTH }]}>
@@ -331,8 +350,8 @@ const SketchPage = () => {
             {showExportOptions && (
                 <ExportSvgDropdown
                     style={styles.sketchControls}
-                    downloadSvgToDevice={handleDownloadSvg}
-                    uploadToS3={handleUploadSvg}
+                    onDownloadSvgToDevice={handleDownloadSvg}
+                    onUploadToS3={handleUploadSvg}
                 />
             )}
             

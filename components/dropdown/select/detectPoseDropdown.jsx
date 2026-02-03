@@ -6,7 +6,7 @@ import { FaFileVideo } from "react-icons/fa";
 import { RiWebcamFill } from "react-icons/ri";
 import { FaVideo } from "react-icons/fa";
 
-const detectPoseDropdown = ({
+const DetectPoseDropdown = ({
         style, 
         onPickVideo, 
         setPoseView, 
@@ -60,7 +60,7 @@ const detectPoseDropdown = ({
     )
 }
 
-export default detectPoseDropdown
+export default DetectPoseDropdown
 
 const styles = StyleSheet.create({
     

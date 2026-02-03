@@ -1,4 +1,10 @@
+// app/viewSavedPoses.jsx
 
+/* View Saved Animations Page
+--------------------------------------------------------------------------------
+A page for viewing saved pose landmark files and SVG sketches. Landmarks can be 
+selected and rendered as an animation, and SVGs can be overlaid on the landmarks.
+------------------------------------------------------------------------------*/
 import { 
   ActivityIndicator, 
   TouchableOpacity, 
@@ -9,15 +15,19 @@ import {
   useWindowDimensions, 
 } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
-import ThemedView from '../components/themed_components/ThemedView';
-import PoseCanvas from '../components/canvas/PoseCanvas';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
 import { Colors } from '../constants/Colors';
 import { useColorScheme } from 'react-native';
 import { CANVAS_LANDMARK_MAP } from '../constants/landmarkData';
 import SvgCanvas from '../components/canvas/SvgCanvas';
+import ThemedView from '../components/themed_components/ThemedView';
+import PoseCanvas from '../components/canvas/PoseCanvas';
 import { fetchFiles, downloadLandmarkFile, downloadSvgFile } from '../utils/s3Utils';
-import { Select } from '@tensorflow/tfjs';
+import {
+  selectPoseFolder,
+  listDevicePoseFiles,
+  readDeviceFileText,
+} from "../utils/storageUtils";
 import { GiRaiseZombie } from "react-icons/gi";
 import { FaPencilAlt } from "react-icons/fa";
 
@@ -35,12 +45,16 @@ const ViewSavedPoses = () => {
   const [landmarkFiles, setLandmarkFiles] = useState([]);
   const [svgFiles, setSvgFiles] = useState([]);
   const [selectedSvgString, setSelectedSvgString] = useState(null);
+  const [showDeviceFiles, setShowDeviceFiles] = useState(false);
   const animationRef = useRef(null);
   const window = useWindowDimensions();
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
 
-  // Scale landmarks to canvas
+  /* Scale landmarks to fit target dimensions
+  ------------------------------------------------------------------------------
+  Scales the given landmarks from original dimensions to target dimensions.
+  ----------------------------------------------------------------------------*/
   function scaleLandmarks(landmarks, original, target) {
     if (!landmarks || !Array.isArray(landmarks)) return [];
     const { width: origW, height: origH } = original;
@@ -56,6 +70,37 @@ const ViewSavedPoses = () => {
     );
   }
 
+  /* Choose device folder and load files
+  ------------------------------------------------------------------------------
+  Allows user to select a folder from device storage and loads landmark and SVG 
+  files from that folder.
+  ----------------------------------------------------------------------------*/
+  const chooseDeviceFolderAndLoad = async () => {
+    setLoading(true);
+    try {
+      const ok = await selectPoseFolder();
+      if (!ok) return;
+      setShowDeviceFiles(true);
+      // reset selections
+      setSelectedLandmarkFile(null);
+      setSelectedSvgFile(null);
+      setFrames([]);
+      setSelectedSvgString(null);
+      setLandmarkFiles([]);
+      setSvgFiles([]);
+
+      const { landmarkFiles, svgFiles } = await listDevicePoseFiles();
+      setLandmarkFiles(landmarkFiles);
+      setSvgFiles(svgFiles);
+    } catch (e) {
+      console.error(e);
+      setLandmarkFiles([]);
+      setSvgFiles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Animation effect
   useEffect(() => {
     if (!frames.length) return;
@@ -68,52 +113,127 @@ const ViewSavedPoses = () => {
     return () => animationRef.current && clearInterval(animationRef.current);
   }, [frames]);
 
-  useEffect(() => {
-    fetchFiles(
-      setLoading,
-      setLandmarkFiles,
-      setSvgFiles,
-      setFiles,
-      setSelectedLandmarkFile,
-      setSelectedSvgFile,
-      setFrames,
-      setSelectedSvgString
-    );
-    return () => animationRef.current && clearInterval(animationRef.current);
-  }, []);
 
-  const downloadSvgs = async (fileKey) => {
-    await downloadSvgFile(
-      fileKey,
-      setLoading,
-      setSelectedSvgFile,
-      setSelectedSvgString, 
-      selectedSvgString, 
-    );
+  useEffect(() => {
+    if (showDeviceFiles) {
+      chooseDeviceFolderAndLoad();
+    } else {
+      fetchFiles(
+        setLoading,
+        setLandmarkFiles,
+        setSvgFiles,
+        setFiles,
+        setSelectedLandmarkFile,
+        setSelectedSvgFile,
+        setFrames,
+        setSelectedSvgString
+      );
+      return () => animationRef.current && clearInterval(animationRef.current);
+    }
+  }, [showDeviceFiles]);
+
+  async function handleSelectSvgFile(fileKey) {
+    setLoading(true);
+    setSelectedSvgFile(fileKey);
+    setSelectedSvgString(null);
+
+    try {
+      if (!showDeviceFiles) {
+        // S3
+        await downloadSvgFile(
+          fileKey,
+          setLoading,
+          setSelectedSvgFile,
+          setSelectedSvgString,
+          selectedSvgString
+        );
+        return;
+      }
+
+      // DEVICE
+      const text = await readDeviceFileText(fileKey);
+      const parsed = JSON.parse(text);
+
+      if (!parsed || typeof parsed !== "object") {
+        alert("SVG file JSON is not an object");
+        setSelectedSvgString({});
+        return;
+      }
+
+      setSelectedSvgString(parsed);
+    } catch (e) {
+      console.error("Device SVG load failed:", e);
+      setSelectedSvgString({});
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const downloadLandmarks = async (fileKey) => {
-    await downloadLandmarkFile(
-      fileKey,
-      setLoading,
-      setSelectedLandmarkFile,
-      setFrames,
-      setCurrentFrame,
-      setVideoDimensions,
-      setHeight,
-      setWidth,
-      window,
-    );
+  async function handleSelectLandmarkFile(fileKey) {
+    setLoading(true);
+    setSelectedLandmarkFile(fileKey);
+    setFrames([]);
+    setCurrentFrame(0);
+
+    try {
+      if (!showDeviceFiles) {
+        // S3
+        await downloadLandmarkFile(
+          fileKey,
+          setLoading,
+          setSelectedLandmarkFile,
+          setFrames,
+          setCurrentFrame,
+          setVideoDimensions,
+          setHeight,
+          setWidth,
+          window
+        );
+        return;
+      }
+
+      // DEVICE
+      const text = await readDeviceFileText(fileKey);
+      let parsed;
+        try {
+          parsed = JSON.parse(text);
+        } catch (e) {
+          parsed = {};
+        }
+
+        let loadedLandmarks = [];
+        let loadedDimensions = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
+
+        if (Array.isArray(parsed)) {
+        loadedLandmarks = parsed;
+        } else if (parsed && typeof parsed === 'object') {
+        loadedLandmarks = parsed.landmarks || [];
+        if (parsed.videoDimensions) {
+            loadedDimensions = parsed.videoDimensions;
+        }
+        }
+
+        if (Array.isArray(loadedLandmarks[0])) {
+        setFrames(loadedLandmarks);
+        } else if (loadedLandmarks && typeof loadedLandmarks === 'object') {
+        setFrames([loadedLandmarks]);
+        } else {
+        setFrames([]);
+        }
+        setVideoDimensions(loadedDimensions);
+        setHeight(window.height * 0.7);
+        setWidth((loadedDimensions.width / loadedDimensions.height) * (window.height * 0.7));
+    } catch (e) {
+      console.error("Device landmark load failed:", e);
+      setFrames([]);
+      setVideoDimensions({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
+    } finally {
+      setLoading(false);
+    }
   }
 
-  useEffect(() => {
-    console.log("selectedSvgFile changed:", selectedSvgFile);
-  }, [selectedSvgFile]);
-
-  useEffect(() => {
-    console.log("selectedSvgString changed:", selectedSvgString);
-  }, [selectedSvgString]);
-
+  /* Rendering
+  ----------------------------------------------------------------------------*/
   return (
     <ThemedView 
       style={{ 
@@ -123,131 +243,139 @@ const ViewSavedPoses = () => {
         padding: "2rem",  
         }}>
 
-      <View style={{ flexDirection: 'column'}}>
-      <View 
-        style={{
-          flexDirection: 'row', 
-          alignItems: 'flex-end',
-          justifyContent: 'space-between', 
-          marginBottom: '1rem', 
-          paddingBottom: '0.2rem',
-          borderBottom: `2px solid ${theme.actionButton}`,
-          }}>
-        <GiRaiseZombie 
-          size={42} 
-          color={theme.actionButton} 
-          style={{ marginRight: "1rem" }} />
-        <Text 
-          style={{ 
-            fontSize: 24,
-            fontWeight: 'bold',
-            color: theme.text,
-          }}>
-          Animations
-        </Text>
-      </View>
-      {/* Landmark Files List */}
-      <FlatList
-        style={[
-          styles.list, 
-          {
-            backgroundColor: theme.navBackground, 
-            borderTop: `1px solid ${theme.border}`,
-            borderRight: `1px solid ${theme.border}`,
-            borderLeft: `1px solid ${theme.border}`, 
-            marginBottom: '2rem',
-          }]}
-        data={landmarkFiles}
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => (
+      <View style={{ flexDirection: 'column'}}>        
           <TouchableOpacity
-            style={[
-              styles.listItem, 
-              item === selectedLandmarkFile && styles.selectedListItem, 
-              {borderBottom: `1px solid ${theme.border}`}
-            ]}
-            onPress={() => downloadLandmarks(item)}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = theme.border;
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = 'transparent';
-            }}
+            style={[styles.listItem, { marginBottom: 16, backgroundColor: theme.actionButton }]}
+            onPress={chooseDeviceFolderAndLoad}
           >
-            <Text 
-              style={[
-                styles.listItemText, 
-                { color: item === selectedLandmarkFile ? theme.actionButton : theme.text }]}>
-                {item}
+            <Text style={[styles.listItemText, { color: "#fff", fontWeight: "bold" }]}>
+              Choose Folder
             </Text>
           </TouchableOpacity>
-        )}
-      />
-      
-      {selectedLandmarkFile &&
-        <>
-          <View 
-            style={{
-              flexDirection: 'row', 
-              alignItems: 'center', 
-              justifyContent: 'space-between',
-              marginBottom: '1rem', 
-              borderBottom: `2px solid ${theme.actionButton}`,
-              paddingBottom: '0.2rem',
-              }}>
-            <FaPencilAlt 
-              size={32} 
-              color={theme.actionButton} 
-              style={{ marginRight: "1rem" }} />
-            <Text 
-              style={{ 
-                fontSize: 24,
-                fontWeight: 'bold',
-                color: theme.text,
-                marginBottom: 0,
-              }}>
-              Sketches
-            </Text>
-          </View>
-          {/* SVG Files List */}
-          <FlatList
-            style={[
-              styles.list, 
-              {
-                backgroundColor: theme.navBackground, 
-                borderTop: `1px solid ${theme.border}`,
-                borderRight: `1px solid ${theme.border}`,
-                borderLeft: `1px solid ${theme.border}`,
-                marginBottom: 20,
-              }]}
-            data={svgFiles}
-            keyExtractor={(item) => item}
-            renderItem={({ item }) => (
-              <TouchableOpacity
+        
+        <View 
+          style={{
+            flexDirection: 'row', 
+            alignItems: 'flex-end',
+            justifyContent: 'flex-start', 
+            marginBottom: '1rem', 
+            paddingBottom: '0.2rem',
+            }}>
+          <GiRaiseZombie 
+            size={42} 
+            color={theme.actionButton} 
+            style={{ marginRight: "1rem" }} />
+          <Text 
+            style={{ 
+              fontSize: 24,
+              fontWeight: 'bold',
+              color: theme.text,
+            }}>
+            Animations
+          </Text>
+        </View>
+        {/* Landmark Files List */}
+        <FlatList
+          style={[
+            styles.list, 
+            {
+              backgroundColor: theme.navBackground, 
+              borderTop: `1px solid ${theme.border}`,
+              borderRight: `1px solid ${theme.border}`,
+              borderLeft: `1px solid ${theme.border}`, 
+              marginBottom: '2rem',
+            }]}
+          data={landmarkFiles}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.listItem, 
+                item === selectedLandmarkFile && styles.selectedListItem, 
+                {borderBottom: `1px solid ${theme.border}`}
+              ]}
+              onPress={() => handleSelectLandmarkFile(item)}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = theme.border;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+              }}
+            >
+              <Text 
                 style={[
-                  styles.listItem, 
-                  item === selectedSvgFile && styles.selectedListItem, 
-                  {borderBottom: `1px solid ${theme.border}`}
-                ]}
-                onPress={() => downloadSvgs(item)}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = theme.border;
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                }}
-              >
-                <Text 
+                  styles.listItemText, 
+                  { color: item === selectedLandmarkFile ? theme.actionButton : theme.text }]}>
+                  {item}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+        
+        {selectedLandmarkFile &&
+          <>
+            <View 
+              style={{
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                marginBottom: '1rem', 
+                borderBottom: `2px solid ${theme.actionButton}`,
+                paddingBottom: '0.2rem',
+                }}>
+              <FaPencilAlt 
+                size={32} 
+                color={theme.actionButton} 
+                style={{ marginRight: "1rem" }} />
+              <Text 
+                style={{ 
+                  fontSize: 24,
+                  fontWeight: 'bold',
+                  color: theme.text,
+                  marginBottom: 0,
+                }}>
+                Sketches
+              </Text>
+            </View>
+            {/* SVG Files List */}
+            <FlatList
+              style={[
+                styles.list, 
+                {
+                  backgroundColor: theme.navBackground, 
+                  borderTop: `1px solid ${theme.border}`,
+                  borderRight: `1px solid ${theme.border}`,
+                  borderLeft: `1px solid ${theme.border}`,
+                  marginBottom: 20,
+                }]}
+              data={svgFiles}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
                   style={[
-                    styles.listItemText, 
-                    { color: item === selectedSvgFile ? theme.actionButton : theme.text }]}>
-                    {item}
-                </Text>
-              </TouchableOpacity>
-            )}
-          />
-        </>
-      }
+                    styles.listItem, 
+                    item === selectedSvgFile && styles.selectedListItem, 
+                    {borderBottom: `1px solid ${theme.border}`}
+                  ]}
+                  onPress={() => handleSelectSvgFile(item)}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = theme.border;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  <Text 
+                    style={[
+                      styles.listItemText, 
+                      { color: item === selectedSvgFile ? theme.actionButton : theme.text }]}>
+                      {item}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </>
+        }
       </View>
       {/* Canvas Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>

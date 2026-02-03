@@ -76,6 +76,7 @@ const RootLayout = () => {
                                     savedLandmarks={route.params?.estimatedLandmarks}
                                     isDetecting={route.params?.isDetecting}
                                     onHoverTitle={(title) => setHeaderTitle(title)}
+                                    onToggleExportOptions={route.params?.onToggleExportOptions}
                                 />
                                 <HomeButton />                               
                             </>

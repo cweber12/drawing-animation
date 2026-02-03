@@ -30,6 +30,9 @@ import ThemedPoseView from '../components/themed_components/ThemedPoseView';
 import { usePoseDetection } from '../hooks/usePoseDetection';
 import PoseInfo from '../components/dropdown/info/PoseInfo';
 import { View } from 'react-native';
+import ExportLandmarkDropdown from '../components/dropdown/select/ExportLandmarkDropdown';
+import { downloadLandmarksToDevice } from '../utils/storageUtils';
+import { uploadToS3 } from '../utils/s3Utils';
 
 const DetectPose = () => {
   
@@ -80,6 +83,8 @@ const DetectPose = () => {
   const [naturalVideoHeight, setNaturalVideoHeight] = useState(null);
 
   const footCalculator = useRef(new FootCalculator());
+
+  const [showExportOptions, setShowExportOptions] = useState(false);
   
   /* Ref to Track First Start of Detection
   --------------------------------------------------------------------------------------------------
@@ -133,8 +138,26 @@ const DetectPose = () => {
   /* Toggle Webcam Visibility
   ------------------------------------------------------------------------------------------------*/
   const toggleWebcam = useCallback(() => {
-      setShowWebcam(prev => !prev);
+    setShowWebcam(prev => !prev);
   }, []);
+
+  const toggleExportOptions = useCallback(() => {
+    setShowExportOptions(prev => !prev);
+  }, []);
+
+  const handleDownloadLandmarksToDevice = useCallback(() => {
+    downloadLandmarksToDevice(
+      estimatedLandmarks
+    );
+  }, [estimatedLandmarks]);
+
+  const handleUploadToS3 = useCallback(() => {
+    uploadToS3({
+      landmarks: estimatedLandmarks,
+      svgs: null,
+      fileType: "json",
+    });
+  }, [estimatedLandmarks]);
 
   /* Set Navigation Params for Header Buttons
   --------------------------------------------------------------------------------------------------
@@ -142,8 +165,6 @@ const DetectPose = () => {
   - This effect updates the params when the user clicks a header button
   ------------------------------------------------------------------------------------------------*/
   useEffect(() => {
-    console.log('DetectPose: Updating navigation params for header buttons');
-    console.log('estimatedLandmarks:', estimatedLandmarks);
     navigation.setParams({
       onToggleWebcam: toggleWebcam, // toggle webcam visibility
       onDetectionStarted: () => {
@@ -159,6 +180,7 @@ const DetectPose = () => {
       onShowPoseInfo: () => {
         setShowPoseInfo(prev => !prev);
       },
+      onToggleExportOptions: toggleExportOptions,
       viewMode,
       showPoseAnimation,
       estimatedLandmarks,
@@ -167,6 +189,11 @@ const DetectPose = () => {
   }, [
     navigation,
     toggleWebcam,
+    toggleExportOptions,
+    setIsDetecting,
+    setShowPoseAnimation,
+    setSavedLandmarks,
+    setShowPoseInfo,
     viewMode,
     showPoseAnimation,
     estimatedLandmarks,
@@ -239,105 +266,111 @@ const DetectPose = () => {
         width: CANVAS_WIDTH, 
         height: CANVAS_HEIGHT 
         }}>
-        {showPoseInfo && <PoseInfo />}
-        {(viewMode === 'svg' || showPoseAnimation) && (
-
-          <SvgCanvas
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
-            webcamWidth={webcamWidth}
-            webcamHeight={webcamHeight}
-            landmarks={landmarks}
-            savedLandmarks={estimatedLandmarks}
-            replay={showPoseAnimation}
-            svgs={svgs}
-            mapping={mapping}
-            armOrientation={armOrientation}
-            videoLoaded={videoLoaded}
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              zIndex: 1,
-              width: CANVAS_WIDTH,
-              height: CANVAS_HEIGHT,
-            }}
-          />
-        )}
-        {(viewMode === 'svg' || (viewMode === 'pose' && !showPoseAnimation)) && (
-          <>
-            {videoUri ? (
-              <video
-                ref={videoRef}
-                src={videoUri}
-                controls
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: 0,
-                  zIndex: 2,
-                  height: CANVAS_HEIGHT,
-                  width: CANVAS_WIDTH,
-                  
-                  background: '#000',
-                }}
-                onLoadedMetadata={() => {
-                  const video = videoRef.current;
-                  if (video) {
-                    setNaturalVideoWidth(video.videoWidth);
-                    setNaturalVideoHeight(video.videoHeight);
-                    video.play();
-                  }
-                  setVideoLoaded(true);
-                }}
-              />
-            ) : (
-              <Webcam
-                ref={webcamRef}
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: 0,
-                  zIndex: 2,
-                  visibility: showWebcam ? 'visible' : 'hidden',
-                  width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
-                  height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
-                }}
-                videoConstraints={{
-                  width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
-                  height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
-                  facingMode: 'user',
-                }}
-              />
-            )}
-            <PoseCanvas
-              width={
-                viewMode === 'pose'
-                  ? (videoUri
-                      ? CANVAS_WIDTH
-                      : naturalVideoWidth || CANVAS_WIDTH)
-                  : webcamWidth
-              }
-              height={
-                viewMode === 'pose'
-                  ? (videoUri
-                      ? CANVAS_HEIGHT
-                      : naturalVideoHeight || CANVAS_HEIGHT)
-                  : webcamHeight
-              }
+          {showExportOptions && (
+            <ExportLandmarkDropdown
+              onDownloadLandmarksToDevice={handleDownloadLandmarksToDevice}
+              onUploadToS3={handleUploadToS3}
+            />
+          )}
+          {showPoseInfo && <PoseInfo />}
+          {(viewMode === 'svg' || showPoseAnimation) && (
+            <SvgCanvas
+              width={CANVAS_WIDTH}
+              height={CANVAS_HEIGHT}
+              webcamWidth={webcamWidth}
+              webcamHeight={webcamHeight}
               landmarks={landmarks}
+              savedLandmarks={estimatedLandmarks}
+              replay={showPoseAnimation}
+              svgs={svgs}
+              mapping={mapping}
+              armOrientation={armOrientation}
+              videoLoaded={videoLoaded}
               style={{
                 position: 'absolute',
                 left: 0,
                 top: 0,
-                zIndex: 3,
-                width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
-                height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
+                zIndex: 1,
+                width: CANVAS_WIDTH,
+                height: CANVAS_HEIGHT,
               }}
             />
 
-          </>
-        )}
+          )}
+          {(viewMode === 'svg' || (viewMode === 'pose' && !showPoseAnimation)) && (
+            <>
+              {videoUri ? (
+                <video
+                  ref={videoRef}
+                  src={videoUri}
+                  controls
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    zIndex: 2,
+                    height: CANVAS_HEIGHT,
+                    width: CANVAS_WIDTH,
+                    
+                    background: '#000',
+                  }}
+                  onLoadedMetadata={() => {
+                    const video = videoRef.current;
+                    if (video) {
+                      setNaturalVideoWidth(video.videoWidth);
+                      setNaturalVideoHeight(video.videoHeight);
+                      video.play();
+                    }
+                    setVideoLoaded(true);
+                  }}
+                />
+              ) : (
+                <Webcam
+                  ref={webcamRef}
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    zIndex: 2,
+                    visibility: showWebcam ? 'visible' : 'hidden',
+                    width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
+                    height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
+                  }}
+                  videoConstraints={{
+                    width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
+                    height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
+                    facingMode: 'user',
+                  }}
+                />
+              )}
+              <PoseCanvas
+                width={
+                  viewMode === 'pose'
+                    ? (videoUri
+                        ? CANVAS_WIDTH
+                        : naturalVideoWidth || CANVAS_WIDTH)
+                    : webcamWidth
+                }
+                height={
+                  viewMode === 'pose'
+                    ? (videoUri
+                        ? CANVAS_HEIGHT
+                        : naturalVideoHeight || CANVAS_HEIGHT)
+                    : webcamHeight
+                }
+                landmarks={landmarks}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  zIndex: 3,
+                  width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
+                  height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
+                }}
+              />
+
+            </>
+          )}
         </View>  
     </ThemedPoseView>
   );

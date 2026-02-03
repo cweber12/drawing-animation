@@ -119,7 +119,6 @@ const SvgCanvas = ({
     let scaledLandmarks = null;
     if (replay) {
       scaledLandmarks = displayLandmarks; 
-      console.log('Using replay landmarks without scaling');
     } else {
       scaledLandmarks = displayLandmarks.map(kp =>
         kp

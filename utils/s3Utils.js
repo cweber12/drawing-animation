@@ -13,9 +13,9 @@ export const uploadToS3 = async ({
     svgs,
     fileType,
 }) => {
+    console.log("uploading landmarks to s3: ", landmarks);
     const videoDimensions = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
-    console.log("uploadToS3 - landmarks:", landmarks);
-    console.log("uploadToS3 - svgs:", svgs);
+    console.log("uploadToS3 - videoDimensions:", videoDimensions);
 
     if (fileType === 'json' && (!landmarks || landmarks.length === 0)) {
         Alert.alert('No landmarks to upload');
@@ -31,6 +31,8 @@ export const uploadToS3 = async ({
     const timestamp = Date.now();
     const key = fileType === 'json' ? `landmarks/${timestamp}.json` : `svgs/${timestamp}.svg`;
     const url = `${API_BASE}/${bucket}/${key}`;
+    const landmarkPayload = JSON.stringify({ landmarks, videoDimensions });
+    console.log("landmarkPayload:", landmarkPayload);
     try {
         const response = await fetch(url, {
             method: 'PUT',
@@ -140,8 +142,11 @@ export const downloadLandmarkFile = async (
         setFrames([]);
         }
         setVideoDimensions(loadedDimensions);
+        console.log("Downloaded landmark file dimensions:", loadedDimensions);
         setHeight(window.height * 0.7);
         setWidth((loadedDimensions.width / loadedDimensions.height) * (window.height * 0.7));
+        console.log("Set width:", (loadedDimensions.width / loadedDimensions.height) * (window.height * 0.7));
+        console.log("Set height:", window.height * 0.7);
     } catch (err) {
         setFrames([]);
         setVideoDimensions({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });

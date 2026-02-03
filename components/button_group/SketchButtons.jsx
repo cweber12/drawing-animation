@@ -1,21 +1,16 @@
-import { 
-  View, 
-  StyleSheet, 
-  useColorScheme,
-} from 'react-native';
-import { Colors } from '../../constants/Colors';
+import { View, StyleSheet } from 'react-native';
+import React from 'react';
+import { FaGear } from "react-icons/fa6";
+import { LuInfo } from "react-icons/lu";
+import { GiRaiseZombie } from "react-icons/gi";
 import { 
   FaTrashAlt, 
   FaFileExport,
   FaEraser, 
   FaPencilAlt, 
 } from 'react-icons/fa';
-import { getIconSize } from '../../constants/Sizes';
-import React from 'react';
-import { FaGear } from "react-icons/fa6";
-import { LuInfo } from "react-icons/lu";
-import { GiRaiseZombie } from "react-icons/gi";
 import HeaderButton from '../button/HeaderButton';
+import { getIconSize } from '../../constants/Sizes';
 
 
 /* Header buttons for the SketchPage
@@ -30,7 +25,6 @@ Animate: Opens detect pose options to animate sketch
 ------------------------------------------------------------------------------*/
 const SketchButtons = ({ 
   eraseMode,
-  strokeColor,
   onClear, 
   setEraseMode,
   onShowSketchInfo,
@@ -39,8 +33,7 @@ const SketchButtons = ({
   onToggleExportOptions,
   onToggleSettings,
 }) => {
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] ?? Colors.light; 
+
     const [showSettings, setShowSettings] = React.useState(false);
   
     return (
@@ -99,20 +92,19 @@ const SketchButtons = ({
         <FaPencilAlt />
       </HeaderButton>
       
-      {/* SKETCH CONTROLS BUTTON -------------------------------------------------*/}
-        
-        <View style={styles.buttonColumn}>
-          <HeaderButton 
-            onPress={() => {
-              setShowSettings(!showSettings);
-              onToggleSettings && onToggleSettings(!showSettings);
-            }}
-            onHoverTitle={onHoverTitle}
-            title="BRUSH SIZE & COLOR"
-            >
-              <FaGear />
-            </HeaderButton>
-        </View>
+      {/* SKETCH CONTROLS BUTTON --------------------------------------------*/}  
+      <View style={styles.buttonColumn}>
+        <HeaderButton 
+          onPress={() => {
+            setShowSettings(!showSettings);
+            onToggleSettings && onToggleSettings(!showSettings);
+          }}
+          onHoverTitle={onHoverTitle}
+          title="BRUSH SIZE & COLOR"
+          >
+            <FaGear />
+          </HeaderButton>
+      </View>
       
       {/* ANIMATE BUTTON ----------------------------------------------------*/}
       <HeaderButton
