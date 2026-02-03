@@ -33,7 +33,7 @@ import { usePoseDetection } from '../hooks/usePoseDetection';
 
 /* Import components
 ------------------------------------------------------------------------------*/
-import ThemedPoseView from '../components/themed_components/ThemedPoseView';
+import ThemedPoseView from '../components/view/PoseView';
 import SvgCanvas from '../components/canvas/SvgCanvas';
 import PoseCanvas from '../components/canvas/PoseCanvas';
 import ExportLandmarkDropdown from '../components/dropdown/select/ExportLandmarkDropdown';
@@ -114,6 +114,7 @@ const DetectPose = () => {
   /* ===========================================================================
                               MEMOIZED VALUES
   ============================================================================*/
+  
   /* Filter saved landmarks to remove low-confidence points (score < 0.3)
   ----------------------------------------------------------------------------*/
   const filteredLandmarks = useMemo(() =>

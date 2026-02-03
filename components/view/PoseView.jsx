@@ -1,19 +1,19 @@
 import { View, useColorScheme } from 'react-native'
 import { Colors } from '../../constants/Colors'
-import { CANVAS_WIDTH, CANVAS_HEIGHT, getWebcamDimensions } from '../../constants/Sizes';
+import { CANVAS_HEIGHT } from '../../constants/Sizes';
+import ThemedView from './ThemedView';
 
-const ThemedPoseView = ({ children }) => {
+const PoseView = ({ children }) => {
   const colorScheme = useColorScheme()
   const theme = Colors[colorScheme] ?? Colors.light
 
   return (
-    <View 
+    <ThemedView 
         style={[
           {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: theme.background, 
             width: "100vw",
             height: CANVAS_HEIGHT,
             flex: 1,
@@ -23,8 +23,8 @@ const ThemedPoseView = ({ children }) => {
         ]}
     >
       {children}
-    </View>
+    </ThemedView>
   )
 }
 
-export default ThemedPoseView
+export default PoseView

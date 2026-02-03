@@ -1,7 +1,7 @@
 import { View, StyleSheet, useColorScheme} from 'react-native'
 import React, { useRef } from 'react';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
-import CanvasWrapper from '../../themed_components/ThemedCanvasWrapper';
+import CanvasWrapper from '../../view/CanvasView';
 import { Colors } from '../../../constants/Colors';
 
 const Feet = ({ 

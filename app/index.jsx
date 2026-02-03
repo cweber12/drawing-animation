@@ -2,19 +2,25 @@ import {
     useColorScheme, 
     Platform, 
     View, 
-    Text
+    Text, 
+    Image
 } from 'react-native'
 import React from 'react'
-import ThemedView from '../components/themed_components/ThemedView';
+import ThemedView from '../components/view/ThemedView';
 import { Colors } from '../constants/Colors';
 import LinkButton from '../components/button/LinkButton';
-import { GiShamblingZombie } from "react-icons/gi";
+import { GiRaiseZombie } from "react-icons/gi";
 import { GiSpellBook } from "react-icons/gi";
+import logoLight from "../assets/icon-light.png";
+import logoDark from "../assets/icon-dark.png";
+import { GiSkeletonInside } from "react-icons/gi";
+import { FaFolderOpen } from "react-icons/fa";
 
 const Home = () => {
 
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
+    const logo = colorScheme === "dark" ? logoDark : logoLight;
     
     return (
         <>
@@ -30,33 +36,24 @@ const Home = () => {
             
                 }}
             >
-                {colorScheme === 'dark' ? (
-                <img
-                    src="icon-dark.png"
-                    alt="App Icon"
-                    style={{ width: "400px", height: "auto", marginBottom: 32 }}
+                <Image
+                    source={logo}
+                    style={{ width: 400, height: 300 }}
+                    resizeMode="contain"
                 />
-                ) : (
-                <img
-                    src="icon-light.png"
-                    alt="App Icon"
-                    style={{ width: "400px", height: "auto", marginBottom: 32 }}
-                />
-                )}
                 <View style={{
                     display: 'flex',
                     flexWrap: 'wrap', 
                     flexDirection: 'column', 
                     alignItems: 'center', 
                     justifyContent: 'center',
-                    gap: 20,
-                    
+                    gap: 20,    
                 }}
                 >
                     <LinkButton  href="/sketchPage" >
-                        <GiShamblingZombie 
+                        <GiRaiseZombie 
                         color={theme.actionButtonPressed}
-                        size={32}
+                        size={42}
                         style={{ marginRight: 10 }}/>
                         <Text 
                         style={{ 
@@ -67,7 +64,7 @@ const Home = () => {
                     </LinkButton>
 
                     <LinkButton href="/viewSavedPoses" >
-                        <GiSpellBook 
+                        <FaFolderOpen 
                         color={theme.actionButtonPressed}
                         size={32}
                         style={{ marginRight: 10 }}/>

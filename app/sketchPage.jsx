@@ -14,7 +14,7 @@ import { useRouter, useNavigation } from 'expo-router';
 /* Import constants
 -----------------------------------------------------------------------------*/
 import { CANVAS_LANDMARK_MAP} from '../constants/landmarkData';
-import ThemedView from '../components/themed_components/ThemedView';
+import ThemedView from '../components/view/ThemedView';
 import { Colors } from '../constants/Colors';
 import { getSvgSizes } from '../constants/Sizes';
 

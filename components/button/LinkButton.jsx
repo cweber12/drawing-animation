@@ -21,7 +21,7 @@ const LinkButton = ({ children, href, params }) => {
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: 'space-evenly',
           padding: 10,
           borderRadius: 10,
           marginBottom: 10,

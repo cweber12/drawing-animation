@@ -15,45 +15,72 @@ import {
   useWindowDimensions, 
 } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigation } from 'expo-router';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
 import { Colors } from '../constants/Colors';
 import { useColorScheme } from 'react-native';
 import { CANVAS_LANDMARK_MAP } from '../constants/landmarkData';
-import SvgCanvas from '../components/canvas/SvgCanvas';
-import ThemedView from '../components/themed_components/ThemedView';
-import PoseCanvas from '../components/canvas/PoseCanvas';
 import { fetchFiles, downloadLandmarkFile, downloadSvgFile } from '../utils/s3Utils';
 import {
   selectPoseFolder,
   listDevicePoseFiles,
   readDeviceFileText,
 } from "../utils/storageUtils";
-import { GiRaiseZombie } from "react-icons/gi";
+
 import { FaPencilAlt } from "react-icons/fa";
+import { GiSkeleton, GiShamblingZombie } from "react-icons/gi";
+import SvgCanvas from '../components/canvas/SvgCanvas';
+import ThemedView from '../components/view/ThemedView';
+import PoseCanvas from '../components/canvas/PoseCanvas';
+import DropdownSelect from '../components/button/DropdownSelect';
+import { BsPersonRaisedHand } from "react-icons/bs";
 
 
 const ViewSavedPoses = () => {
-  const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [frames, setFrames] = useState([]);
-  const [videoDimensions, setVideoDimensions] = useState({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
-  const [width, setWidth] = useState(CANVAS_WIDTH);
-  const [height, setHeight] = useState(CANVAS_HEIGHT);
-  const [selectedLandmarkFile, setSelectedLandmarkFile] = useState(null);
-  const [selectedSvgFile, setSelectedSvgFile] = useState(null);
-  const [currentFrame, setCurrentFrame] = useState(0);
-  const [landmarkFiles, setLandmarkFiles] = useState([]);
-  const [svgFiles, setSvgFiles] = useState([]);
-  const [selectedSvgString, setSelectedSvgString] = useState(null);
-  const [showDeviceFiles, setShowDeviceFiles] = useState(false);
-  const animationRef = useRef(null);
+  
+  const navigation = useNavigation();
   const window = useWindowDimensions();
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
+  
+  /*============================================================================
+                                STATE 
+  ============================================================================*/
+  // Video dimensions from loaded landmark file
+  const [videoDimensions, setVideoDimensions] = 
+    useState({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
 
+  // Canvas dimensions
+  const [width, setWidth] = useState(CANVAS_WIDTH);
+  const [height, setHeight] = useState(CANVAS_HEIGHT);
+  
+  // Loading and file selection state
+  const [loading, setLoading] = useState(false);
+  const [selectedLandmarkFile, setSelectedLandmarkFile] = useState(null);
+  const [selectedSvgFile, setSelectedSvgFile] = useState(null);
+  const [currentFrame, setCurrentFrame] = useState(0);
+
+  // Lists of files
+  const [files, setFiles] = useState([]);
+  // Frames and landmark data
+  const [frames, setFrames] = useState([]);
+  const [landmarkFiles, setLandmarkFiles] = useState([]);
+  // SVG data
+  const [svgFiles, setSvgFiles] = useState([]);
+  const [selectedSvgString, setSelectedSvgString] = useState(null);
+  // Conditional rendering and file loading (S3 or device)
+  const [showDeviceFiles, setShowDeviceFiles] = useState(false);
+
+  /*============================================================================
+                             REFS
+  ============================================================================*/
+  const animationRef = useRef(null);
+
+  /*============================================================================
+                            FUNCTIONS
+  ============================================================================*/
+  
   /* Scale landmarks to fit target dimensions
-  ------------------------------------------------------------------------------
-  Scales the given landmarks from original dimensions to target dimensions.
   ----------------------------------------------------------------------------*/
   function scaleLandmarks(landmarks, original, target) {
     if (!landmarks || !Array.isArray(landmarks)) return [];
@@ -71,9 +98,6 @@ const ViewSavedPoses = () => {
   }
 
   /* Choose device folder and load files
-  ------------------------------------------------------------------------------
-  Allows user to select a folder from device storage and loads landmark and SVG 
-  files from that folder.
   ----------------------------------------------------------------------------*/
   const chooseDeviceFolderAndLoad = async () => {
     setLoading(true);
@@ -101,37 +125,8 @@ const ViewSavedPoses = () => {
     }
   };
 
-  // Animation effect
-  useEffect(() => {
-    if (!frames.length) return;
-    if (frames.length === 1) return;
-    animationRef.current && clearInterval(animationRef.current);
-    setCurrentFrame(0);
-    animationRef.current = setInterval(() => {
-      setCurrentFrame(prev => (prev + 1) % frames.length);
-    }, 60);
-    return () => animationRef.current && clearInterval(animationRef.current);
-  }, [frames]);
-
-
-  useEffect(() => {
-    if (showDeviceFiles) {
-      chooseDeviceFolderAndLoad();
-    } else {
-      fetchFiles(
-        setLoading,
-        setLandmarkFiles,
-        setSvgFiles,
-        setFiles,
-        setSelectedLandmarkFile,
-        setSelectedSvgFile,
-        setFrames,
-        setSelectedSvgString
-      );
-      return () => animationRef.current && clearInterval(animationRef.current);
-    }
-  }, [showDeviceFiles]);
-
+  /* Handle selecting an SVG file
+  ----------------------------------------------------------------------------*/
   async function handleSelectSvgFile(fileKey) {
     setLoading(true);
     setSelectedSvgFile(fileKey);
@@ -169,6 +164,8 @@ const ViewSavedPoses = () => {
     }
   }
 
+  /* Handle selecting a landmark file
+  ----------------------------------------------------------------------------*/
   async function handleSelectLandmarkFile(fileKey) {
     setLoading(true);
     setSelectedLandmarkFile(fileKey);
@@ -222,7 +219,10 @@ const ViewSavedPoses = () => {
         }
         setVideoDimensions(loadedDimensions);
         setHeight(window.height * 0.7);
-        setWidth((loadedDimensions.width / loadedDimensions.height) * (window.height * 0.7));
+        setWidth(
+          (loadedDimensions.width / loadedDimensions.height) * 
+          (window.height * 0.7)
+        );
     } catch (e) {
       console.error("Device landmark load failed:", e);
       setFrames([]);
@@ -232,8 +232,55 @@ const ViewSavedPoses = () => {
     }
   }
 
-  /* Rendering
+  /*============================================================================
+                            EFFECTS
+  ============================================================================*/
+  
+  /* Animate through frames for pose replay
   ----------------------------------------------------------------------------*/
+  useEffect(() => {
+    if (!frames.length) return;
+    if (frames.length === 1) return;
+    animationRef.current && clearInterval(animationRef.current);
+    setCurrentFrame(0);
+    animationRef.current = setInterval(() => {
+      setCurrentFrame(prev => (prev + 1) % frames.length);
+    }, 60);
+    return () => animationRef.current && clearInterval(animationRef.current);
+  }, [frames]);
+
+  /* Load files from S3 or device on mount or when showDeviceFiles changes
+  ----------------------------------------------------------------------------*/
+  useEffect(() => {
+    if (showDeviceFiles) {
+      chooseDeviceFolderAndLoad();
+    } else {
+      fetchFiles(
+        setLoading,
+        setLandmarkFiles,
+        setSvgFiles,
+        setFiles,
+        setSelectedLandmarkFile,
+        setSelectedSvgFile,
+        setFrames,
+        setSelectedSvgString
+      );
+      return () => animationRef.current && clearInterval(animationRef.current);
+    }
+  }, [showDeviceFiles]);
+
+  useEffect(() => {
+    navigation.setParams({
+      title: showDeviceFiles ? "Device Animations" : "S3 Animations",
+      showDeviceFiles: showDeviceFiles,
+      onSetShowDeviceFiles: () => setShowDeviceFiles(prev => !prev),
+    });
+  }, [showDeviceFiles]);
+
+
+  /*============================================================================
+                                RENDER 
+  ============================================================================*/
   return (
     <ThemedView 
       style={{ 
@@ -243,16 +290,7 @@ const ViewSavedPoses = () => {
         padding: "2rem",  
         }}>
 
-      <View style={{ flexDirection: 'column'}}>        
-          <TouchableOpacity
-            style={[styles.listItem, { marginBottom: 16, backgroundColor: theme.actionButton }]}
-            onPress={chooseDeviceFolderAndLoad}
-          >
-            <Text style={[styles.listItemText, { color: "#fff", fontWeight: "bold" }]}>
-              Choose Folder
-            </Text>
-          </TouchableOpacity>
-        
+      <View style={{ flexDirection: 'column'}}>               
         <View 
           style={{
             flexDirection: 'row', 
@@ -261,8 +299,8 @@ const ViewSavedPoses = () => {
             marginBottom: '1rem', 
             paddingBottom: '0.2rem',
             }}>
-          <GiRaiseZombie 
-            size={42} 
+          <GiSkeleton 
+            size={50} 
             color={theme.actionButton} 
             style={{ marginRight: "1rem" }} />
           <Text 
@@ -271,7 +309,7 @@ const ViewSavedPoses = () => {
               fontWeight: 'bold',
               color: theme.text,
             }}>
-            Animations
+            Pose Skeletons
           </Text>
         </View>
         {/* Landmark Files List */}
@@ -279,7 +317,6 @@ const ViewSavedPoses = () => {
           style={[
             styles.list, 
             {
-              backgroundColor: theme.navBackground, 
               borderTop: `1px solid ${theme.border}`,
               borderRight: `1px solid ${theme.border}`,
               borderLeft: `1px solid ${theme.border}`, 
@@ -288,27 +325,14 @@ const ViewSavedPoses = () => {
           data={landmarkFiles}
           keyExtractor={(item) => item}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.listItem, 
-                item === selectedLandmarkFile && styles.selectedListItem, 
-                {borderBottom: `1px solid ${theme.border}`}
-              ]}
-              onPress={() => handleSelectLandmarkFile(item)}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = theme.border;
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'transparent';
-              }}
-            >
+            <DropdownSelect onPress={() => handleSelectLandmarkFile(item)} >
               <Text 
                 style={[
                   styles.listItemText, 
                   { color: item === selectedLandmarkFile ? theme.actionButton : theme.text }]}>
                   {item}
               </Text>
-            </TouchableOpacity>
+            </DropdownSelect>
           )}
         />
         
@@ -318,13 +342,12 @@ const ViewSavedPoses = () => {
               style={{
                 flexDirection: 'row', 
                 alignItems: 'center', 
-                justifyContent: 'space-between',
+                justifyContent: 'flex-start',
                 marginBottom: '1rem', 
-                borderBottom: `2px solid ${theme.actionButton}`,
                 paddingBottom: '0.2rem',
                 }}>
-              <FaPencilAlt 
-                size={32} 
+              <BsPersonRaisedHand 
+                size={50} 
                 color={theme.actionButton} 
                 style={{ marginRight: "1rem" }} />
               <Text 
@@ -342,7 +365,6 @@ const ViewSavedPoses = () => {
               style={[
                 styles.list, 
                 {
-                  backgroundColor: theme.navBackground, 
                   borderTop: `1px solid ${theme.border}`,
                   borderRight: `1px solid ${theme.border}`,
                   borderLeft: `1px solid ${theme.border}`,
@@ -421,9 +443,11 @@ export default ViewSavedPoses;
 const styles = StyleSheet.create({
   list: {
     width: 320,
-    maxHeight: '80vh',
+    maxHeight: '25vh',
+    overflowY: 'auto',
     maxWidth: 320,
     flexShrink: 0,
+    backgroundColor: 'rgba(0,0,0,0.25)',
   },
   listItem: {
     paddingVertical: "1rem",

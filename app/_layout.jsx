@@ -6,6 +6,7 @@ import { View } from 'react-native-web'
 import { Colors } from '../constants/Colors'
 import SketchButtons from '../components/button_group/SketchButtons';
 import DetectPoseButtons from '../components/button_group/detectPoseButtons';
+import ViewSavedButtons from '../components/button_group/ViewSavedButtons';
 import { FaHouseDamage } from "react-icons/fa";
 import HeaderButton from '../components/button/HeaderButton'
 
@@ -19,9 +20,14 @@ const HomeButton = () => {
     const [hoveredHome, setHoveredHome] = useState(false);
 
     return (
-        <View style={{ marginRight: "2rem" }}>
+        <View style={{ marginLeft: "2rem" }}>
             <HeaderButton  onPress={() => router.replace('/')} >
-                <FaHouseDamage />
+                <FaHouseDamage 
+                    size={28} 
+                    color={hoveredHome ? theme.actionButtonHovered : theme.actionButton} 
+                    onMouseEnter={() => setHoveredHome(true)} 
+                    onMouseLeave={() => setHoveredHome(false)}
+                />
             </HeaderButton>
         </View>
     );
@@ -49,7 +55,9 @@ const RootLayout = () => {
                     borderBottomWidth: 0,
                     elevation: 0, // remove shadow on Android
                     shadowOpacity: 0, // remove shadow on iOS
-                    height: isSmallScreen ? 60 : 80,
+                    height: isSmallScreen ? 60 : 100,
+                    paddingLeft: isSmallScreen ? 10 : 20,
+                    alignItems: 'center',
                 },
                 headerTintColor: theme.title,
                 headerTitleStyle: {
@@ -62,8 +70,7 @@ const RootLayout = () => {
                     name="detectPose"
                     options={({ route }) => ({
                         title: route.params?.viewMode === 'svg' ? 'Live Animation' : 'Create Animation',
-                        headerRight: () => (
-                            <>                              
+                        headerRight: () => (                         
                                 <DetectPoseButtons
                                     viewMode={route.params?.viewMode}
                                     showPoseAnimation={route.params?.showPoseAnimation}
@@ -75,8 +82,9 @@ const RootLayout = () => {
                                     isDetecting={route.params?.isDetecting}
                                     onHoverTitle={(title) => setHeaderTitle(title)}
                                     onToggleExportOptions={route.params?.onToggleExportOptions} />
+                        ),
+                        headerLeft: () => (
                                 <HomeButton />                               
-                            </>
                         ),
                     })}
                 />  
@@ -84,8 +92,7 @@ const RootLayout = () => {
                     name="sketchPage"
                     options={({ route }) => ({
                         title: headerTitle,
-                        headerRight: () => (
-                            <>       
+                        headerRight: () => (   
                                 <SketchButtons
                                     eraseMode={route.params?.eraseMode}
                                     strokeColor={route.params?.strokeColor}
@@ -98,8 +105,9 @@ const RootLayout = () => {
                                     svgData={route.params?.svgData}
                                     onToggleExportOptions={route.params?.onToggleExportOptions}
                                     onToggleSettings={route.params?.onToggleSettings} />
+                        ),
+                        headerLeft: () => (
                                 <HomeButton />    
-                            </>
                         ),
                     })}
                 />
@@ -107,8 +115,15 @@ const RootLayout = () => {
                     name="viewSavedPoses" 
                     options={({ route }) => ({ 
                         title: 'Saved Content' ,
-                        headerRight: () => (
+                        headerLeft: () => (
+                        <>
                         <HomeButton />
+                        <ViewSavedButtons
+                            showDeviceFiles={route.params?.showDeviceFiles}
+                            onSetShowDeviceFiles={route.params?.onSetShowDeviceFiles}
+                            onHoverTitle={(title) => setHeaderTitle(title)}
+                            title={route.params?.title || 'Saved Animations'} />
+                        </>
                     ),
                 })}
 

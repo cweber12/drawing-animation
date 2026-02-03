@@ -3,7 +3,7 @@ import React from 'react'
 import { Colors } from '../../constants/Colors';
 
 
-const CanvasWrapper = ({ style, children }) => {
+const CanvasView = ({ style, children }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     return (
@@ -19,7 +19,7 @@ const CanvasWrapper = ({ style, children }) => {
     )
 }
 
-export default CanvasWrapper
+export default CanvasView
 
 const styles = StyleSheet.create({
     canvasWrapper: {
