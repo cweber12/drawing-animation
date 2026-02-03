@@ -26,13 +26,14 @@ import {
 Sets the torso anchors and draws the torso SVG onto the canvas using an affine
 transform to fit the svg to detected shoulder and hip positions.
 ------------------------------------------------------------------------------*/
-export function setTorsoAnchors({
+export function setTorsoAnchorsAndDraw({
   ctx,
   img,
   svgW,
   svgH,
   scaledLandmarks,
   map,
+  torsoDims,
 }) {
   const tl = scaledLandmarks[map.topLeft];
   const tr = scaledLandmarks[map.topRight];
@@ -45,15 +46,15 @@ export function setTorsoAnchors({
 
   const shoulderWidth = tr.x - tl.x;
   const offset = shoulderWidth / 2;
-
-  updateAvgTorsoHeight(
+  
+  torsoDims.updateAvgTorsoHeight(
     Math.hypot(
       (tl.x + tr.x) / 2 - (bl.x + br.x) / 2,
       (tl.y + tr.y) / 2 - (bl.y + br.y) / 2
     )
   );
 
-  updateAvgTorsoWidth(Math.abs(tr.x - tl.x));
+  torsoDims.updateAvgTorsoWidth(Math.abs(tr.x - tl.x));
 
   // Calculate hip center and shoulder width
   const hipCenter = {

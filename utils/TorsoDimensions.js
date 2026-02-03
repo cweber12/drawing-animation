@@ -8,7 +8,6 @@ class TorsoDimensions {
     this.initFlipFlag = false;
     this.sameAfterFlipCount = 0;
     this.confirmFlipFlag = false;
-
     this.torsoAlpha = 0.1;
     this.hipAlpha = 0.05;
   }

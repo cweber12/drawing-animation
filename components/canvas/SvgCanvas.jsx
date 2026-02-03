@@ -10,13 +10,14 @@ import { getSvgSize } from '../../utils/svgUtils';
 import { useSvgCaching } from '../../hooks/useSvgCaching';
 
 import { 
-  setTorsoAnchors, 
+  setTorsoAnchorsAndDraw, 
   setHeadAnchors, 
   setArmAnchors, 
   setHandAnchors, 
   setLegAnchors, 
   setFootAnchors
 } from '../../utils/anchorUtils'
+import TorsoDimensions from '../../utils/TorsoDimensions';
 
 const SvgCanvas = ({ 
   width, 
@@ -36,18 +37,12 @@ const SvgCanvas = ({
   // Refs for canvas and cached images
   const canvasRef = useRef(null);
   const imagesRef = useSvgCaching(svgs, mapping);
+  // Ref for average torso dimensions (for scaling / estimating orientation)
+  const TorsoDims = useRef(new TorsoDimensions());
   
   // Scaling factors from webcam to canvas size
   const scaleWebcamX = width / webcamWidth;
   const scaleWebcamY = height / webcamHeight; 
-
-  // Debugging flags to display anchor points in svg rendering
-  const debugTorsoAnchors = false;
-  const debugHeadAnchors = false;
-  const debugArmAnchors = false;
-  const debugHandAnchors = false;
-  const debugLegAnchors = false;
-  const debugFootAnchors = false;
 
   // Animation frame state for pose replay
   const [frame, setFrame] = useState(0);
@@ -66,6 +61,9 @@ const SvgCanvas = ({
   }, [replay, savedLandmarks.length]);
 
   /* Choose which landmarks to use for drawing
+  ------------------------------------------------------------------------------
+  replay: saved landmarks loaded and used as svg anchors (load all and iterate)
+  !replay (live): current landmarks used as svg anchors (from webcam input)
   ----------------------------------------------------------------------------*/
   const displayLandmarks =
     replay && savedLandmarks.length > 0
@@ -143,13 +141,14 @@ const SvgCanvas = ({
           map.topLeft !== undefined && map.topRight !== undefined &&
           map.bottomLeft !== undefined && map.bottomRight !== undefined
         ) {
-          const success = setTorsoAnchors({
+          const success = setTorsoAnchorsAndDraw({
             ctx,
             img,
             svgW,
             svgH,
             scaledLandmarks,
             map,
+            torsoDims: TorsoDims.current,
           });
           if (success) continue;
         }
@@ -271,7 +270,8 @@ const SvgCanvas = ({
     width, height, 
     scaleWebcamX, scaleWebcamY, 
     mapping, 
-    svgs
+    svgs, 
+    TorsoDims,
   ]);
 
   return (
