@@ -5,32 +5,8 @@
   ----------------------------------------------------------------------------
 */
 import React, { useRef, useEffect, useState } from 'react';
-import { LANDMARKS, CONNECTED_KEYPOINTS } from '../../constants/landmarkData';
-import { 
-  CANVAS_WIDTH, 
-  CANVAS_HEIGHT, 
-  CANVAS_BORDER_RADIUS, 
-  updateAvgTorsoHeight,
-  updateAvgTorsoWidth,
-  updateAvgEarDistance, 
-} from '../../constants/Sizes';
-import {
-  affineFrom3Points,
-  svgStringToImage,
-  getSvgSize,
-  addSvgClipPath,
-  getSvgDimensions,
-} from '../../utils/svgUtils';
-import {
-  drawHeadSvg,
-  drawHorizontalSegmentSvg,
-  drawVerticalSegmentSvg,
-  drawHandSvg,
-  drawLegSvg,
-  drawFootSvg,
-} from '../../utils/drawingUtils';
-import { update } from 'lodash';
-
+import { CONNECTED_KEYPOINTS } from '../../constants/landmarkData';
+import { getSvgSize } from '../../utils/svgUtils';
 import { useSvgCaching } from '../../hooks/useSvgCaching';
 
 import { 
@@ -57,12 +33,10 @@ const SvgCanvas = ({
   style
 }) => {
 
-  useEffect(() => {
-    console.log('SvgCanvas: rendering with landmarks:', savedLandmarks);
-  }, []);
   // Refs for canvas and cached images
   const canvasRef = useRef(null);
   const imagesRef = useSvgCaching(svgs, mapping);
+  
   // Scaling factors from webcam to canvas size
   const scaleWebcamX = width / webcamWidth;
   const scaleWebcamY = height / webcamHeight; 
@@ -176,7 +150,6 @@ const SvgCanvas = ({
             svgH,
             scaledLandmarks,
             map,
-            debugTorsoAnchors,
           });
           if (success) continue;
         }
@@ -196,11 +169,6 @@ const SvgCanvas = ({
             img,
             scaledLandmarks,
             map,
-            svgW,
-            svgH,
-            debugHeadAnchors,
-            updateAvgEarDistance,
-            drawHeadSvg,
           });
           if (success) continue;
         }
@@ -220,9 +188,6 @@ const SvgCanvas = ({
             scaledLandmarks,
             svgH,
             armOrientation,
-            debugArmAnchors,
-            drawVerticalSegmentSvg,
-            drawHorizontalSegmentSvg,
           });
           if (success) continue;
         }
@@ -241,8 +206,6 @@ const SvgCanvas = ({
             svgH,
             armOrientation,
             part,
-            debugHandAnchors,
-            drawHandSvg,
           });
           if (success) continue;
         }
@@ -259,8 +222,6 @@ const SvgCanvas = ({
             scaledLandmarks,
             map,
             part,
-            debugLegAnchors,
-            drawLegSvg,
           });
           if (success) continue;
         }
@@ -274,8 +235,6 @@ const SvgCanvas = ({
             scaledLandmarks,
             map,
             part,
-            debugFootAnchors,
-            drawFootSvg,
           });
           if (success) continue;
         }
@@ -307,9 +266,13 @@ const SvgCanvas = ({
       }
     });
 
-   
-
-  }, [displayLandmarks, width, height, scaleWebcamX, scaleWebcamY, mapping, svgs]);
+  }, [
+    displayLandmarks, 
+    width, height, 
+    scaleWebcamX, scaleWebcamY, 
+    mapping, 
+    svgs
+  ]);
 
   return (
     <canvas

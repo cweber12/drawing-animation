@@ -1,9 +1,5 @@
 import React, { useState } from 'react'
-import { 
-    StyleSheet, 
-    useColorScheme, 
-    useWindowDimensions 
-} from 'react-native'
+import { useColorScheme,  useWindowDimensions } from 'react-native'
 import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native-web'
@@ -31,6 +27,8 @@ const HomeButton = () => {
     );
 };
 
+/* Root Layout with Themed Header and Navigation
+------------------------------------------------------------------------------*/
 const RootLayout = () => {
     // Get current color scheme and theme
     const colorScheme = useColorScheme()
@@ -55,8 +53,8 @@ const RootLayout = () => {
                 },
                 headerTintColor: theme.title,
                 headerTitleStyle: {
-                    fontSize: isSmallScreen ? 20 : 24, 
-                   
+                    fontSize: isSmallScreen ? 24 : 32, 
+                    fontFamily: 'Segoe UI',
                 },
                 }}>
                 <Stack.Screen name="index" options={{ title: '' }}/>
@@ -76,8 +74,7 @@ const RootLayout = () => {
                                     savedLandmarks={route.params?.estimatedLandmarks}
                                     isDetecting={route.params?.isDetecting}
                                     onHoverTitle={(title) => setHeaderTitle(title)}
-                                    onToggleExportOptions={route.params?.onToggleExportOptions}
-                                />
+                                    onToggleExportOptions={route.params?.onToggleExportOptions} />
                                 <HomeButton />                               
                             </>
                         ),
@@ -100,10 +97,8 @@ const RootLayout = () => {
                                     onShowDetectPoseOptions={route.params?.onShowDetectPoseOptions}
                                     svgData={route.params?.svgData}
                                     onToggleExportOptions={route.params?.onToggleExportOptions}
-                                    onToggleSettings={route.params?.onToggleSettings}
-                                />
-                                <HomeButton />
-                                
+                                    onToggleSettings={route.params?.onToggleSettings} />
+                                <HomeButton />    
                             </>
                         ),
                     })}
@@ -124,17 +119,3 @@ const RootLayout = () => {
 }
 
 export default RootLayout
-
-const styles = StyleSheet.create({
-    button: {
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 4,
-        marginHorizontal: 2,
-    },
-
-    buttonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-})

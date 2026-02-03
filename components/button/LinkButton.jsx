@@ -1,4 +1,4 @@
-import { View, Pressable } from 'react-native';
+import { View, Pressable, Stylesheet } from 'react-native';
 import { Link } from 'expo-router';
 import React from 'react';
 import { Colors } from '../../constants/Colors';
@@ -19,22 +19,24 @@ const LinkButton = ({ children, href, params }) => {
         onMouseLeave={() => setHovered(false)}
         style={{
           display: 'flex',
+          flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
           padding: 10,
           borderRadius: 10,
           marginBottom: 10,
+          fontFamily: 'Segoe UI',
           textAlign: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.15s cubic-bezier(.4,0,.2,1)',
           backgroundColor: pressed ? theme.buttonPressed : (hovered ? theme.buttonHover : theme.button),
           border: `5px solid ${theme.buttonText}`,
           color: theme.buttonText,
           width: pressed ? 330 : 340,
           height: pressed ? 64 : 68,
-          transition: 'all 0.15s cubic-bezier(.4,0,.2,1)',
-          cursor: 'pointer',
-        }}
-      >
-        {children}
+          fontSize: pressed ? 18 : 20,
+          }}>
+        {children} 
       </Pressable>
     </Link>
   );

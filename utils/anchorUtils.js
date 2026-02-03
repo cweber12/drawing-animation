@@ -1,6 +1,25 @@
 // utils/anchorUtils.js
 import { affineFrom3Points } from './svgUtils';
-import { updateAvgTorsoHeight, updateAvgTorsoWidth } from '../constants/Sizes';
+import { 
+  updateAvgTorsoHeight, 
+  updateAvgTorsoWidth, 
+  updateAvgEarDistance,
+} from '../constants/Sizes';
+import {
+  drawHeadSvg,
+  drawHorizontalSegmentSvg,
+  drawVerticalSegmentSvg,
+  drawHandSvg,
+  drawLegSvg,
+  drawFootSvg,
+} from './drawingUtils';
+
+  const debugTorsoAnchors = false;
+  const debugHeadAnchors = false;
+  const debugArmAnchors = false;
+  const debugHandAnchors = false;
+  const debugLegAnchors = false;
+  const debugFootAnchors = false;
 
 /* Utility for torso anchors 
 --------------------------------------------------------------------------------
@@ -14,7 +33,6 @@ export function setTorsoAnchors({
   svgH,
   scaledLandmarks,
   map,
-  debugTorsoAnchors = false,
 }) {
   const tl = scaledLandmarks[map.topLeft];
   const tr = scaledLandmarks[map.topRight];
@@ -93,11 +111,6 @@ export function setHeadAnchors({
   img,
   scaledLandmarks,
   map,
-  svgW,
-  svgH,
-  debugHeadAnchors = false,
-  updateAvgEarDistance = () => {},
-  drawHeadSvg,
 }) {
   const leftEar = scaledLandmarks[map.leftAnchor];
   const rightEar = scaledLandmarks[map.rightAnchor];
@@ -140,9 +153,6 @@ export function setArmAnchors({
   scaledLandmarks,
   svgH,
   armOrientation = 'horizontal',
-  debugArmAnchors = false,
-  drawVerticalSegmentSvg,
-  drawHorizontalSegmentSvg,
 }) {
   let from, to;
   let fromAdjusted, toAdjusted;
@@ -208,8 +218,6 @@ export function setHandAnchors({
   svgH,
   armOrientation,
   part,
-  debugHandAnchors = false,
-  drawHandSvg,
 }) {
   const wrist = scaledLandmarks[map.wrist];
   const elbow = scaledLandmarks[map.elbow];
@@ -252,8 +260,6 @@ export function setLegAnchors({
   scaledLandmarks,
   map,
   part,
-  debugLegAnchors = false,
-  drawLegSvg,
 }) {
   if (map.start === undefined || map.end === undefined) return false;
   const from = scaledLandmarks[map.start];
@@ -287,8 +293,6 @@ export function setFootAnchors({
   scaledLandmarks,
   map,
   part,
-  debugFootAnchors = false,
-  drawFootSvg,
 }) {
   if (map.leftCenter === undefined || map.rightCenter === undefined) return false;
   const leftCenter = scaledLandmarks[map.leftCenter];

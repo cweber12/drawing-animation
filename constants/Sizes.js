@@ -35,8 +35,6 @@ export function getSvgSizes(height) {
     const HAND_WIDTH = ARM_WIDTH; 
     const FOOT_LENGTH = LEG_WIDTH * 2;
     const FOOT_WIDTH = LEG_LENGTH * 0.5;
-    // Minimum width of parent container
-    const TOTAL_WIDTH = TORSO_WIDTH + (ARM_LENGTH * 4) + (HAND_LENGTH * 2);
 
     return {
         TORSO_WIDTH,
@@ -60,15 +58,9 @@ let avgTorsoWidth = 0;
 let currentTorsoWidth = 0;
 let avgHipWidth = 0;
 let currentHipWidth = 0;
-let currentLeftHipX = 0;
-let currentRightHipX = 0;
-let prevLeftHipX = 0;
-let prevRightHipX = 0;
 let initFlipFlag = false; 
 let sameAfterFlipCount = 0;
 let confirmFlipFlag = false;
-let directionCount;
-let direction = 0; // 1: left to right, -1: right to left
 
 const torsoAlpha = 0.1; 
 let hipAlpha = 0.05; 
