@@ -1,53 +1,65 @@
-/* SvgCanvas.jsx
-  ----------------------------------------------------------------------------
-  Renders a canvas overlay that draws pose landmarks and SVG body parts
-  based on provided landmarks and SVG strings.
-  ----------------------------------------------------------------------------
-*/
+// components/canvas/SvgCanvas.jsx
+
 import React, { useRef, useEffect, useState } from 'react';
-import { CONNECTED_KEYPOINTS } from '../../constants/landmarkData';
-import { getSvgSize } from '../../utils/svgUtils';
-import { useSvgCaching } from '../../hooks/useSvgCaching';
-
-import { 
-  setTorsoAnchorsAndDraw, 
-  setHeadAnchors, 
-  setArmAnchors, 
-  setHandAnchors, 
-  setLegAnchors, 
-  setFootAnchors
-} from '../../utils/anchorUtils'
+import { useCacheSvgs } from '../../hooks/useCacheSvgs';
 import TorsoDimensions from '../../utils/TorsoDimensions';
+import { useSetAnchorsAndDraw } from '../../hooks/useSetAnchorsAndDraw';
 
+/*==============================================================================
+                          SVG CANVAS COMPONENT
+================================================================================
+Renders a canvas that draws body part SVGs at positions defined by pose
+landmarks. Supports live drawing from webcam landmarks or replaying saved
+landmarks.
+------------------------------------------------------------------------------*/
 const SvgCanvas = ({ 
-  width, 
-  height, 
-  webcamWidth, 
-  webcamHeight,
-  landmarks, 
-  savedLandmarks = [],
-  replay, 
-  svgs = {}, 
-  mapping = {}, 
-  armOrientation,
-  videoLoaded,
+  width, height, // canvas dimensions
+  webcamWidth, webcamHeight, // webcam video dimensions (live)
+  landmarks, // current pose landmarks (live)
+  savedLandmarks = [], // saved landmarks for replay
+  replay, // whether in replay mode
+  svgs = {}, // original SVG strings
+  mapping = {}, // body part to landmark index mapping
+  armOrientation, // extended horizintal (large screen) or vertical (mobile)
   style
 }) => {
 
-  // Refs for canvas and cached images
-  const canvasRef = useRef(null);
-  const imagesRef = useSvgCaching(svgs, mapping);
-  // Ref for average torso dimensions (for scaling / estimating orientation)
-  const TorsoDims = useRef(new TorsoDimensions());
-  
+  /*============================================================================
+                              CONSTANTS AND REFS
+  ============================================================================*/
   // Scaling factors from webcam to canvas size
   const scaleWebcamX = width / webcamWidth;
-  const scaleWebcamY = height / webcamHeight; 
-
+  const scaleWebcamY = height / webcamHeight;
+  const canvasRef = useRef(null);
+  const torsoDimsRef = useRef(new TorsoDimensions());; 
   // Animation frame state for pose replay
   const [frame, setFrame] = useState(0);
+
+  /* Choose which landmarks to use for drawing
+  ------------------------------------------------------------------------------
+  replay: saved landmarks loaded and used as svg anchors (load all and iterate)
+  !replay (live): current landmarks used as svg anchors (from webcam input)
+  ----------------------------------------------------------------------------*/
+  const displayLandmarks =
+    replay && savedLandmarks.length > 0
+      ? savedLandmarks[frame]
+      : landmarks;
+
+  /*============================================================================
+                              HOOKS
+  ============================================================================*/
+  /* CACHE SVG IMAGES
+  ------------------------------------------------------------------------------
+  Uses useCacheSvgs hook to convert SVG strings into Image objects for drawing
+  svgs(string) -> cachedSvgsRef(Image objects)
+  ----------------------------------------------------------------------------*/
+  const cachedSvgsRef = useCacheSvgs(svgs, mapping);
   
-  /* Animate through savedLandmarks in pose mode
+  /* ANIMATE THROUGH SAVED LANDMARKS
+  ------------------------------------------------------------------------------
+  When replay is active (saved landmarks being replayed): 
+    Update frame at fixed interval (30 FPS)
+    savedLandmarks[frame] -> displayLandmarks -> useSetAnchorsAndDraw -> render
   ----------------------------------------------------------------------------*/
   useEffect(() => {
     if (replay && savedLandmarks.length > 0) {
@@ -60,220 +72,27 @@ const SvgCanvas = ({
     setFrame(0);
   }, [replay, savedLandmarks.length]);
 
-  /* Choose which landmarks to use for drawing
+  /* SET ANCHORS AND DRAW SVGs
   ------------------------------------------------------------------------------
-  replay: saved landmarks loaded and used as svg anchors (load all and iterate)
-  !replay (live): current landmarks used as svg anchors (from webcam input)
+  Uses useSetAnchorsAndDraw hook to set SVG anchor points based on landmarks 
+  and draws the body part svgs onto the canvas in the correct position based on 
+  anchors defined by (x,y) coordinates of displayLandmarks.
   ----------------------------------------------------------------------------*/
-  const displayLandmarks =
-    replay && savedLandmarks.length > 0
-      ? savedLandmarks[frame]
-      : landmarks;
+  useSetAnchorsAndDraw({
+    canvasRef, // ref to the canvas element
+    imagesRef: cachedSvgsRef, // ref to cached SVG Image objects
+    width, height, // canvas dimensions
+    displayLandmarks, // landmarks to use for setting anchors
+    replay, // whether in replay mode
+    scaleWebcamX, scaleWebcamY, // scaling factors from webcam to canvas size
+    mapping, // body part to landmark index mapping
+    svgs, // original SVG strings
+    armOrientation, // extended horizintal (large screen) or vertical (mobile)
+    torsoDimsRef, // ref to TorsoDimensions instance for updating torso averages
+  });
 
-  /* Draw pose and SVGs on canvas when displayLandmarks change
+  /* RENDER CANVAS
   ----------------------------------------------------------------------------*/
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, width, height);
-
-    if (!displayLandmarks || displayLandmarks.length === 0) return;
-
-    /* Draw SVGs for body parts
-    --------------------------------------------------------------------------*/
-    const images = imagesRef.current;
-    
-    // Conditionally scale landmarks for replay vs live
-    // - replay: landmarks are already in canvas coords
-    // - live: landmarks are in smaller webcam coords, need scaling
-    let scaledLandmarks = null;
-    if (replay) {
-      scaledLandmarks = displayLandmarks; 
-    } else {
-      scaledLandmarks = displayLandmarks.map(kp =>
-        kp
-          ? {
-              ...kp,
-              x: kp.x * scaleWebcamX,
-              y: kp.y * scaleWebcamY,
-            }
-          : kp
-      );
-    } 
-
-    for (const [part, img] of Object.entries(images)) {
-        const map = mapping?.[part];
-        if (!map || !img) continue;
-
-        /* Ensure all anchor landmarks are valid for current svg being drawn
-        ----------------------------------------------------------------------*/
-        // Gather anchor landmark indices for this part
-        const anchorIndices = Object.values(map).filter(idx => typeof idx === 'number');
-        // Get anchor landmarks
-        const anchors = anchorIndices.map(idx => scaledLandmarks[idx]);
-        // Check for invalid anchors (missing, NaN, or out of bounds)
-        const hasInvalidAnchor = anchors.some(lm =>
-            !lm ||
-            typeof lm.x !== 'number' ||
-            typeof lm.y !== 'number' ||
-            isNaN(lm.x) ||
-            isNaN(lm.y) ||
-            lm.x < 0 ||
-            lm.y < 0 ||
-            lm.x > width ||
-            lm.y > height
-        );
-        if (hasInvalidAnchor) continue;
-        
-        const { w: svgW, h: svgH } = getSvgSize(img);
-
-
-        
-        /* TORSO 
-        -----------------------------------------------------------------------
-        Set torso anchors and draw torso SVG on canvas
-        Anchors: topLeft, topRight, bottomLeft, bottomRight
-        ----------------------------------------------------------------------*/
-        if (
-          part === 'torso' &&
-          map.topLeft !== undefined && map.topRight !== undefined &&
-          map.bottomLeft !== undefined && map.bottomRight !== undefined
-        ) {
-          const success = setTorsoAnchorsAndDraw({
-            ctx,
-            img,
-            svgW,
-            svgH,
-            scaledLandmarks,
-            map,
-            torsoDims: TorsoDims.current,
-          });
-          if (success) continue;
-        }
-          
-        /* HEAD
-        ------------------------------------------------------------------------
-        Set head anchors and draw head SVG on canvas
-        Anchors: leftAnchor, rightAnchor
-        ----------------------------------------------------------------------*/
-        if (
-          part === 'head' &&
-          map.leftAnchor !== undefined &&
-          map.rightAnchor !== undefined
-        ) {
-          const success = setHeadAnchors({
-            ctx,
-            img,
-            scaledLandmarks,
-            map,
-          });
-          if (success) continue;
-        }
-
-        /* ARMS
-        ----------------------------------------------------------------------*/
-        if (
-          (part === 'rightUpperArm' || part === 'rightLowerArm' ||
-            part === 'leftUpperArm' || part === 'leftLowerArm') &&
-          map.leftCenter !== undefined && map.rightCenter !== undefined
-        ) {
-          const success = setArmAnchors({
-            ctx,
-            img,
-            part,
-            map,
-            scaledLandmarks,
-            svgH,
-            armOrientation,
-          });
-          if (success) continue;
-        }
-        
-
-        /* HANDS
-        ----------------------------------------------------------------------*/
-        if ((part === 'leftHand' || part === 'rightHand') &&
-            map.wrist !== undefined && map.elbow !== undefined
-        ) {
-          const success = setHandAnchors({
-            ctx,
-            img,
-            scaledLandmarks,
-            map,
-            svgH,
-            armOrientation,
-            part,
-          });
-          if (success) continue;
-        }
-
-        /* LEGS
-        ----------------------------------------------------------------------*/
-        if (
-          part === 'leftUpperLeg' || part === 'leftLowerLeg' ||
-          part === 'rightUpperLeg' || part === 'rightLowerLeg'
-        ) {
-          const success = setLegAnchors({
-            ctx,
-            img,
-            scaledLandmarks,
-            map,
-            part,
-          });
-          if (success) continue;
-        }
-
-        /* FEET
-        ----------------------------------------------------------------------*/
-        if (part === 'leftFoot' || part === 'rightFoot') {
-          const success = setFootAnchors({
-            ctx,
-            img,
-            scaledLandmarks,
-            map,
-            part,
-          });
-          if (success) continue;
-        }
-
-    }
-    /* Draw pose skeleton
-    --------------------------------------------------------------------------*/
-    ctx.strokeStyle = 'transparent';
-    ctx.lineWidth = 2;
-    CONNECTED_KEYPOINTS.forEach(([i, j]) => {
-      const kp1 = scaledLandmarks[i];
-      const kp2 = scaledLandmarks[j];
-      if (kp1 && kp2 && kp1.score > 0.3 && kp2.score > 0.3) {
-        ctx.beginPath();
-        ctx.moveTo(kp1.x, kp1.y);
-        ctx.lineTo(kp2.x, kp2.y);
-        ctx.stroke();
-      }
-    });
-
-    /* Draw keypoints
-    --------------------------------------------------------------------------*/
-    ctx.fillStyle = 'transparent';
-    scaledLandmarks.forEach((kp) => {
-      if (kp && kp.score > 0.3) {
-        ctx.beginPath();
-        ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
-        ctx.fill();
-      }
-    });
-
-  }, [
-    displayLandmarks, 
-    width, height, 
-    scaleWebcamX, scaleWebcamY, 
-    mapping, 
-    svgs, 
-    TorsoDims,
-  ]);
-
   return (
     <canvas
         ref={canvasRef}

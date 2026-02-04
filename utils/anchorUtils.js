@@ -21,8 +21,9 @@ import {
   const debugLegAnchors = false;
   const debugFootAnchors = false;
 
-/* Utility for torso anchors 
---------------------------------------------------------------------------------
+/*==============================================================================
+                                    TORSO 
+================================================================================
 Sets the torso anchors and draws the torso SVG onto the canvas using an affine
 transform to fit the svg to detected shoulder and hip positions.
 ------------------------------------------------------------------------------*/
@@ -33,8 +34,10 @@ export function setTorsoAnchorsAndDraw({
   svgH,
   scaledLandmarks,
   map,
-  torsoDims,
+  torsoDimsRef,
 }) {
+  const torsoDims = torsoDimsRef?.current;
+
   const tl = scaledLandmarks[map.topLeft];
   const tr = scaledLandmarks[map.topRight];
   const bl = scaledLandmarks[map.bottomLeft];
@@ -101,8 +104,9 @@ export function setTorsoAnchorsAndDraw({
   return true;
 }
 
-/* Utility for head anchors
---------------------------------------------------------------------------------
+/*==============================================================================
+                                        HEAD 
+================================================================================
 Sets the head anchors and draws the head SVG onto the canvas using the ear
 landmarks to position and scale the head SVG.
 Anchors: leftEar, rightEar
@@ -112,7 +116,9 @@ export function setHeadAnchors({
   img,
   scaledLandmarks,
   map,
+  torsoDimsRef,
 }) {
+  const torsoDims = torsoDimsRef?.current;
   const leftEar = scaledLandmarks[map.leftAnchor];
   const rightEar = scaledLandmarks[map.rightAnchor];
   if (!leftEar || !rightEar || leftEar.score < 0.3 || rightEar.score < 0.3) return false;
@@ -123,7 +129,7 @@ export function setHeadAnchors({
       rightEar.y - leftEar.y
     )
   );
-  drawHeadSvg(ctx, img, leftEar, rightEar);
+  drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims);
 
   if (debugHeadAnchors) {
     ctx.save();
@@ -154,7 +160,9 @@ export function setArmAnchors({
   scaledLandmarks,
   svgH,
   armOrientation = 'horizontal',
+  torsoDimsRef,
 }) {
+  const torsoDims = torsoDimsRef?.current;
   let from, to;
   let fromAdjusted, toAdjusted;
   if (armOrientation === 'vertical') {
@@ -174,11 +182,11 @@ export function setArmAnchors({
   ) return false;
 
   if (armOrientation === 'vertical') {
-    drawVerticalSegmentSvg(ctx, img, from, to, part);
+    drawVerticalSegmentSvg(ctx, img, from, to, part, torsoDims);
   } else {
     fromAdjusted = { x: from.x, y: from.y + svgH / 4 };
     toAdjusted = { x: to.x, y: to.y + svgH / 4 };
-    drawHorizontalSegmentSvg(ctx, img, fromAdjusted, toAdjusted, part);
+    drawHorizontalSegmentSvg(ctx, img, fromAdjusted, toAdjusted, part, torsoDims);
   }
 
   if (debugArmAnchors) {
@@ -219,7 +227,9 @@ export function setHandAnchors({
   svgH,
   armOrientation,
   part,
+  torsoDimsRef,
 }) {
+  const torsoDims = torsoDimsRef?.current;
   const wrist = scaledLandmarks[map.wrist];
   const elbow = scaledLandmarks[map.elbow];
   if (!wrist || !elbow || wrist.score < 0.3 || elbow.score < 0.3) return false;
@@ -227,7 +237,7 @@ export function setHandAnchors({
   const wristAdjusted = { x: wrist.x, y: wrist.y + svgH / 4 };
   const elbowAdjusted = { x: elbow.x, y: elbow.y + svgH / 4 };
 
-  drawHandSvg(ctx, img, wristAdjusted, elbowAdjusted, armOrientation, part);
+  drawHandSvg(ctx, img, wristAdjusted, elbowAdjusted, armOrientation, part, torsoDims);
 
   if (debugHandAnchors) {
     ctx.save();
@@ -261,13 +271,15 @@ export function setLegAnchors({
   scaledLandmarks,
   map,
   part,
+  torsoDimsRef,
 }) {
+  const torsoDims = torsoDimsRef?.current;
   if (map.start === undefined || map.end === undefined) return false;
   const from = scaledLandmarks[map.start];
   const to = scaledLandmarks[map.end];
   if (!from || !to || from.score < 0.3 || to.score < 0.3) return false;
 
-  drawLegSvg(ctx, img, from, to, part);
+  drawLegSvg(ctx, img, from, to, part, torsoDims);
 
   if (debugLegAnchors) {
     ctx.save();
@@ -294,7 +306,9 @@ export function setFootAnchors({
   scaledLandmarks,
   map,
   part,
+  torsoDimsRef,
 }) {
+  const torsoDims = torsoDimsRef?.current;
   if (map.leftCenter === undefined || map.rightCenter === undefined) return false;
   const leftCenter = scaledLandmarks[map.leftCenter];
   const rightCenter = scaledLandmarks[map.rightCenter];
@@ -309,7 +323,7 @@ export function setFootAnchors({
     to = rightCenter;
   }
 
-  drawFootSvg(ctx, img, from, to, part);
+  drawFootSvg(ctx, img, from, to, part, torsoDims);
 
   if (debugFootAnchors) {
     ctx.save();

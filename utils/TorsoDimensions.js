@@ -1,4 +1,4 @@
-class TorsoDimensions {
+export class TorsoDimensions {
   constructor() {
     this.avgTorsoHeight = 0;
     this.avgTorsoWidth = 0;

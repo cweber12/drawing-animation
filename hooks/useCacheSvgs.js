@@ -1,8 +1,23 @@
+// hooks/useCacheSvgs.js
 import { useEffect, useRef } from 'react';
-import { getSvgDimensions, addSvgClipPath, svgStringToImage } from '../utils/svgUtils';
+import { 
+  getSvgDimensions, 
+  addSvgClipPath, 
+  svgStringToImage 
+} from '../utils/svgUtils';
 import { CANVAS_BORDER_RADIUS } from '../constants/Sizes';
 
-export function useSvgCaching(svgs, mapping) {
+/* Hook to cache SVG images from SVG strings
+--------------------------------------------------------------------------------
+Takes in an object of SVG strings and returns a ref containing loaded Image
+objects for each SVG part.
+Props | svgs : object containing SVG strings
+      | mapping : object mapping body parts to landmark indices (not used here 
+      | but kept for consistency)
+--------------------------------------------------------------------------------      
+Returns | ref with cached Image objects
+------------------------------------------------------------------------------*/
+export function useCacheSvgs(svgs, mapping) {
   const imagesRef = useRef({});
 
   useEffect(() => {
@@ -20,7 +35,9 @@ export function useSvgCaching(svgs, mapping) {
 
         try {
           const { width: svgW, height: svgH } = getSvgDimensions(svgString);
+          // Add clip path to SVG for rounded corners
           const clipped = addSvgClipPath(svgString, svgW, svgH, CANVAS_BORDER_RADIUS);
+          // Convert clipped SVG string to Image object
           const img = await svgStringToImage(clipped);
           if (img) next[part] = img;
         } catch (e) {
