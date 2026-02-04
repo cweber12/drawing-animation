@@ -160,9 +160,9 @@ export function drawLegSvg(ctx, img, from, to, part, torsoDims) {
   const dy = toOffset.y - fromOffset.y;
   const angle = Math.atan2(dy, dx);
   const length = Math.hypot(dx, dy);
-  const avgTorsoHeight = torsoDims?.avgTorsoHeight;
+  const avgTorsoWidth = torsoDims?.avgTorsoWidth;
   const scaleLength = length / Math.max(1, svgH);
-  const scaleWidth = (avgTorsoHeight * 0.85 * 0.5) / Math.max(1, svgW);
+  const scaleWidth = (avgTorsoWidth * 0.5) / Math.max(1, svgW);
   ctx.save();
   ctx.translate(fromOffset.x, fromOffset.y);
   ctx.rotate(angle - Math.PI / 2); // <-- Fix: rotate so SVG height aligns with segment
@@ -170,7 +170,7 @@ export function drawLegSvg(ctx, img, from, to, part, torsoDims) {
   if (part === 'leftUpperLeg' || part === 'leftLowerLeg') {
       ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
   } else if (part === 'rightUpperLeg' || part === 'rightLowerLeg') {
-      ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
+      ctx.drawImage(img, - svgW / 2, 0, svgW, svgH);
   }
   ctx.restore();
 }
@@ -191,31 +191,25 @@ export function drawFootSvg(ctx, img, from, to, part, torsoDims) {
     const angle = Math.atan2(dy, dx);
     const length = Math.hypot(dx, dy);
     let scaleFactor = 1.0;
-    if (part === 'rightFoot' && to.x > from.x) {
-        scaleFactor = -1.0; // mirror right foot
-    } else if (part === 'leftFoot' && to.x > from.x) {
-        scaleFactor = -1.0; // mirror left foot
-    }
     
-    const scaleX = (length / svgW) * scaleFactor * 1.5;
+    const scale = (length / svgH);
     const avgTorsoHeight = torsoDims?.avgTorsoHeight;
-    const scaleY = (avgTorsoHeight * 0.3) / Math.max(1, svgH);
+    //const scaleY = (avgTorsoHeight * 0.3) / Math.max(1, svgH);
     
 
     ctx.save();
-
     if (part === 'rightFoot') {
         // Align left edge of SVG to foot, right edge to ankle
         ctx.translate(from.x, from.y);
-        //ctx.rotate(angle); // Flip for right foot
-        ctx.scale(scaleX, scaleY);
-        ctx.drawImage(img, - svgW * 0.75, 0, svgW, svgH); // left edge at (0,0)
+        ctx.rotate(angle - Math.PI / 2); // Flip for right foot
+        ctx.scale(scale, scale);
+        ctx.drawImage(img, -svgW / 2, 0, svgW, svgH); // left edge at (0,0)
     } else if (part === 'leftFoot') {
         // Align left edge of SVG to ankle, right edge to foot
-        ctx.translate(to.x, to.y);
-        //ctx.rotate(angle); // Flip for left foot
-        ctx.scale(scaleX, scaleY);
-        ctx.drawImage(img, -svgW * 0.25, 0, svgW, svgH); // left edge at (0,0)
+        ctx.translate(from.x, from.y);
+        ctx.rotate(angle - Math.PI / 2);
+        ctx.scale(scale, scale);
+        ctx.drawImage(img, -svgW / 2, 0, svgW, svgH); // left edge at (0,0)
     }
 
     ctx.restore();

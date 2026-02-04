@@ -18,7 +18,7 @@ export const Colors = {
         homeButton: "#0A0A0A",
         buttonText: "#0A0A0A", 
         svgStrokeColor: "#ffffffff",
-        canvasBackground: "#111111",
+        canvasBackground: "rgba(0,0,0,0.5)",
         colorPickerDefault: "white",
         mutedText: "#d8d7d7ff",
         boxShadowColor: "white",

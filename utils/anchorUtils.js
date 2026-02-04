@@ -18,8 +18,8 @@ import {
   const debugHeadAnchors = false;
   const debugArmAnchors = false;
   const debugHandAnchors = false;
-  const debugLegAnchors = false;
-  const debugFootAnchors = false;
+  const debugLegAnchors = true;
+  const debugFootAnchors = true;
 
 /*==============================================================================
                                     TORSO 
@@ -85,7 +85,7 @@ export function setTorsoAnchorsAndDraw({
 
   ctx.save();
   ctx.setTransform(M.a, M.b, M.c, M.d, M.e, M.f);
-  ctx.scale(1, 1);
+  ctx.scale(1, 1.1); // Slightly scale height to cover gaps
   ctx.drawImage(img, 0, 0, svgW, svgH);
   ctx.restore();
 
@@ -309,18 +309,18 @@ export function setFootAnchors({
   torsoDimsRef,
 }) {
   const torsoDims = torsoDimsRef?.current;
-  if (map.leftCenter === undefined || map.rightCenter === undefined) return false;
-  const leftCenter = scaledLandmarks[map.leftCenter];
-  const rightCenter = scaledLandmarks[map.rightCenter];
-  if (!leftCenter || !rightCenter || leftCenter.score < 0.3 || rightCenter.score < 0.3) return false;
+  if (map.start === undefined || map.end === undefined) return false;
+  const start = scaledLandmarks[map.start];
+  const end = scaledLandmarks[map.end];
+  if (!start || !end || start.score < 0.3) return false;
 
   let from, to;
   if (part === 'rightFoot') {
-    from = rightCenter;
-    to = leftCenter;
+    to = end;
+    from = start;
   } else {
-    from = leftCenter;
-    to = rightCenter;
+    to = end;
+    from = start;
   }
 
   drawFootSvg(ctx, img, from, to, part, torsoDims);

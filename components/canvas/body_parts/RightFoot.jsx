@@ -1,63 +1,43 @@
 import { View, StyleSheet, useColorScheme} from 'react-native'
 import React, { useRef } from 'react';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
-import CanvasWrapper from '../../view/CanvasView';
+import CanvasView from '../../view/CanvasView';
 import { Colors } from '../../../constants/Colors';
 
-const Feet = ({ 
+const RightFoot = ({ 
     canvasProps,
     rightFootId, 
-    leftFootId,
     rightFootRef, 
-    leftFootRef,  
     footWidth, 
     footLength,
 
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-
     return (
-        <View style={styles.legsRow}>
-            <CanvasWrapper 
+            <CanvasView 
                 style={[ 
                     { 
-                        width: footLength, 
-                        height: footWidth, 
+                        width: footWidth, 
+                        height: footLength,
                     }
                 ]}>
                 <ReactSketchCanvas
                     id = {rightFootId}
                     ref={rightFootRef}
                     style={styles.canvas}
-                    width={footLength}
-                    height={footWidth}
+                    width={footWidth}
+                    height={footLength}
                     {...canvasProps}
          
                 />
-            </CanvasWrapper>
-            <CanvasWrapper 
-                style={[
-                    { 
-                        width: footLength, 
-                        height: footWidth, 
-                    }
-                ]}>
-                <ReactSketchCanvas
-                    id = {leftFootId}
-                    ref={leftFootRef}
-                    style={styles.canvas}
-                    width={footLength}
-                    height={footWidth}
-                    {...canvasProps}
-               
-                />
-            </CanvasWrapper>
-        </View>
+            </CanvasView>
+           
+
     )
 }
 
-export default Feet
+export default RightFoot
 
 const styles = StyleSheet.create({
     canvas: {

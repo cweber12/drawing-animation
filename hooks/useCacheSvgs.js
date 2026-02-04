@@ -35,10 +35,20 @@ export function useCacheSvgs(svgs, mapping) {
 
         try {
           const { width: svgW, height: svgH } = getSvgDimensions(svgString);
-          // Add clip path to SVG for rounded corners
-          const clipped = addSvgClipPath(svgString, svgW, svgH, CANVAS_BORDER_RADIUS);
-          // Convert clipped SVG string to Image object
-          const img = await svgStringToImage(clipped);
+          let svgToSend;
+          // addSvgClipPath(svgString, svgW, svgH, CANVAS_BORDER_RADIUS, topLeft, topRight, bottomRight, bottomLeft); 
+
+          svgToSend = addSvgClipPath(
+            svgString,
+            svgW,
+            svgH,
+            CANVAS_BORDER_RADIUS,
+            true, // topLeft
+            true, // topRight
+            true, // bottomRight
+            true  // bottomLeft
+          );
+          const img = await svgStringToImage(svgToSend);
           if (img) next[part] = img;
         } catch (e) {
           console.warn(`svgCanvas: failed to cache ${part}`, e);

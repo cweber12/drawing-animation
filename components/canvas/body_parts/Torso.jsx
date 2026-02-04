@@ -2,7 +2,7 @@ import { StyleSheet, useColorScheme} from 'react-native'
 import React, { useRef } from 'react';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 import { SCREEN_WIDTH, SCREEN_HEIGHT, CANVAS_BORDER_RADIUS} from '../../../constants/Sizes';
-import CanvasWrapper from '../../view/CanvasView';
+import CanvasView from '../../view/CanvasView';
 import { Colors } from '../../../constants/Colors';
 import { TORSO_WIDTH, TORSO_HEIGHT } from '../../../constants/Sizes';
 
@@ -20,7 +20,7 @@ const Torso = ( {
     const theme = Colors[colorScheme] ?? Colors.light;
 
     return (
-        <CanvasWrapper 
+        <CanvasView 
             style={[
                 { 
                     width: torsoWidth, 
@@ -36,7 +36,7 @@ const Torso = ( {
                 {...canvasProps}
 
             />
-        </CanvasWrapper>
+        </CanvasView>
     )
 }
 

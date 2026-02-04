@@ -1,7 +1,7 @@
 import { View, StyleSheet, useColorScheme} from 'react-native'
 import React, { useRef } from 'react';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
-import CanvasWrapper from '../../view/CanvasView';
+import CanvasView from '../../view/CanvasView';
 import { Colors } from '../../../constants/Colors';
 
 const RightArm = ( { 
@@ -29,7 +29,7 @@ const RightArm = ( {
                             
     return (
         <View style={styles.armRow}>
-            <CanvasWrapper 
+            <CanvasView 
                 style={[
                     { 
                         width: isSmallScreen ? armWidth : handLength, 
@@ -58,8 +58,8 @@ const RightArm = ( {
                   
                     />
                     )}
-            </CanvasWrapper>
-            <CanvasWrapper 
+            </CanvasView>
+            <CanvasView 
                 style={[
                     { 
                         width: isSmallScreen ? armWidth : armLength, 
@@ -75,8 +75,8 @@ const RightArm = ( {
                     {...canvasProps}
          
                 />
-            </CanvasWrapper>
-            <CanvasWrapper 
+            </CanvasView>
+            <CanvasView 
                 style={[
                     { 
                         width: isSmallScreen ? handWidth : armLength, 
@@ -104,7 +104,7 @@ const RightArm = ( {
           
                     />
                 )}
-            </CanvasWrapper>
+            </CanvasView>
         </View>
     )
 }

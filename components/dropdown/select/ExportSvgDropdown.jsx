@@ -16,11 +16,7 @@ const ExportSvgDropdown = ({
     const theme = Colors[colorScheme] ?? Colors.light;
 
     return (
-        <View 
-            style={[
-                style,
-                styles.exportOptionsContainer, 
-            ]}>
+        <View style={[ style, styles.exportOptionsContainer ]}>
             <DropdownSelect
                 onPress={() => {onDownloadSvgToDevice && onDownloadSvgToDevice();}} >
                 <IoDownloadOutline

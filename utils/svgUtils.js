@@ -62,20 +62,42 @@ export function getSvgSize(img) {
 
 /* Add SVG Clip Path for Rounded Corners
 ------------------------------------------------------------------------------*/
-export function addSvgClipPath(svgString, width, height, radius) {
+export function addSvgClipPath(svgString, width, height, radius, topLeft, topRight, bottomRight, bottomLeft) {
   if (typeof svgString !== 'string') return svgString;
-  // Insert <defs> and <clipPath>
+
+  // Helper to decide arc or straight for each corner
+  function moveToOrArc(x, y, corner) {
+    return corner
+      ? `A ${radius} ${radius} 0 0 1 ${x} ${y}`
+      : `L ${x} ${y}`;
+  }
+
+  // Build path string for custom corners
+  let d = `M ${topLeft ? radius : 0},0 `; // Start at top-left
+  d += `H ${width - (topRight ? radius : 0)} `;
+  if (topRight) d += moveToOrArc(width, topRight ? radius : 0, topRight);
+  else d += `L ${width},0 `;
+  d += `V ${height - (bottomRight ? radius : 0)} `;
+  if (bottomRight) d += moveToOrArc(width - radius, height, bottomRight);
+  else d += `L ${width},${height} `;
+  d += `H ${bottomLeft ? radius : 0} `;
+  if (bottomLeft) d += moveToOrArc(0, height - radius, bottomLeft);
+  else d += `L 0,${height} `;
+  d += `V ${topLeft ? radius : 0} `;
+  if (topLeft) d += moveToOrArc(topLeft ? radius : 0, 0, topLeft);
+  else d += `L 0,0 `;
+  d += `Z`;
+
   const clipDef = `
     <defs>
       <clipPath id="roundedClip">
-        <rect x="0" y="0" width="${width}" height="${height}" rx="${radius}" ry="${radius}" />
+        <path d="${d}" />
       </clipPath>
     </defs>
   `;
-  // Insert clip def after <svg ...>
+
   svgString = svgString.replace(/<svg([^>]*)>/, `<svg$1>${clipDef}`);
 
-  // Wrap all <path> (and possibly <g>) elements in a <g clip-path="url(#roundedClip)">
   svgString = svgString.replace(
     /(<svg[^>]*>)([\s\S]*)(<\/svg>)/,
     (match, open, content, close) => {

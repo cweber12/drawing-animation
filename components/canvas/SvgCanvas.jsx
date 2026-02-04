@@ -66,7 +66,7 @@ const SvgCanvas = ({
       setFrame(0);
       const interval = setInterval(() => {
         setFrame(prev => (prev + 1) % savedLandmarks.length);
-      }, 1000 / 30); // 30 FPS
+      }, 1000 / 24); // 24 FPS
       return () => clearInterval(interval);
     }
     setFrame(0);

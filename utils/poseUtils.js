@@ -1,5 +1,4 @@
 // utils/poseUtils.js
-import { getSvgSize, addSvgClipPath } from './svgUtils';
 
 /* Smooth an array of pose landmarks over time using a moving average filter.
 --------------------------------------------------------------------------------

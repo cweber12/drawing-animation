@@ -43,6 +43,20 @@ export class FootCalculator {
     this.kneeToFootGain = 1.0; // k in alpha = alphaRef + s*k*(theta-thetaRef)
   }
 
+  // Keep angle in (-PI, PI]
+  _wrapPi(a) {
+    let x = (a + Math.PI) % (2 * Math.PI);
+    if (x < 0) x += 2 * Math.PI;
+    return x - Math.PI;
+  }
+
+  // Step from prev -> target by at most maxStep, taking shortest angular route
+  _stepAngle(prev, target, maxStep) {
+    const diff = this._wrapPi(target - prev); // shortest signed difference
+    const step = Math.max(-maxStep, Math.min(maxStep, diff));
+    return prev + step;
+  }
+  
   /* Update average hip width with smoothing and flip detection
   ------------------------------------------------------------------------------
   1. Calculates difference between left and right hip x coord. 
@@ -190,11 +204,11 @@ export class FootCalculator {
   5. Smooth alpha over time to avoid sudden jumps.
   6. Return foot position and alpha.
   ----------------------------------------------------------------------------*/
-  _estimateFootCoordinate({
+ _estimateFootCoordinate({
     theta,     // knee angle (rad)
     thetaRef,  // reference knee angle (rad)
-    alphaRef,  // reference ankle-foot angle (rad)
-    sideSign,  // +1/-1 to pick rotation side
+    alphaRef,  // reference ankle-foot angle (rad) (your "default outward" baseline)
+    sideSign,  // +1/-1 to pick rotation side (keep whatever you're passing now)
     knee,      // knee position
     ankle,     // ankle position
     footLenRatio = 0.5, // foot length as ratio of shank length
@@ -208,21 +222,48 @@ export class FootCalculator {
     const shankLen = Math.hypot(knee.x - ankle.x, knee.y - ankle.y);
     const footLen = shankLen * footLenRatio;
 
-    // alpha follows knee angle change
-    const currAlpha = 
-        alphaRef + sideSign * this.kneeToFootGain * (theta - thetaRef);
-    const smoothing = 0.5;
-    const prevAlpha = side === 'left' ? this.leftAlpha : this.rightAlpha;
-    const alpha = smoothing * currAlpha + (1 - smoothing) * prevAlpha;
-    if (side === 'left') {
-      this.leftAlpha = alpha;
-    } else if (side === 'right') {
-      this.rightAlpha = alpha;
-    }
+    // --- helpers (local, so you don't have to modify other parts of the file) ---
+    const wrapPi = (a) => {
+      // normalize to (-PI, PI]
+      let x = (a + Math.PI) % (2 * Math.PI);
+      if (x < 0) x += 2 * Math.PI;
+      return x - Math.PI;
+    };
 
-    // ankle->foot direction
-    //const dir = this._rotate(u, alpha);
-    const dir = this._rotate(u, currAlpha);
+    const stepAngle = (prev, target, maxStep) => {
+      // move from prev toward target along the shortest arc, limited by maxStep
+      const diff = wrapPi(target - prev);
+      const step = Math.max(-maxStep, Math.min(maxStep, diff));
+      return prev + step;
+    };
+
+    // --- target ankle-foot angle ---
+    // This preserves your existing behavior:
+    // - alphaRef provides the "default outward" angle when legs are straight
+    // - the knee term bends the foot opposite-ish depending on sideSign and gain
+    const targetAlpha =
+      alphaRef + sideSign * this.kneeToFootGain * (theta - thetaRef);
+
+    // previous filtered angle
+    const prevAlpha = side === "left" ? this.leftAlpha : this.rightAlpha;
+
+    // --- smooth the flip by stepping over multiple frames ---
+    // Tune this: smaller = slower/smoother, larger = snappier
+    const maxStep = 0.30; // radians per frame (~17°). Try 0.15–0.45.
+
+    // Step toward target using wrap-aware shortest path
+    const steppedAlpha = stepAngle(prevAlpha, targetAlpha, maxStep);
+
+    // Optional extra smoothing (you can set smoothing=1 to disable)
+    const smoothing = 0.6;
+    const alpha = smoothing * steppedAlpha + (1 - smoothing) * prevAlpha;
+
+    // store for next frame
+    if (side === "left") this.leftAlpha = alpha;
+    else if (side === "right") this.rightAlpha = alpha;
+
+    // ankle->foot direction (IMPORTANT: use alpha, not targetAlpha/currAlpha)
+    const dir = this._rotate(u, alpha);
 
     return {
       x: ankle.x + dir.x * footLen,
@@ -230,7 +271,6 @@ export class FootCalculator {
       alpha, // angle between ankle->foot and ankle->knee (signed)
     };
   }
-
   /* Estimate left foot coordinate
   ------------------------------------------------------------------------------
   1. Get current left leg angle and direction.

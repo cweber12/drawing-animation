@@ -1,7 +1,7 @@
 import { View, StyleSheet, useColorScheme} from 'react-native'
 import React, { useRef } from 'react';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
-import CanvasWrapper from '../../view/CanvasView';
+import CanvasView from '../../view/CanvasView';
 import { Colors } from '../../../constants/Colors';
 import { 
     isSmallScreen,
@@ -21,6 +21,8 @@ const Legs = ( {
     leftLowerLegRef, 
     legWidth,
     legLength,
+    thighLength,
+    calfLength,
 
 } ) => {
 
@@ -33,11 +35,11 @@ const Legs = ( {
         <View style={styles.legsRow}>
             {/* Right Leg (upper + lower) */}
             <View style={[styles.legColumn, {alignItems: "flex-end"}]}>
-                <CanvasWrapper 
+                <CanvasView 
                     style={[
                         { 
                             width: legWidth, 
-                            height: legLength, 
+                            height: thighLength, 
                         }
                     ]}>
                     <ReactSketchCanvas
@@ -45,17 +47,17 @@ const Legs = ( {
                     ref={rightUpperLegRef}
                     style={styles.canvas}
                     width={legWidth}
-                    height={legLength}
+                    height={thighLength}
                     {...canvasProps}
            
 
                     />
-                </CanvasWrapper>
-                <CanvasWrapper 
+                </CanvasView>
+                <CanvasView 
                     style={[
                         { 
                             width: legWidth, 
-                            height: legLength, 
+                            height: calfLength, 
                         }
                     ]}>
                     <ReactSketchCanvas
@@ -63,20 +65,20 @@ const Legs = ( {
                     ref={rightLowerLegRef}
                     style={styles.canvas}
                     width={legWidth}
-                    height={legLength}
+                    height={calfLength}
                     {...canvasProps}
              
                     />
-                </CanvasWrapper>
+                </CanvasView>
                 
             </View>
             {/* Left Leg (upper + lower) */}
             <View style={[styles.legColumn, {alignItems: "flex-start"}]}>
-                <CanvasWrapper 
+                <CanvasView 
                     style={[
                         { 
                             width: legWidth, 
-                            height: legLength, 
+                            height: thighLength, 
                         }
                     ]}>
                     <ReactSketchCanvas
@@ -84,16 +86,16 @@ const Legs = ( {
                     ref={leftUpperLegRef}
                     style={styles.canvas}
                     width={legWidth}
-                    height={legLength}
+                    height={thighLength}
                     {...canvasProps}
              
                     />
-                </CanvasWrapper>
-                <CanvasWrapper 
+                </CanvasView>
+                <CanvasView 
                     style={[
                         { 
                             width: legWidth, 
-                            height: legLength, 
+                            height: calfLength, 
                         }
                     ]}>
                     <ReactSketchCanvas
@@ -101,11 +103,11 @@ const Legs = ( {
                     ref={leftLowerLegRef}
                     style={styles.canvas}
                     width={legWidth}
-                    height={legLength}
+                    height={calfLength}
                     {...canvasProps}
             
                     />
-                </CanvasWrapper>
+                </CanvasView>
             </View>
         </View>
     )

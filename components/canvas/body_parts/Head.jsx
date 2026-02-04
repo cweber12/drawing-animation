@@ -2,7 +2,7 @@ import { StyleSheet, useColorScheme} from 'react-native'
 import React, { useRef } from 'react';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 import { SCREEN_WIDTH, CANVAS_BORDER_RADIUS } from '../../../constants/Sizes';
-import CanvasWrapper from '../../view/CanvasView';
+import CanvasView from '../../view/CanvasView';
 import { Colors } from '../../../constants/Colors';
 import { HEAD_SIZE } from '../../../constants/Sizes';
 
@@ -21,7 +21,7 @@ const Head = ( {
 
     
     return (
-        <CanvasWrapper 
+        <CanvasView 
             style={[
                 { 
                     width: headSize,
@@ -37,7 +37,7 @@ const Head = ( {
                 height={headSize}
                 {...canvasProps}
             />
-        </CanvasWrapper>
+        </CanvasView>
     )
 }
 

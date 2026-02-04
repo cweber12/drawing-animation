@@ -1,4 +1,7 @@
-/* Landmark indices based on a standard pose estimation model 
+/*==============================================================================
+LANDMARK DATA CONSTANTS
+==============================================================================*/
+/* Landmark indices as per MoveNet model
 Ref: https://www.kaggle.com/models/google/movenet
 ------------------------------------------------------------------------------*/
 export const LANDMARKS = {
@@ -50,7 +53,7 @@ export const CANVAS_LANDMARK_MAP = {
         // Horizontal orientation
         rightCenter: LANDMARKS.rightShoulder, 
         leftCenter: LANDMARKS.rightElbow,
-         // Vertical orientation
+        // Vertical orientation (not currently implemented)
         //start: LANDMARKS.rightShoulder, 
         //end: LANDMARKS.rightElbow
     },
@@ -58,8 +61,6 @@ export const CANVAS_LANDMARK_MAP = {
     rightLowerArm: {       
         rightCenter: LANDMARKS.rightElbow, 
         leftCenter: LANDMARKS.rightWrist, 
-        //start: LANDMARKS.rightElbow, 
-        //end: LANDMARKS.rightWrist
     },
 
     rightHand: {
@@ -71,20 +72,26 @@ export const CANVAS_LANDMARK_MAP = {
     leftUpperArm: { 
         leftCenter: LANDMARKS.leftShoulder, 
         rightCenter: LANDMARKS.leftElbow,
-        //start: LANDMARKS.leftShoulder, 
-        //end: LANDMARKS.leftElbow
     },
 
     leftLowerArm: { 
         leftCenter: LANDMARKS.leftElbow, 
         rightCenter: LANDMARKS.leftWrist,
-        //start: LANDMARKS.leftElbow, 
-        //end: LANDMARKS.leftWrist
     },
 
     leftHand: {
         wrist: LANDMARKS.leftWrist,
-        elbow: LANDMARKS.leftElbow // used only for rotation
+        elbow: LANDMARKS.leftElbow 
+    },
+
+    rightFoot: {
+        start: LANDMARKS.rightAnkle, 
+        end: LANDMARKS.rightFoot
+    },
+    
+    leftFoot: {
+        start: LANDMARKS.leftAnkle,
+        end: LANDMARKS.leftFoot
     },
     
     leftUpperLeg: {
@@ -121,15 +128,7 @@ export const CANVAS_LANDMARK_MAP = {
         leftAnchor: LANDMARKS.rightEar,
     },
 
-    rightFoot: {
-        rightCenter: LANDMARKS.rightAnkle, 
-        leftCenter: LANDMARKS.rightFoot
-    },
     
-    leftFoot: {
-        rightCenter: LANDMARKS.leftAnkle,
-        leftCenter: LANDMARKS.leftFoot
-    },
 };
 
 

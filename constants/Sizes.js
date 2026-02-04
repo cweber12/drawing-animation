@@ -25,16 +25,20 @@ export const isSmallScreen = width < 600;
 ------------------------------------------------------------------------------*/
 export function getSvgSizes(height) {
     const TORSO_HEIGHT = height * 0.25;
-    const TORSO_WIDTH = TORSO_HEIGHT * 0.85;    
+    const TORSO_WIDTH = TORSO_HEIGHT * 0.9;    
     const HEAD_SIZE = TORSO_WIDTH; 
     const ARM_LENGTH = TORSO_HEIGHT * 0.65;
     const ARM_WIDTH = TORSO_WIDTH * 0.5; 
-    const LEG_LENGTH = TORSO_HEIGHT * 0.65;
-    const LEG_WIDTH = (TORSO_WIDTH * 0.5) - 1; 
+    const LEG_LENGTH = TORSO_HEIGHT * 0.6;
+    const THIGH_LENGTH = TORSO_HEIGHT * 0.45;
+    const CALF_LENGTH = TORSO_HEIGHT * 0.6;
+    const LEG_WIDTH = TORSO_WIDTH * 0.5; 
     const HAND_LENGTH = ARM_LENGTH * 0.75
     const HAND_WIDTH = ARM_WIDTH; 
-    const FOOT_LENGTH = LEG_WIDTH * 2;
-    const FOOT_WIDTH = LEG_LENGTH * 0.5;
+    const FOOT_LENGTH = CALF_LENGTH;
+    const FOOT_WIDTH = LEG_WIDTH;
+    const TOTAL_WIDTH = TORSO_WIDTH + (ARM_WIDTH * 2);
+    const TOTAL_HEIGHT = TORSO_HEIGHT + HEAD_SIZE + LEG_LENGTH;
 
     return {
         TORSO_WIDTH,
@@ -43,11 +47,15 @@ export function getSvgSizes(height) {
         ARM_LENGTH,
         ARM_WIDTH,
         LEG_LENGTH,
+        THIGH_LENGTH,
+        CALF_LENGTH,
         LEG_WIDTH,
         HAND_LENGTH,
         HAND_WIDTH,
         FOOT_LENGTH,
         FOOT_WIDTH,
+        TOTAL_WIDTH,
+        TOTAL_HEIGHT,
     };
 }
 
