@@ -21,8 +21,8 @@ const Home = () => {
 
     const logoSource =
     colorScheme === "dark"
-      ? require("../assets/icon-dark.PNG")
-      : require("../assets/icon-light.PNG");
+      ? require("../assets/icon-dark.png")
+      : require("../assets/icon-light.png");
 
     
     return (
