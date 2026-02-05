@@ -43,7 +43,7 @@ export function getSvgSizes(height) {
     const HAND_WIDTH = ARM_WIDTH; 
     const FOOT_LENGTH = CALF_LENGTH;
     const FOOT_WIDTH = LEG_WIDTH;
-    const TOTAL_WIDTH = TORSO_WIDTH + (ARM_WIDTH * 2);
+    const TOTAL_WIDTH = TORSO_WIDTH + (ARM_LENGTH * 4) + (HAND_LENGTH);
     const TOTAL_HEIGHT = TORSO_HEIGHT + HEAD_SIZE + LEG_LENGTH;
 
     return {

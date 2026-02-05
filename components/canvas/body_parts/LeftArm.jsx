@@ -16,7 +16,7 @@ const LeftArm = ( {
     armLength,
     handWidth,
     handLength, 
-    isSmallScreen, 
+    armsDown, 
 }) => {
 
     // Determine canvas dimensions based on screen size// Get current theme colors
@@ -24,15 +24,15 @@ const LeftArm = ( {
     const theme = Colors[colorScheme] ?? Colors.light;                       
     
     // Replace parent with this once vertical arm drawing logic implemented. 
-    // <View style={isSmallScreen ? styles.armColumn : styles.armRow}></View>
+    // <View style={armsDown ? styles.armColumn : styles.armRow}></View>
 
     return (
-        <View style={styles.armRow}>
+        <View style={armsDown ? styles.armColumn : styles.armRow}>
             <CanvasView 
                 style={[
                     { 
-                        width: isSmallScreen ? armWidth : armLength, 
-                        height: isSmallScreen ? armLength : armWidth, 
+                        width: armsDown ? armWidth : armLength, 
+                        height: armsDown ? armLength : armWidth, 
                     }
                 ]}>
 
@@ -51,16 +51,16 @@ const LeftArm = ( {
             <CanvasView 
                 style={[
                     { 
-                        width: isSmallScreen ? armWidth : armLength, 
-                        height: isSmallScreen ? armLength : armWidth,
+                        width: armsDown ? armWidth : armLength, 
+                        height: armsDown ? armLength : armWidth,
                     }
                 ]}>
                 <ReactSketchCanvas
                     id={lowerArmId}
                     ref={lowerArmRef}
                     style={styles.canvas}
-                    width={isSmallScreen ? armWidth : armLength}
-                    height={isSmallScreen ? armLength : armWidth}
+                    width={armsDown ? armWidth : armLength}
+                    height={armsDown ? armLength : armWidth}
                     {...canvasProps}
              
                 />
@@ -68,8 +68,8 @@ const LeftArm = ( {
             <CanvasView 
                 style={[
                     { 
-                        width: isSmallScreen ? handWidth : handLength, 
-                        height: isSmallScreen ? handLength : handWidth, 
+                        width: armsDown ? handWidth : handLength, 
+                        height: armsDown ? handLength : handWidth, 
                     }
                 ]}>
     
@@ -77,8 +77,8 @@ const LeftArm = ( {
                     id={handId}
                     ref={handRef}
                     style={styles.canvas}
-                    width={isSmallScreen ? handWidth : handLength}
-                    height={isSmallScreen ? handLength : handWidth}
+                    width={armsDown ? handWidth : handLength}
+                    height={armsDown ? handLength : handWidth}
                     {...canvasProps}
       
                 />

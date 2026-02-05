@@ -31,7 +31,6 @@ import SketchInfo from '../components/dropdown/info/SketchInfo';
 import SketchControls from '../components/dropdown/sketch_controls/SketchControls';
 import ExportSvgDropdown from '../components/dropdown/select/ExportSvgDropdown';
 import DetectPoseDropdown from '../components/dropdown/select/DetectPoseDropdown';
-import CenteredWatermark from '../components/image/CenteredWatermark';
 /* Import utils
 -----------------------------------------------------------------------------*/
 import { uploadToS3 } from '../utils/s3Utils';
@@ -48,14 +47,28 @@ const SketchPage = () => {
     const router = useRouter();
     const navigation = useNavigation();
 
-    /* Get window dimensions and determine if small screen
+    /* Dynamic sizing based on screen dimensions
     --------------------------------------------------------------------------*/
     const { width, height } = useWindowDimensions();
-    const isSmallScreen = width < 768;
+    const [sizes, setSizes] = useState(getSvgSizes(height));
+    const [armsDown, setArmsDown] = useState(true);
 
-    /* Get SVG sizes based on window height
-    --------------------------------------------------------------------------*/
-    const sizes = getSvgSizes(height);
+    useEffect(() => {
+        setSizes(getSvgSizes(height));
+        console.log('total width: ', sizes.TOTAL_WIDTH, 'screen width: ', width, 'armsDown: ', armsDown);
+        if (sizes.TOTAL_WIDTH > width) {
+            if (!armsDown) {
+                setArmsDown(true);
+                clearArms();
+            }
+
+        } else {            
+            if (armsDown) {
+                setArmsDown(false);
+                clearArms();
+            }
+        }
+    }, [height, sizes.TOTAL_WIDTH, width]);
 
     /* Get current color scheme and theme (light/dark)
     --------------------------------------------------------------------------*/
@@ -141,6 +154,17 @@ const SketchPage = () => {
             console.log('SketchPage: Toggling export options: ', !prev);
             return !prev;
         });
+    }, []);
+
+    /* Clear arm canvases (used when toggling arm positions)
+    --------------------------------------------------------------------------*/
+    const clearArms = useCallback(() => {
+        rightUpperArmRef.current?.clearCanvas();
+        rightLowerArmRef.current?.clearCanvas();
+        rightHandRef.current?.clearCanvas();
+        leftUpperArmRef.current?.clearCanvas();
+        leftLowerArmRef.current?.clearCanvas();
+        leftHandRef.current?.clearCanvas();
     }, []);
 
      /* Clear all canvases (reset) 
@@ -252,10 +276,10 @@ const SketchPage = () => {
             mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
             viewMode: mode,
             videoUri: poseVideoUri,
-            armOrientation: isSmallScreen ? 'vertical' : 'horizontal',
+            armOrientation: armsDown ? 'vertical' : 'horizontal',
             },
         });
-    }, [router, saveAll, isSmallScreen]);
+    }, [router, saveAll, armsDown]);
 
     /* =========================================================================
                                     HOOKS
@@ -310,7 +334,7 @@ const SketchPage = () => {
     );
 
     /* =========================================================================
-                                    PROPS
+                                    CANVAS PROPS
     ==========================================================================*/
 
     /* Canvas properties for body part canvases
@@ -376,83 +400,85 @@ const SketchPage = () => {
                 
                     
                     <View style={styles.column}>
-                    <View style={styles.row}>
+                        <View style={styles.row}>
 
-                        <RightArm
-                            canvasProps={canvasProps}
-                            upperArmId="rightUpperArm"
-                            lowerArmId="rightLowerArm"
-                            handId="rightHand"
-                            upperArmRef={rightUpperArmRef}
-                            lowerArmRef={rightLowerArmRef}
-                            handRef={rightHandRef}
-                            armWidth={sizes.ARM_WIDTH}
-                            armLength={sizes.ARM_LENGTH}
-                            handWidth={sizes.HAND_WIDTH}
-                            handLength={sizes.HAND_LENGTH}
-                            isSmallScreen={isSmallScreen}
-
-                        />
-                            <Torso
+                            <RightArm
                                 canvasProps={canvasProps}
-                                torsoId="torso"
-                                torsoRef={torsoRef}
-                                torsoWidth={sizes.TORSO_WIDTH}
-                                torsoHeight={sizes.TORSO_HEIGHT}
+                                upperArmId="rightUpperArm"
+                                lowerArmId="rightLowerArm"
+                                handId="rightHand"
+                                upperArmRef={rightUpperArmRef}
+                                lowerArmRef={rightLowerArmRef}
+                                handRef={rightHandRef}
+                                armWidth={sizes.ARM_WIDTH}
+                                armLength={sizes.ARM_LENGTH}
+                                handWidth={sizes.HAND_WIDTH}
+                                handLength={sizes.HAND_LENGTH}
+                                armsDown={armsDown}
 
                             />
+                            
+                            <View style={styles.column}>
+                                <Torso
+                                    canvasProps={canvasProps}
+                                    torsoId="torso"
+                                    torsoRef={torsoRef}
+                                    torsoWidth={sizes.TORSO_WIDTH}
+                                    torsoHeight={sizes.TORSO_HEIGHT}
+
+                                />
+                           
+                                <Legs
+                                    canvasProps={canvasProps}
+                                    leftUpperLegId="leftUpperLeg"
+                                    rightUpperLegId="rightUpperLeg"
+                                    rightLowerLegId="rightLowerLeg"
+                                    leftLowerLegId="leftLowerLeg"
+                                    rightUpperLegRef={rightUpperLegRef}
+                                    rightLowerLegRef={rightLowerLegRef}
+                                    leftUpperLegRef={leftUpperLegRef}
+                                    leftLowerLegRef={leftLowerLegRef}
+                                    legWidth={sizes.LEG_WIDTH}
+                                    legLength={sizes.LEG_LENGTH}
+                                    thighLength={sizes.THIGH_LENGTH}
+                                    calfLength={sizes.CALF_LENGTH}
+    
+                                />
+                                <View style={styles.row}>
+                                <RightFoot
+                                    canvasProps={canvasProps}
+                                    rightFootId="rightFoot"
+                                    rightFootRef={rightFootRef}
+                                    footWidth={sizes.FOOT_WIDTH}
+                                    footLength={sizes.FOOT_LENGTH}
+                                />
+                                <LeftFoot
+                                    canvasProps={canvasProps}
+                                    leftFootId="leftFoot"
+                                    leftFootRef={leftFootRef}
+                                    footWidth={sizes.FOOT_WIDTH}
+                                    footLength={sizes.FOOT_LENGTH}
+                                />
+                                </View>
+                            </View>
 
                             <LeftArm
-                        canvasProps={canvasProps}
-                        upperArmId="leftUpperArm"
-                        lowerArmId="leftLowerArm"
-                        handId="leftHand"
-                        upperArmRef={leftUpperArmRef}
-                        lowerArmRef={leftLowerArmRef}
-                        handRef={leftHandRef}
-                        armWidth={sizes.ARM_WIDTH}
-                        armLength={sizes.ARM_LENGTH}
-                        handWidth={sizes.HAND_WIDTH}
-                        handLength={sizes.HAND_LENGTH}
-                        isSmallScreen={isSmallScreen}
-               
-                    />
-                </View>
-                        <View style={styles.column}>
-                           
-                            <Legs
                                 canvasProps={canvasProps}
-                                leftUpperLegId="leftUpperLeg"
-                                rightUpperLegId="rightUpperLeg"
-                                rightLowerLegId="rightLowerLeg"
-                                leftLowerLegId="leftLowerLeg"
-                                rightUpperLegRef={rightUpperLegRef}
-                                rightLowerLegRef={rightLowerLegRef}
-                                leftUpperLegRef={leftUpperLegRef}
-                                leftLowerLegRef={leftLowerLegRef}
-                                legWidth={sizes.LEG_WIDTH}
-                                legLength={sizes.LEG_LENGTH}
-                                thighLength={sizes.THIGH_LENGTH}
-                                calfLength={sizes.CALF_LENGTH}
-   
+                                upperArmId="leftUpperArm"
+                                lowerArmId="leftLowerArm"
+                                handId="leftHand"
+                                upperArmRef={leftUpperArmRef}
+                                lowerArmRef={leftLowerArmRef}
+                                handRef={leftHandRef}
+                                armWidth={sizes.ARM_WIDTH}
+                                armLength={sizes.ARM_LENGTH}
+                                handWidth={sizes.HAND_WIDTH}
+                                handLength={sizes.HAND_LENGTH}
+                                armsDown={armsDown}
+                    
                             />
-                            <View style={styles.row}>
-                            <RightFoot
-                                canvasProps={canvasProps}
-                                rightFootId="rightFoot"
-                                rightFootRef={rightFootRef}
-                                footWidth={sizes.FOOT_WIDTH}
-                                footLength={sizes.FOOT_LENGTH}
-                            />
-                            <LeftFoot
-                                canvasProps={canvasProps}
-                                leftFootId="leftFoot"
-                                leftFootRef={leftFootRef}
-                                footWidth={sizes.FOOT_WIDTH}
-                                footLength={sizes.FOOT_LENGTH}
-                            />
-                            </View>
                         </View>
+                        
                     </View>
 
                     

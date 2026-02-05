@@ -16,7 +16,7 @@ const RightArm = ( {
     armLength,
     handWidth,
     handLength, 
-    isSmallScreen, 
+    armsDown, 
 
 }) => {
 
@@ -25,18 +25,18 @@ const RightArm = ( {
     const theme = Colors[colorScheme] ?? Colors.light;
 
     // Replace parent with this once vertical arm drawing logic implemented. 
-    // <View style={isSmallScreen ? styles.armColumn : styles.armRow}></View>
+    // <View style={armsDown ? styles.armColumn : styles.armRow}></View>
                             
     return (
-        <View style={styles.armRow}>
+        <View style={armsDown ? styles.armColumn : styles.armRow}>
             <CanvasView 
                 style={[
                     { 
-                        width: isSmallScreen ? armWidth : handLength, 
-                        height: isSmallScreen ? armLength : handWidth, 
+                        width: armsDown ? armWidth : handLength, 
+                        height: armsDown ? armLength : handWidth, 
                     }
                 ]}>
-                {isSmallScreen ? (
+                {armsDown ? (
                     <ReactSketchCanvas
                         id={upperArmId}
                         ref={upperArmRef}
@@ -62,16 +62,16 @@ const RightArm = ( {
             <CanvasView 
                 style={[
                     { 
-                        width: isSmallScreen ? armWidth : armLength, 
-                        height: isSmallScreen ? armLength : armWidth,
+                        width: armsDown ? armWidth : armLength, 
+                        height: armsDown ? armLength : armWidth,
                     }
                 ]}>
                 <ReactSketchCanvas
                     id={lowerArmId}
                     ref={lowerArmRef}
                     style={styles.canvas}
-                    width={isSmallScreen ? armWidth : armLength}
-                    height={isSmallScreen ? armLength : armWidth}
+                    width={armsDown ? armWidth : armLength}
+                    height={armsDown ? armLength : armWidth}
                     {...canvasProps}
          
                 />
@@ -79,11 +79,11 @@ const RightArm = ( {
             <CanvasView 
                 style={[
                     { 
-                        width: isSmallScreen ? handWidth : armLength, 
-                        height: isSmallScreen ? handLength : armWidth, 
+                        width: armsDown ? handWidth : armLength, 
+                        height: armsDown ? handLength : armWidth, 
                     }
                 ]}>
-                {isSmallScreen ? (
+                {armsDown ? (
                     <ReactSketchCanvas
                         id={handId}
                         ref={handRef}

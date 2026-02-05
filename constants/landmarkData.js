@@ -53,30 +53,42 @@ export const CANVAS_LANDMARK_MAP = {
         // Horizontal orientation
         rightCenter: LANDMARKS.rightShoulder, 
         leftCenter: LANDMARKS.rightElbow,
-        // Vertical orientation (not currently implemented)
-        //start: LANDMARKS.rightShoulder, 
-        //end: LANDMARKS.rightElbow
+        // Vertical orientation (armsDown)
+        start: LANDMARKS.rightShoulder, 
+        end: LANDMARKS.rightElbow
     },
 
-    rightLowerArm: {       
+    rightLowerArm: { 
+        // Horizontal orientation      
         rightCenter: LANDMARKS.rightElbow, 
-        leftCenter: LANDMARKS.rightWrist, 
+        leftCenter: LANDMARKS.rightWrist,
+        // Vertical orientation (armsDown)
+        start: LANDMARKS.rightElbow,
+        end: LANDMARKS.rightWrist 
     },
 
     rightHand: {
         wrist: LANDMARKS.rightWrist,
-        elbow: LANDMARKS.rightElbow // used only for rotation
+        elbow: LANDMARKS.rightElbow 
     },
 
 
-    leftUpperArm: { 
+    leftUpperArm: {
+        // Horizontal orientation 
         leftCenter: LANDMARKS.leftShoulder, 
         rightCenter: LANDMARKS.leftElbow,
+        // Vertical orientation (armsDown)
+        start: LANDMARKS.leftShoulder,
+        end: LANDMARKS.leftElbow
     },
 
-    leftLowerArm: { 
+    leftLowerArm: {
+        // Horizontal orientation 
         leftCenter: LANDMARKS.leftElbow, 
         rightCenter: LANDMARKS.leftWrist,
+        // Vertical orientation (armsDown)
+        start: LANDMARKS.leftElbow,
+        end: LANDMARKS.leftWrist
     },
 
     leftHand: {

@@ -9,11 +9,12 @@ import {
   drawLegSvg,
   drawFootSvg,
 } from './drawingUtils';
+import { getSvgSize } from './svgUtils';
 
   const debugTorsoAnchors = false;
   const debugHeadAnchors = false;
-  const debugArmAnchors = false;
-  const debugHandAnchors = false;
+  const debugArmAnchors = true;
+  const debugHandAnchors = true;
   const debugLegAnchors = true;
   const debugFootAnchors = true;
 
@@ -144,12 +145,11 @@ export function setHeadAnchors({
   return true;
 }
 
-/* Utility for arm anchors
---------------------------------------------------------------------------------
-Sets the arm anchors and calls the appropriate function to draw the arm SVG
-depending on arm orientation in the sketch canvas (arms extended for larger 
-screens, arms at sides for smaller screens). 
-Anchors: start, end (for vertical); leftCenter, rightCenter (for horizontal)
+/*==============================================================================
+                                        ARMS 
+================================================================================
+Sets the arm anchors and draws the arm SVG onto the canvas.
+Anchors: leftCenter, rightCenter for horizontal arms; start, end for vertical arms
 ------------------------------------------------------------------------------*/
 export function setArmAnchors({
   ctx,
@@ -157,13 +157,13 @@ export function setArmAnchors({
   part,
   map,
   scaledLandmarks,
-  svgH,
-  armOrientation = 'horizontal',
   torsoDimsRef,
 }) {
+  const { w: svgW, h: svgH } = getSvgSize(img);
+  const armsDown = svgH > svgW; 
   const torsoDims = torsoDimsRef?.current;
   let from, to;
-  if (armOrientation === 'vertical') {
+  if (armsDown) {
     from = scaledLandmarks[map.start];
     to = scaledLandmarks[map.end];
   } else {
@@ -184,7 +184,7 @@ export function setArmAnchors({
     (from.x === to.x && from.y === to.y)
   ) return false;
 
-  if (armOrientation === 'vertical') {
+  if (armsDown) {
     drawVerticalSegmentSvg(ctx, img, from, to, part, torsoDims);
   } else {
     drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims);
@@ -199,7 +199,7 @@ export function setArmAnchors({
     ctx.beginPath();
     ctx.arc(to.x, to.y, 2, 0, 2 * Math.PI);
     ctx.fill();
-    if (!armOrientation === 'vertical') {
+    if (!armsDown) {
       ctx.fillStyle = 'red';
       ctx.beginPath();
       ctx.arc(fromAdjusted.x, fromAdjusted.y, 2, 0, 2 * Math.PI);
@@ -225,20 +225,20 @@ export function setHandAnchors({
   img,
   scaledLandmarks,
   map,
-  svgH,
-  armOrientation,
   part,
   torsoDimsRef,
 }) {
+  const { w: svgW, h: svgH } = getSvgSize(img);
+  const armsDown = svgH > svgW;
   const torsoDims = torsoDimsRef?.current;
   const wrist = scaledLandmarks[map.wrist];
   const elbow = scaledLandmarks[map.elbow];
   if (!wrist || !elbow || wrist.score < 0.3 || elbow.score < 0.3) return false;
 
-  const wristAdjusted = { x: wrist.x, y: wrist.y + svgH / 4 };
-  const elbowAdjusted = { x: elbow.x, y: elbow.y + svgH / 4 };
+  const wristAdjusted = { x: wrist.x, y: wrist.y };
+  const elbowAdjusted = { x: elbow.x, y: elbow.y };
 
-  drawHandSvg(ctx, img, wristAdjusted, elbowAdjusted, armOrientation, part, torsoDims);
+  drawHandSvg(ctx, img, wristAdjusted, elbowAdjusted, armsDown, part, torsoDims);
 
   if (debugHandAnchors) {
     ctx.save();

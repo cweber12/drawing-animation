@@ -91,34 +91,36 @@ Draw arm SVG rotated to match elbow-wrist angle
 ------------------------------------------------------------------------------*/
 export function drawVerticalSegmentSvg(ctx, img, from, to, part, torsoDims) {
     const { w: svgW, h: svgH } = getSvgSize(img);
-    
-    let fromAdjusted, toAdjusted;
+      
+    const avgTorsoWidth = torsoDims?.avgTorsoWidth;
+    const avgTorsoHeight = torsoDims?.avgTorsoHeight;
+    const isLeft = part === 'leftUpperArm' || part === 'leftLowerArm';
+ 
+    // Do NOT mutate anchors
+    let fx = from.x;
+    let fy = from.y;
+    const tx = to.x;
+    const ty = to.y;
+
     if (part === 'leftUpperArm' ) {
-        fromAdjusted = {
-            x: from.x - svgW / 4, 
-            y: from.y + svgW / 4,};
-        toAdjusted = {x: to.x, y: to.y, };
+        fx -= avgTorsoWidth / 8; 
+        fy += avgTorsoHeight / 6;
     } else if (part === 'rightUpperArm' ) {
-        fromAdjusted = {
-            x: from.x + svgW / 4, 
-            y: from.y + svgW / 4,};
-        toAdjusted = {x: to.x,  y: to.y, };
-    } else {
-        fromAdjusted = { x: from.x, y: from.y,};
-        toAdjusted = { x: to.x, y: to.y,};
+        fx += avgTorsoWidth / 8; 
+        fy += avgTorsoHeight / 6;
     }
-    
-    const dx = toAdjusted.x - fromAdjusted.x;
-    const dy = toAdjusted.y - fromAdjusted.y; // Adjust for canvas border radius
+    const dx = tx - fx;
+    const dy = ty - fy;
     const angle = Math.atan2(dy, dx);
     const length = Math.hypot(dx, dy);
-    const avgTorsoHeight = torsoDims?.avgTorsoHeight;
     const scaleLength = length / Math.max(1, svgH);
     const scaleWidth = (avgTorsoHeight * 0.85 * 0.65) / Math.max(1, svgW);
+    
     ctx.save(); 
-    ctx.translate(fromAdjusted.x, fromAdjusted.y);
+    ctx.translate(fx, fy);
     ctx.rotate(angle - Math.PI / 2); // Rotate to point toward elbow/wrist
-    ctx.scale(scaleWidth, scaleLength); // Scale so SVG height matches segment length
+    
+    ctx.scale(scaleWidth, scaleLength); 
     ctx.drawImage(img, - svgW / 2, 0, svgW, svgH); 
     ctx.restore();
 }
@@ -129,43 +131,71 @@ export function drawVerticalSegmentSvg(ctx, img, from, to, part, torsoDims) {
 Draw hand SVG rotated to align with wrist-elbow segment
 ------------------------------------------------------------------------------*/
 export function drawHandSvg(
-    ctx, 
-    img, 
-    wrist, 
-    elbow, 
-    armOrientation, 
-    part, 
-    torsoDims
+  ctx,
+  img,
+  wrist,
+  elbow,
+  armsDown,
+  part,
+  torsoDims
 ) {
-    const { w: svgW, h: svgH } = getSvgSize(img);
+  const { w: svgW, h: svgH } = getSvgSize(img);
 
-    const dx = wrist.x - elbow.x;
-    const dy = wrist.y - elbow.y;
-    const angle = Math.atan2(dy, dx);
-    const length = Math.hypot(dx, dy);
-    const avgTorsoHeight = torsoDims?.avgTorsoHeight;
-    const scaleLength = length / Math.max(1, svgW);
-    const scaleWidth =  (avgTorsoHeight * 0.85 * 0.5) / Math.max(1, svgH);
+  let fx, fy, tx, ty;
+  if (armsDown) {
+    fx = elbow.x 
+    fy = elbow.y; // Adjust wrist anchor up to better align with hand SVG
+    tx = wrist.x;
+    ty = wrist.y; // Same adjustment for elbow to maintain relative position
+  } else {
+    fx = elbow.x;
+    fy = elbow.y;
+    tx = wrist.x;
+    ty = wrist.y;
+  }
+  const dx = tx - fx;
+  const dy = ty - fy;
+  const angle = Math.atan2(dy, dx);
+  const length = Math.hypot(dx, dy);
 
-    ctx.save();
-    ctx.translate(wrist.x , wrist.y);
-    if (armOrientation === 'horizontal') {
-        ctx.scale(scaleLength, scaleWidth);
-        if (part === 'rightHand') {
-        ctx.rotate(angle + Math.PI); // Flip for right hand
-        ctx.drawImage(img, -svgW, -svgH / 2, svgW, svgH);
-        } else {
-        ctx.rotate(angle);
-        ctx.drawImage(img, 0, -svgH / 2, svgW, svgH);
-        }
+  const avgTorsoHeight = torsoDims?.avgTorsoHeight ?? 1;
+  const isRight = part === 'rightHand';
+
+  // Keep same scale convention you already use
+
+  let scaleLength, scaleWidth;
+
+  ctx.save();
+  ctx.translate(fx, fy);
+
+  if (!armsDown) {
+    scaleLength = length / Math.max(1, svgW);
+    scaleWidth  = (avgTorsoHeight * 0.85 * 0.5) / Math.max(1, svgH);
+    // horizontal-arm authoring
+    ctx.rotate(angle);
+
+    if (isRight) {
+      ctx.scale(-scaleLength, scaleWidth);   // mirror around wrist
+      ctx.drawImage(img, -svgW, -svgH / 2, svgW, svgH);
     } else {
-        ctx.scale(scaleWidth, scaleLength);
-        ctx.rotate(angle - Math.PI / 2); // Flip for right hand
-        ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
+      ctx.scale(scaleLength, scaleWidth);
+      ctx.drawImage(img, 0, -svgH / 2, svgW, svgH);
     }
+  } else {
+    scaleLength = length / Math.max(1, svgH);
+    scaleWidth  = (avgTorsoHeight * 0.85 * 0.5) / Math.max(1, svgW);
+    ctx.rotate(angle - Math.PI / 2); // vertical-arm authoring
 
+    if (isRight) {
+      ctx.scale(scaleWidth, scaleLength);   // mirror for right side
+      ctx.drawImage(img, -svgW / 2, svgH, svgW, svgH);
+    } else {
+      ctx.scale(scaleWidth, scaleLength);
+      ctx.drawImage(img, -svgW / 2, svgH, svgW, svgH);
+    }
+  }
 
-    ctx.restore();
+  ctx.restore();
 }
 
 /*==============================================================================
