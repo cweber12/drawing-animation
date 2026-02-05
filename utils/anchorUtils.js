@@ -1,10 +1,6 @@
 // utils/anchorUtils.js
 import { affineFrom3Points } from './svgUtils';
-import { 
-  updateAvgTorsoHeight, 
-  updateAvgTorsoWidth, 
-  updateAvgEarDistance,
-} from '../constants/Sizes';
+import { updateAvgEarDistance } from '../constants/Sizes';
 import {
   drawHeadSvg,
   drawHorizontalSegmentSvg,
@@ -117,19 +113,22 @@ export function setHeadAnchors({
   scaledLandmarks,
   map,
   torsoDimsRef,
+  earDistRef,
 }) {
   const torsoDims = torsoDimsRef?.current;
+  const earDist = earDistRef?.current;
   const leftEar = scaledLandmarks[map.leftAnchor];
   const rightEar = scaledLandmarks[map.rightAnchor];
   if (!leftEar || !rightEar || leftEar.score < 0.3 || rightEar.score < 0.3) return false;
 
-  updateAvgEarDistance(
+  earDist.updateAvgEarDistance(
     Math.hypot(
       rightEar.x - leftEar.x,
       rightEar.y - leftEar.y
     )
   );
-  drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims);
+  
+  drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims, earDist);
 
   if (debugHeadAnchors) {
     ctx.save();
@@ -164,13 +163,17 @@ export function setArmAnchors({
 }) {
   const torsoDims = torsoDimsRef?.current;
   let from, to;
-  let fromAdjusted, toAdjusted;
   if (armOrientation === 'vertical') {
     from = scaledLandmarks[map.start];
     to = scaledLandmarks[map.end];
   } else {
+    if(part === 'leftUpperArm' || part === 'leftLowerArm') {
     from = scaledLandmarks[map.leftCenter];
     to = scaledLandmarks[map.rightCenter];
+    } else {
+    from = scaledLandmarks[map.rightCenter];
+    to = scaledLandmarks[map.leftCenter];
+    }
   }
 
   if (
@@ -184,9 +187,7 @@ export function setArmAnchors({
   if (armOrientation === 'vertical') {
     drawVerticalSegmentSvg(ctx, img, from, to, part, torsoDims);
   } else {
-    fromAdjusted = { x: from.x, y: from.y + svgH / 4 };
-    toAdjusted = { x: to.x, y: to.y + svgH / 4 };
-    drawHorizontalSegmentSvg(ctx, img, fromAdjusted, toAdjusted, part, torsoDims);
+    drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims);
   }
 
   if (debugArmAnchors) {

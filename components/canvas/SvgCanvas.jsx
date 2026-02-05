@@ -2,7 +2,8 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { useCacheSvgs } from '../../hooks/useCacheSvgs';
-import TorsoDimensions from '../../utils/TorsoDimensions';
+import TorsoDimensions  from '../../utils/TorsoDimensions';
+import EarDistance from '../../utils/EarDistance';
 import { useSetAnchorsAndDraw } from '../../hooks/useSetAnchorsAndDraw';
 
 /*==============================================================================
@@ -31,7 +32,8 @@ const SvgCanvas = ({
   const scaleWebcamX = width / webcamWidth;
   const scaleWebcamY = height / webcamHeight;
   const canvasRef = useRef(null);
-  const torsoDimsRef = useRef(new TorsoDimensions());; 
+  const torsoDimsRef = useRef(new TorsoDimensions());
+  const earDistRef = useRef(new EarDistance());
   // Animation frame state for pose replay
   const [frame, setFrame] = useState(0);
 
@@ -89,6 +91,7 @@ const SvgCanvas = ({
     svgs, // original SVG strings
     armOrientation, // extended horizintal (large screen) or vertical (mobile)
     torsoDimsRef, // ref to TorsoDimensions instance for updating torso averages
+    earDistRef, // ref to EarDistance instance for updating ear distance average
   });
 
   /* RENDER CANVAS

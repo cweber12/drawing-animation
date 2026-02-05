@@ -5,14 +5,10 @@ const { width, height } = Dimensions.get('window');
 export const SCREEN_WIDTH = width;
 export const SCREEN_HEIGHT = height;
 
-export const CANVAS_WIDTH = width * 0.9;
-export const CANVAS_HEIGHT = height * 0.88;
-export const CANVAS_BORDER_RADIUS = 50;
-
 export function getIconSize() {
-    if (width < 400) return 24;
     if (width < 600) return 30;
-    return 32;
+    if (width < 800) return 34;
+    return 38;
 }
 
 export function getWebcamDimensions() {
@@ -20,6 +16,16 @@ export function getWebcamDimensions() {
 }
 
 export const isSmallScreen = width < 600;
+
+/*==============================================================================
+                                CANVAS SIZES
+==============================================================================*/
+// Canvas holding all svgs
+export const CANVAS_WIDTH = width * 0.9;
+export const CANVAS_HEIGHT = height * 0.88;
+
+// border radius for individual svgs
+export const CANVAS_BORDER_RADIUS = 50;
 
 /* Body Part Dimensions
 ------------------------------------------------------------------------------*/
@@ -30,8 +36,8 @@ export function getSvgSizes(height) {
     const ARM_LENGTH = TORSO_HEIGHT * 0.65;
     const ARM_WIDTH = TORSO_WIDTH * 0.5; 
     const LEG_LENGTH = TORSO_HEIGHT * 0.6;
-    const THIGH_LENGTH = TORSO_HEIGHT * 0.45;
-    const CALF_LENGTH = TORSO_HEIGHT * 0.6;
+    const THIGH_LENGTH = TORSO_HEIGHT * 0.5;
+    const CALF_LENGTH = TORSO_HEIGHT * 0.55;
     const LEG_WIDTH = TORSO_WIDTH * 0.5; 
     const HAND_LENGTH = ARM_LENGTH * 0.75
     const HAND_WIDTH = ARM_WIDTH; 
@@ -58,135 +64,4 @@ export function getSvgSizes(height) {
         TOTAL_HEIGHT,
     };
 }
-
-/* Average Torso Height and Width for Scaling
-------------------------------------------------------------------------------*/
-let avgTorsoHeight = 0;
-let avgTorsoWidth = 0;
-let currentTorsoWidth = 0;
-let avgHipWidth = 0;
-let currentHipWidth = 0;
-let initFlipFlag = false; 
-let sameAfterFlipCount = 0;
-let confirmFlipFlag = false;
-
-const torsoAlpha = 0.1; 
-let hipAlpha = 0.05; 
-const earAlpha = 0.1;
-
-export function updateAvgTorsoHeight(newHeight) {
-    if (avgTorsoHeight === 0) {
-        avgTorsoHeight = newHeight;
-    } else {
-        avgTorsoHeight = 
-            torsoAlpha * newHeight + (1 - torsoAlpha) * avgTorsoHeight;
-    }
-}
-
-export function getAvgTorsoHeight() {
-    return avgTorsoHeight;
-}
-
-export function updateAvgTorsoWidth(newWidth) {
-    currentTorsoWidth = newWidth;
-    if (avgTorsoWidth === 0) {
-        avgTorsoWidth = newWidth;
-    } else {
-        avgTorsoWidth = 
-            torsoAlpha * newWidth + (1 - torsoAlpha) * avgTorsoWidth;
-    }
-}
-
-export function getAvgTorsoWidth() {
-    return avgTorsoWidth;
-}
-
-
-export function getCurrentTorsoWidth() {
-    return currentTorsoWidth;
-}
-
-export function updateAvgHipWidth(newWidth) {    
-    if (currentHipWidth * newWidth > 0) {
-        
-        if (initFlipFlag) {
-            hipAlpha = 0.3;
-            initFlipFlag = false;
-        } else if (!confirmFlipFlag) {
-            if (sameAfterFlipCount > 2) {
-                confirmFlipFlag = true;
-            } else {
-                sameAfterFlipCount++;
-            }
-        } else if (confirmFlipFlag) {
-            hipAlpha = 0.1;
-            sameAfterFlipCount = 0;
-            confirmFlipFlag = false;  
-        }
-        
-    } else {
-        hipAlpha = 0.1;
-        sameAfterFlipCount = 0;
-        confirmFlipFlag = false;
-        if (!initFlipFlag) {
-            initFlipFlag = true;
-        }
-    }
-        
-    currentHipWidth = newWidth;
-
-    if (avgHipWidth === 0) {
-        avgHipWidth = newWidth;
-    } else {
-        avgHipWidth = 
-            hipAlpha * newWidth + (1 - hipAlpha) * avgHipWidth;
-    }
-}
-
-export function getAvgHipWidth() {
-    return avgHipWidth;
-}
-
-export function getCurrentHipWidth() {
-    return currentHipWidth;
-}
-
-/* Average Ear Distance for Head Scaling
-------------------------------------------------------------------------------*/
-let avgEarDistance = 0;
-
-export function updateAvgEarDistance(newDistance) {
-    if (avgEarDistance === 0) {
-        avgEarDistance = newDistance;
-    } else {
-        avgEarDistance = 
-            earAlpha * newDistance + (1 - earAlpha) * avgEarDistance;
-    }
-}
-
-export function getAvgEarDistance() {
-    return avgEarDistance;
-}
-
-export function getEarX(leftEar, rightEar) {
-    return rightEar.x - leftEar.x;
-}
-
-/* update avg left leg angle
-------------------------------------------------------------------------------*/
-let avgLeftLegAngle = 0;
-export function updateAvgLeftLegAngle(newAngle) {
-    const angleAlpha = 0.1;
-    if (avgLeftLegAngle === 0) {
-        avgLeftLegAngle = newAngle;
-    } else {
-        avgLeftLegAngle = 
-            angleAlpha * newAngle + (1 - angleAlpha) * avgLeftLegAngle;
-    }   
-}
-
-export function getAvgLeftLegAngle() {
-    return avgLeftLegAngle;
-}
-
 

@@ -22,13 +22,13 @@ export function useSetAnchorsAndDraw({
   mapping,
   svgs,
   armOrientation,
-  torsoDimsRef
+  torsoDimsRef, 
+  earDistRef,
 }) {
   useEffect(() => {
 
 
     const canvas = canvasRef?.current; 
-    console.log('useSetAnchorsAndDraw: canvasRef current:', canvas);
     if (!canvas) return;
 
 
@@ -38,7 +38,6 @@ export function useSetAnchorsAndDraw({
     if (!displayLandmarks || displayLandmarks.length === 0) return;
 
     const images = imagesRef?.current;
-    console.log('useSetAnchorsAndDraw: imagesRef current:', images);  
     if (!images) return;
 
     let scaledLandmarks = null;
@@ -91,7 +90,6 @@ export function useSetAnchorsAndDraw({
             map,
             torsoDimsRef,
         });
-        console.log('setTorsoAnchorsAndDraw success:', success);
         if (success) continue;
       }
 
@@ -105,7 +103,8 @@ export function useSetAnchorsAndDraw({
             img,
             scaledLandmarks,
             map,
-            torsoDimsRef
+            torsoDimsRef,
+            earDistRef,
         });
         if (success) continue;
       }

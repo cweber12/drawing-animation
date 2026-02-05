@@ -10,7 +10,7 @@ import {
 ================================================================================
 Draw head SVG scaled and rotated between left and right ears
 ------------------------------------------------------------------------------*/
-export function drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims) {
+export function drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims, earDist) {
     const { w: svgW, h: svgH } = getSvgSize(img);
 
     // Calculate the distance and angle between ears
@@ -21,7 +21,7 @@ export function drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims) {
     const midX = (leftEar.x + rightEar.x) / 2;
     const midY = ((leftEar.y + rightEar.y) / 2); 
     const avgTorsoHeight = torsoDims?.avgTorsoHeight;
-    const avgEarDistance = getAvgEarDistance();
+    const avgEarDistance = earDist?.avgEarDistance;
     const scaleY = ((avgTorsoHeight * 0.85) / svgH); 
     const scaleX = avgEarDistance * 2 / svgW;
     ctx.save();
@@ -36,31 +36,51 @@ export function drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims) {
 ================================================================================
 Draw arm SVG rotated to match elbow-wrist angle
 ------------------------------------------------------------------------------*/
+/*==============================================================================
+                                DRAW HORIZONTAL ARMS
+================================================================================
+Draw arm SVG rotated to match elbow-wrist angle
+------------------------------------------------------------------------------*/
 export function drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims) {
     const { w: svgW, h: svgH } = getSvgSize(img);
+    const avgTorsoHeight = torsoDims?.avgTorsoHeight;
+    const avgTorsoWidth = torsoDims?.avgTorsoWidth;
+    const isLeft = part === 'leftUpperArm' || part === 'leftLowerArm';
+ 
+    // Do NOT mutate anchors
+    let fx = from.x;
+    let fy = from.y;
+    const tx = to.x;
+    const ty = to.y;
 
-    if (part === 'leftUpperArm') {
-        from.x -= svgW / 10;
-
-    } else if (part === 'rightUpperArm') {
-        to.x += svgW / 10;
+    if (part === 'leftUpperArm' ) {
+        fx -= avgTorsoWidth / 8; 
+        fy += avgTorsoHeight / 6;
+    } else if (part === 'rightUpperArm' ) {
+        fx += avgTorsoWidth / 8; 
+        fy += avgTorsoHeight / 6;
     }
-    const dx = to.x - from.x;
-    const dy = to.y - from.y;
+
+    const dx = tx - fx;
+    const dy = ty - fy;
     const angle = Math.atan2(dy, dx);
     const length = Math.hypot(dx, dy);
-    
-    // Scale width based on average torso height for smoother scaling
-    const avgTorsoHeight = torsoDims?.avgTorsoHeight;
-    const scaleWidth = (avgTorsoHeight * 0.85 * 0.65) / Math.max(1, svgW);
+
+    // thickness should scale from svgH, not svgW
+    const scaleThickness = (avgTorsoHeight * 0.85 * 0.65) / Math.max(1, svgH);
     const scaleLength = length / Math.max(1, svgW);
 
-    ctx.save(); 
-    ctx.translate(from.x, from.y );
+    ctx.save();
+    ctx.translate(fx, fy);
+    ctx.rotate(angle);
+    if (!isLeft) {
+        ctx.scale(scaleLength, -scaleThickness);
+    } else {
+        ctx.scale(scaleLength, scaleThickness);
+    }
 
-    ctx.rotate(angle); // Rotate to point toward elbow/wrist
-    ctx.scale(scaleLength, scaleWidth); // Scale so SVG width matches segment length
-    ctx.drawImage(img, 0, -svgH / 2, svgW, svgH); 
+    // draw centered on thickness axis to prevent apparent "floating" seam
+    ctx.drawImage(img, 0, -svgH / 2, svgW, svgH);
     ctx.restore();
 }
 
