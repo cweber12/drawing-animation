@@ -113,6 +113,7 @@ export const CANVAS_LANDMARK_MAP = {
         start: LANDMARKS.rightKnee,
         end: LANDMARKS.rightAnkle
     },
+     
 
     torso: {
         topRight: LANDMARKS.leftShoulder,
@@ -122,11 +123,13 @@ export const CANVAS_LANDMARK_MAP = {
         shoulderAnchorLeft: LANDMARKS.leftShoulder,
         shoulderAnchorRight: LANDMARKS.rightShoulder,
     },
-
+    
     head: {
         rightAnchor: LANDMARKS.leftEar,
         leftAnchor: LANDMARKS.rightEar,
     },
+
+   
 
     
 };

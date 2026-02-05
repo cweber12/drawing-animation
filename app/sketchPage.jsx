@@ -167,8 +167,7 @@ const SketchPage = () => {
     --------------------------------------------------------------------------*/
     const saveAll = useCallback(async () => {
         try {
-            const refs = {
-            head: headRef,
+            const refs = {           
             rightUpperLeg: rightUpperLegRef,
             rightLowerLeg: rightLowerLegRef,
             rightFoot: rightFootRef,
@@ -176,6 +175,7 @@ const SketchPage = () => {
             leftLowerLeg: leftLowerLegRef,
             leftFoot: leftFootRef,
             torso: torsoRef,
+            head: headRef,
             rightUpperArm: rightUpperArmRef,
             leftUpperArm: leftUpperArmRef,
             rightLowerArm: rightLowerArmRef,

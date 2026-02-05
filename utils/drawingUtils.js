@@ -41,6 +41,7 @@ export function drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims) {
 
     if (part === 'leftUpperArm') {
         from.x -= svgW / 10;
+
     } else if (part === 'rightUpperArm') {
         to.x += svgW / 10;
     }
@@ -168,9 +169,9 @@ export function drawLegSvg(ctx, img, from, to, part, torsoDims) {
   ctx.rotate(angle - Math.PI / 2); // <-- Fix: rotate so SVG height aligns with segment
   ctx.scale(scaleWidth, scaleLength);
   if (part === 'leftUpperLeg' || part === 'leftLowerLeg') {
-      ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
+      ctx.drawImage(img, -svgW / 1.5, 0, svgW, svgH);
   } else if (part === 'rightUpperLeg' || part === 'rightLowerLeg') {
-      ctx.drawImage(img, - svgW / 2, 0, svgW, svgH);
+      ctx.drawImage(img, - svgW / 2.5, 0, svgW, svgH);
   }
   ctx.restore();
 }
