@@ -11,8 +11,6 @@ import { Colors } from '../constants/Colors';
 import LinkButton from '../components/button/LinkButton';
 import { GiRaiseZombie } from "react-icons/gi";
 import { GiSpellBook } from "react-icons/gi";
-import logoLight from "../assets/icon-light.png";
-import logoDark from "../assets/icon-dark.png";
 import { GiSkeletonInside } from "react-icons/gi";
 import { FaFolderOpen } from "react-icons/fa";
 
@@ -20,7 +18,12 @@ const Home = () => {
 
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-    const logo = colorScheme === "dark" ? logoDark : logoLight;
+
+    const logoSource =
+    colorScheme === "dark"
+      ? require("../assets/icon-dark.png")
+      : require("../assets/icon-light.png");
+
     
     return (
         <>
@@ -37,7 +40,7 @@ const Home = () => {
                 }}
             >
                 <Image
-                    source={logo}
+                    source={logoSource}
                     style={{ width: 400, height: 300 }}
                     resizeMode="contain"
                 />
