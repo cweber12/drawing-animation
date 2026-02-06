@@ -1,3 +1,5 @@
+import { scale } from "@shopify/react-native-skia";
+
 export class TorsoDimensions {
   constructor() {
     this.avgTorsoHeight = 0;
@@ -10,8 +12,29 @@ export class TorsoDimensions {
     this.confirmFlipFlag = false;
     this.torsoAlpha = 0.1;
     this.hipAlpha = 0.05;
+    this.torsoSvgHeight = 0;
+    this.torsoSvgWidth = 0;
+    this.scaleFactorY = 1.0;
+    this.scaleFactorX = 1.0;
   }
 
+  _updateScaleFactorY() {
+    if (this.torsoSvgHeight > 0) {
+      this.scaleFactorY = this.avgTorsoHeight / this.torsoSvgHeight * 1.2;
+    }
+  }
+
+  _updateScaleFactorX() {
+    if (this.torsoSvgWidth > 0) {
+      this.scaleFactorX = this.avgHipWidth/ this.torsoSvgWidth;
+    }
+  }
+  
+  updateTorsoSvgDimensions(newHeight, newWidth) {
+    this.torsoSvgHeight = newHeight;  
+    this.torsoSvgWidth = newWidth;
+  }
+  
   updateAvgTorsoHeight(newHeight) {
     if (this.avgTorsoHeight === 0) {
       this.avgTorsoHeight = newHeight;
@@ -19,6 +42,7 @@ export class TorsoDimensions {
       this.avgTorsoHeight =
         this.torsoAlpha * newHeight + (1 - this.torsoAlpha) * this.avgTorsoHeight;
     }
+    this._updateScaleFactorY();
   }
 
   getAvgTorsoHeight() {
@@ -33,6 +57,7 @@ export class TorsoDimensions {
       this.avgTorsoWidth =
         this.torsoAlpha * newWidth + (1 - this.torsoAlpha) * this.avgTorsoWidth;
     }
+    //this._updateScaleFactorX();
   }
 
   getAvgTorsoWidth() {
@@ -76,6 +101,7 @@ export class TorsoDimensions {
       this.avgHipWidth =
         this.hipAlpha * newWidth + (1 - this.hipAlpha) * this.avgHipWidth;
     }
+    this._updateScaleFactorX();
   }
 
   getAvgHipWidth() {

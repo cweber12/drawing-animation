@@ -6,7 +6,7 @@ import {
   svgStringToImage 
 } from '../utils/svgUtils';
 import { CANVAS_BORDER_RADIUS } from '../constants/Sizes';
-
+import { add } from 'lodash';
 /* Hook to cache SVG images from SVG strings
 --------------------------------------------------------------------------------
 Takes in an object of SVG strings and returns a ref containing loaded Image
@@ -17,37 +17,113 @@ Props | svgs : object containing SVG strings
 --------------------------------------------------------------------------------      
 Returns | ref with cached Image objects
 ------------------------------------------------------------------------------*/
-export function useCacheSvgs(svgs, mapping) {
+export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
   const imagesRef = useRef({});
-
+  const torsoDims = torsoDimsRef?.current;
   useEffect(() => {
     console.log('svgCanvas: Caching SVG images');
     console.log('SVG parts:', Object.keys(svgs));
     console.log('SVG strings:', svgs);
     console.log('Mapping:', mapping);
     let cancelled = false;
-
+    let roundCorners = true; // Set to true to enable rounded corners on SVGs
     (async () => {
       const next = {};
 
       for (const [part, svgString] of Object.entries(svgs)) {
         if (typeof svgString !== 'string' || svgString.trim().length === 0) continue;
-
+        
         try {
           const { width: svgW, height: svgH } = getSvgDimensions(svgString);
           let svgToSend;
-          // addSvgClipPath(svgString, svgW, svgH, CANVAS_BORDER_RADIUS, topLeft, topRight, bottomRight, bottomLeft); 
+        
+        let topLeft = false, topRight = false, bottomRight = false, bottomLeft = false;
+        let radius = CANVAS_BORDER_RADIUS;
+        if (roundCorners) { 
+          
+          if (part === 'torso') {
+            svgToSend = addSvgClipPath(
+              svgString,
+              svgW,
+              svgH,
+              svgW / 4, // radius
+              true, //TL
+              true, //TR
+              false, //BR
+              false  //BL
+            );
+          } else if (part === 'head') {
+            svgToSend = addSvgClipPath(
+              svgString,
+              svgW,
+              svgH,
+              svgW / 2, // radius
+              false, //TL
+              false, //TR
+              true, //BR
+              true  //BL
+            ); 
+          } else if (part === 'leftLowerLeg' || part === 'rightLowerLeg') {
+            svgToSend = addSvgClipPath(
+              svgString,
+              svgW,
+              svgH,
+              svgW / 2, // radius
+              true, //TL
+              true, //TR
+              false, //BR
+              false  //BL
+            ); 
+          } else if (part === 'leftUpperLeg' || part === 'rightUpperLeg') {
+            svgToSend = addSvgClipPath(
+              svgString,
+              svgW, svgH,
+              svgW / 4, 
+              false, false, true, true  
+            ); 
+          } else if (part === 'leftUpperArm' ) {
+            // round shoulder and elbow corners
+             svgToSend = addSvgClipPath(
+              svgString,
+              svgW,svgH,
+              svgW / 4, 
+              true, false, false, true  
+            );
 
-          svgToSend = addSvgClipPath(
-            svgString,
-            svgW,
-            svgH,
-            CANVAS_BORDER_RADIUS,
-            true, // topLeft
-            true, // topRight
-            true, // bottomRight
-            true  // bottomLeft
-          );
+            // round armpit corner more
+            // *** future update : round conditionally based on arm orientation) 
+            svgToSend = addSvgClipPath(
+              svgString,
+              svgW, svgH,
+              svgW / 1.5,
+              false, false, false, true  
+            ); 
+          } else if (part === 'rightUpperArm' ) {
+            // round shoulder and elbow corners
+             svgToSend = addSvgClipPath(
+              svgString,
+              svgW,svgH,
+              svgW / 4, 
+              false, true, true, false  
+            );
+            // round armpit corner more
+            // *** future update : round conditionally based on arm orientation) 
+            svgToSend = addSvgClipPath(
+              svgString,
+              svgW, svgH,
+              svgW / 1.5,
+              false, false, true, false  
+            ); 
+          }
+          else {
+            svgToSend = svgString;
+          }
+
+
+          
+        } else {
+          svgToSend = svgString;
+        }
           const img = await svgStringToImage(svgToSend);
           if (img) next[part] = img;
         } catch (e) {
@@ -61,7 +137,7 @@ export function useCacheSvgs(svgs, mapping) {
     })();
 
     return () => { cancelled = true; };
-  }, [svgs, mapping]);
+  }, [svgs, mapping, torsoDimsRef]);
 
   return imagesRef;
 }

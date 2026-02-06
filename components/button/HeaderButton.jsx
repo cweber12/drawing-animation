@@ -20,6 +20,7 @@ const HeaderButton = ({
     style, 
     onPress, 
     onHoverTitle, 
+    setHoveredProp,
     title, 
     size, 
     disabled, 
@@ -31,7 +32,7 @@ const HeaderButton = ({
     const [pressed, setPressed] = React.useState(false);
     const [iconSize, setIconSize] = React.useState(size ?? getIconSize());
 
-    const iconColor = hovered ? theme.actionButton : theme.button;
+    const iconColor = hovered ? theme.buttonHover : theme.button;
     
 
     useEffect(() => {
@@ -53,10 +54,12 @@ const HeaderButton = ({
             activeOpacity={1}
             onMouseEnter={() => {
                 setHovered(true);
+                setHoveredProp && setHoveredProp(true);
                 onHoverTitle && onHoverTitle(title);
             }}
             onMouseLeave={() => {
             setHovered(false);
+            setHoveredProp && setHoveredProp(false);
             onHoverTitle && onHoverTitle('');
             }}
             onPressIn={() => setPressed(true)}

@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, useColorScheme } from 'react-native';
 import React from 'react';
 import { FaGear } from "react-icons/fa6";
 import { LuInfo } from "react-icons/lu";
@@ -11,6 +11,8 @@ import {
 } from 'react-icons/fa';
 import HeaderButton from '../button/HeaderButton';
 import { getIconSize } from '../../constants/Sizes';
+import { Colors } from '../../constants/Colors';
+
 
 
 /* Header buttons for the SketchPage
@@ -33,8 +35,10 @@ const SketchButtons = ({
   onToggleExportOptions,
   onToggleSettings,
 }) => {
-
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme] ?? Colors.light;
     const [showSettings, setShowSettings] = React.useState(false);
+    const [hoveredAnimate, setHoveredAnimate] = React.useState(false);
   
     return (
     <View style={styles.container}>    
@@ -109,11 +113,21 @@ const SketchButtons = ({
       {/* ANIMATE BUTTON ----------------------------------------------------*/}
       <HeaderButton
         onPress={onShowDetectPoseOptions}
-        onHoverTitle={onHoverTitle}
+        onHoverTitle={(title) => {
+          onHoverTitle && onHoverTitle(title);
+        }}
+        setHoveredProp={setHoveredAnimate}
         title="ANIMATE"
         size={getIconSize() * 2}
       >
-        <GiRaiseZombie />
+        <GiRaiseZombie 
+          style={{
+            backgroundColor: hoveredAnimate ? theme.iconHover : '', 
+            borderRadius: 9999, 
+            boxShadow: hoveredAnimate ? `0 0 10px ${theme.actionButton}` : 'none',
+            color: theme.button
+          }}
+        />
       </HeaderButton>
     </View>
   );

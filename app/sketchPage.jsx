@@ -191,21 +191,22 @@ const SketchPage = () => {
     --------------------------------------------------------------------------*/
     const saveAll = useCallback(async () => {
         try {
-            const refs = {           
-            rightUpperLeg: rightUpperLegRef,
-            rightLowerLeg: rightLowerLegRef,
-            rightFoot: rightFootRef,
-            leftUpperLeg: leftUpperLegRef,
-            leftLowerLeg: leftLowerLegRef,
-            leftFoot: leftFootRef,
-            torso: torsoRef,
-            head: headRef,
-            rightUpperArm: rightUpperArmRef,
-            leftUpperArm: leftUpperArmRef,
-            rightLowerArm: rightLowerArmRef,
-            rightHand: rightHandRef,
-            leftLowerArm: leftLowerArmRef,
-            leftHand: leftHandRef,
+            const refs = { 
+                
+                rightFoot: rightFootRef,
+                rightLowerLeg: rightLowerLegRef,          
+                rightUpperLeg: rightUpperLegRef,
+                leftFoot: leftFootRef,
+                leftLowerLeg: leftLowerLegRef,
+                leftUpperLeg: leftUpperLegRef,               
+                torso: torsoRef,
+                head: headRef,
+                rightHand: rightHandRef,
+                rightLowerArm: rightLowerArmRef,
+                rightUpperArm: rightUpperArmRef,
+                leftHand: leftHandRef,
+                leftLowerArm: leftLowerArmRef,
+                leftUpperArm: leftUpperArmRef,              
             };
 
             const svgs = {};

@@ -55,7 +55,7 @@ const SvgCanvas = ({
   Uses useCacheSvgs hook to convert SVG strings into Image objects for drawing
   svgs(string) -> cachedSvgsRef(Image objects)
   ----------------------------------------------------------------------------*/
-  const cachedSvgsRef = useCacheSvgs(svgs, mapping);
+  const cachedSvgsRef = useCacheSvgs(svgs, mapping, torsoDimsRef);
   
   /* ANIMATE THROUGH SAVED LANDMARKS
   ------------------------------------------------------------------------------
@@ -89,9 +89,9 @@ const SvgCanvas = ({
     scaleWebcamX, scaleWebcamY, // scaling factors from webcam to canvas size
     mapping, // body part to landmark index mapping
     svgs, // original SVG strings
-    armOrientation, // extended horizintal (large screen) or vertical (mobile)
-    torsoDimsRef, // ref to TorsoDimensions instance for updating torso averages
-    earDistRef, // ref to EarDistance instance for updating ear distance average
+    armOrientation, // horizontal or vertical arm orientation
+    torsoDimsRef, // ref to torso dimensions utility for dynamic scaling
+    earDistRef, // ref to ear distance utility for head scaling
   });
 
   /* RENDER CANVAS

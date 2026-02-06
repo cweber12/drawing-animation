@@ -13,10 +13,10 @@ import { getSvgSize } from './svgUtils';
 
   const debugTorsoAnchors = false;
   const debugHeadAnchors = false;
-  const debugArmAnchors = true;
-  const debugHandAnchors = true;
-  const debugLegAnchors = true;
-  const debugFootAnchors = true;
+  const debugArmAnchors = false;
+  const debugHandAnchors = false;
+  const debugLegAnchors = false;
+  const debugFootAnchors = false;
 
 /*==============================================================================
                                     TORSO 
@@ -55,6 +55,7 @@ export function setTorsoAnchorsAndDraw({
   );
 
   torsoDims.updateAvgTorsoWidth(Math.abs(tr.x - tl.x));
+  torsoDims.updateAvgHipWidth(Math.abs(br.x - bl.x));
 
   // Calculate hip center and shoulder width
   const hipCenter = {
@@ -202,11 +203,11 @@ export function setArmAnchors({
     if (!armsDown) {
       ctx.fillStyle = 'red';
       ctx.beginPath();
-      ctx.arc(fromAdjusted.x, fromAdjusted.y, 2, 0, 2 * Math.PI);
+      ctx.arc(from.x, from.y, 2, 0, 2 * Math.PI);
       ctx.fill();
       ctx.fillStyle = 'cyan';
       ctx.beginPath();
-      ctx.arc(toAdjusted.x, toAdjusted.y, 2, 0, 2 * Math.PI);
+      ctx.arc(to.x, to.y, 2, 0, 2 * Math.PI);
       ctx.fill();
     }
     ctx.restore();

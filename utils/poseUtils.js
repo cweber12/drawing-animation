@@ -68,3 +68,36 @@ export function smoothLandmarks(landmarksArray, windowSize = 5) {
     // Return array of smoothed frames
     return smoothed;
 }
+
+/* Scale landmarks from original dimensions to target dimensions
+--------------------------------------------------------------------------------
+landmarks: Array of landmarks to scale.
+original: { width, height } of the original video.
+target: { width, height } of the target canvas.
+Returns a new array of scaled landmarks.
+------------------------------------------------------------------------------*/
+export function scaleLandmarks(landmarks, original, target) {
+  if (!landmarks || !Array.isArray(landmarks)) return [];
+  const { width: origW, height: origH } = original;
+  const { width: targetW, height: targetH } = target;
+  return landmarks.map(kp =>
+    kp && kp.x != null && kp.y != null
+      ? {
+          ...kp,
+          x: (kp.x / origW) * targetW,
+          y: (kp.y / origH) * targetH,
+        }
+      : kp
+  );
+}
+
+/* Scale an array of landmark frames from original dimensions to target dimensions
+--------------------------------------------------------------------------------
+frames: Array of frames, each frame is an array of landmarks.
+original: { width, height } of the original video.
+target: { width, height } of the target canvas.
+Returns a new array of frames with scaled landmarks.
+------------------------------------------------------------------------------*/
+export function scaleLandmarkFrames(frames, original, target) {
+  return frames.map(frame => scaleLandmarks(frame, original, target));
+}

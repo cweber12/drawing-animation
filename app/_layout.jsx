@@ -114,7 +114,7 @@ const RootLayout = () => {
                 <Stack.Screen 
                     name="viewSavedPoses" 
                     options={({ route }) => ({ 
-                        title: 'Saved Content' ,
+                        title: '' ,
                         headerLeft: () => (
                         <>
                         <HomeButton />

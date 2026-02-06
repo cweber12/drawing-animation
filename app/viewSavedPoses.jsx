@@ -26,6 +26,7 @@ import {
   listDevicePoseFiles,
   readDeviceFileText,
 } from "../utils/storageUtils";
+import { scaleLandmarks, scaleLandmarkFrames } from '../utils/poseUtils';
 
 import { FaPencilAlt } from "react-icons/fa";
 import { GiSkeleton, GiShamblingZombie } from "react-icons/gi";
@@ -34,6 +35,7 @@ import ThemedView from '../components/view/ThemedView';
 import PoseCanvas from '../components/canvas/PoseCanvas';
 import DropdownSelect from '../components/button/DropdownSelect';
 import { BsPersonRaisedHand } from "react-icons/bs";
+import { scale } from '@shopify/react-native-skia';
 
 
 const ViewSavedPoses = () => {
@@ -49,21 +51,19 @@ const ViewSavedPoses = () => {
   // Video dimensions from loaded landmark file
   const [videoDimensions, setVideoDimensions] = 
     useState({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
-
   // Canvas dimensions
   const [width, setWidth] = useState(CANVAS_WIDTH);
-  const [height, setHeight] = useState(CANVAS_HEIGHT);
-  
+  const [height, setHeight] = useState(CANVAS_HEIGHT); 
   // Loading and file selection state
   const [loading, setLoading] = useState(false);
   const [selectedLandmarkFile, setSelectedLandmarkFile] = useState(null);
   const [selectedSvgFile, setSelectedSvgFile] = useState(null);
   const [currentFrame, setCurrentFrame] = useState(0);
-
   // Lists of files
   const [files, setFiles] = useState([]);
   // Frames and landmark data
   const [frames, setFrames] = useState([]);
+  const [scaledFrames, setScaledFrames] = useState([]);
   const [landmarkFiles, setLandmarkFiles] = useState([]);
   // SVG data
   const [svgFiles, setSvgFiles] = useState([]);
@@ -71,33 +71,10 @@ const ViewSavedPoses = () => {
   // Conditional rendering and file loading (S3 or device)
   const [showDeviceFiles, setShowDeviceFiles] = useState(false);
 
-  /*============================================================================
-                             REFS
-  ============================================================================*/
+  // Ref for animation interval
   const animationRef = useRef(null);
 
-  /*============================================================================
-                            FUNCTIONS
-  ============================================================================*/
-  
-  /* Scale landmarks to fit target dimensions
-  ----------------------------------------------------------------------------*/
-  function scaleLandmarks(landmarks, original, target) {
-    if (!landmarks || !Array.isArray(landmarks)) return [];
-    const { width: origW, height: origH } = original;
-    const { width: targetW, height: targetH } = target;
-    return landmarks.map(kp =>
-      kp && kp.x != null && kp.y != null
-        ? {
-            ...kp,
-            x: (kp.x / origW) * targetW,
-            y: (kp.y / origH) * targetH,
-          }
-        : kp
-    );
-  }
-
-  /* Choose device folder and load files
+  /* LOAD FILES FROM DEVICE
   ----------------------------------------------------------------------------*/
   const chooseDeviceFolderAndLoad = async () => {
     setLoading(true);
@@ -112,7 +89,7 @@ const ViewSavedPoses = () => {
       setSelectedSvgString(null);
       setLandmarkFiles([]);
       setSvgFiles([]);
-
+      // Load files from selected folder
       const { landmarkFiles, svgFiles } = await listDevicePoseFiles();
       setLandmarkFiles(landmarkFiles);
       setSvgFiles(svgFiles);
@@ -125,7 +102,7 @@ const ViewSavedPoses = () => {
     }
   };
 
-  /* Handle selecting an SVG file
+  /* HANDLE SVG FILE SELECTION
   ----------------------------------------------------------------------------*/
   async function handleSelectSvgFile(fileKey) {
     setLoading(true);
@@ -133,8 +110,9 @@ const ViewSavedPoses = () => {
     setSelectedSvgString(null);
 
     try {
+      /* S3
+      ------------------------------------------------------------------------*/
       if (!showDeviceFiles) {
-        // S3
         await downloadSvgFile(
           fileKey,
           setLoading,
@@ -145,7 +123,8 @@ const ViewSavedPoses = () => {
         return;
       }
 
-      // DEVICE
+      /* DEVICE
+      ------------------------------------------------------------------------*/
       const text = await readDeviceFileText(fileKey);
       const parsed = JSON.parse(text);
 
@@ -164,7 +143,7 @@ const ViewSavedPoses = () => {
     }
   }
 
-  /* Handle selecting a landmark file
+  /* HANDLE LANDMARK FILE SELECTION
   ----------------------------------------------------------------------------*/
   async function handleSelectLandmarkFile(fileKey) {
     setLoading(true);
@@ -174,7 +153,8 @@ const ViewSavedPoses = () => {
 
     try {
       if (!showDeviceFiles) {
-        // S3
+        /* S3
+        ------------------------------------------------------------------------*/
         await downloadLandmarkFile(
           fileKey,
           setLoading,
@@ -189,7 +169,8 @@ const ViewSavedPoses = () => {
         return;
       }
 
-      // DEVICE
+      /* DEVICE
+      ------------------------------------------------------------------------*/
       const text = await readDeviceFileText(fileKey);
       let parsed;
         try {
@@ -211,11 +192,11 @@ const ViewSavedPoses = () => {
         }
 
         if (Array.isArray(loadedLandmarks[0])) {
-        setFrames(loadedLandmarks);
+          setFrames(loadedLandmarks); 
         } else if (loadedLandmarks && typeof loadedLandmarks === 'object') {
-        setFrames([loadedLandmarks]);
+          setFrames([loadedLandmarks]);
         } else {
-        setFrames([]);
+          setFrames([]);
         }
         setVideoDimensions(loadedDimensions);
         setHeight(window.height * 0.7);
@@ -233,10 +214,10 @@ const ViewSavedPoses = () => {
   }
 
   /*============================================================================
-                            EFFECTS
+                                EFFECTS
   ============================================================================*/
   
-  /* Animate through frames for pose replay
+  /* HANDLE ANIMATION PLAYBACK
   ----------------------------------------------------------------------------*/
   useEffect(() => {
     if (!frames.length) return;
@@ -249,7 +230,11 @@ const ViewSavedPoses = () => {
     return () => animationRef.current && clearInterval(animationRef.current);
   }, [frames]);
 
-  /* Load files from S3 or device on mount or when showDeviceFiles changes
+  /* LOAD FILES ON MOUNT
+  ------------------------------------------------------------------------------
+  showDeviceFiles determines whether to load from S3 or device storage.
+  true: Load from device using File System Access API
+  false: Load from S3 using fetchFiles function
   ----------------------------------------------------------------------------*/
   useEffect(() => {
     if (showDeviceFiles) {
@@ -269,6 +254,11 @@ const ViewSavedPoses = () => {
     }
   }, [showDeviceFiles]);
 
+  /* UPDATE NAVIGATION PARAMS
+  ------------------------------------------------------------------------------
+  Updates the header title and toggle function for switching between S3 and 
+  device files.
+  ----------------------------------------------------------------------------*/
   useEffect(() => {
     navigation.setParams({
       title: showDeviceFiles ? "Device Animations" : "S3 Animations",
@@ -282,34 +272,16 @@ const ViewSavedPoses = () => {
                                 RENDER 
   ============================================================================*/
   return (
-    <ThemedView 
-      style={{ 
-        flex: 1,
-        flexDirection: 'row', 
-        alignItems: "flex-start", 
-        padding: "2rem",  
-        }}>
+    <ThemedView style={styles.mainContainer}>
 
-      <View style={{ flexDirection: 'column'}}>               
-        <View 
-          style={{
-            flexDirection: 'row', 
-            alignItems: 'flex-end',
-            justifyContent: 'flex-start', 
-            marginBottom: '1rem', 
-            paddingBottom: '0.2rem',
-            }}>
+      <View style={styles.listWrapper}>               
+        <View style={styles.listHeader}>
           <GiSkeleton 
             size={50} 
             color={theme.actionButton} 
             style={{ marginRight: "1rem" }} />
-          <Text 
-            style={{ 
-              fontSize: 24,
-              fontWeight: 'bold',
-              color: theme.text,
-            }}>
-            Pose Skeletons
+          <Text style={{ fontSize: 24, fontWeight: 'bold', color: theme.text }}>
+            Animation Files
           </Text>
         </View>
         {/* Landmark Files List */}
@@ -400,7 +372,13 @@ const ViewSavedPoses = () => {
         }
       </View>
       {/* Canvas Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+      <div style={{ 
+        flex: 1, 
+        display: 'flex',
+        alignItems: 'center', 
+        justifyContent: 'center',
+        
+        }}>
         {loading && <ActivityIndicator />}
         {selectedLandmarkFile && selectedSvgString && (
           <SvgCanvas
@@ -409,16 +387,11 @@ const ViewSavedPoses = () => {
             webcamWidth={videoDimensions.width}
             webcamHeight={videoDimensions.height}
             landmarks={null}
-            savedLandmarks={frames}
+            savedLandmarks={scaleLandmarkFrames(frames, videoDimensions, { width, height })}
             replay={frames.length > 1}
             svgs={selectedSvgString}
             mapping={CANVAS_LANDMARK_MAP}
             armOrientation={"horizontal"}
-            style={{
-              border: '1px solid #555',
-              background: '#111',
-              zIndex: 2
-            }}
         />
         )}
         {frames.length > 0 && selectedLandmarkFile && !selectedSvgFile && (
@@ -426,11 +399,10 @@ const ViewSavedPoses = () => {
             width={width}
             height={height}
             landmarks={scaleLandmarks(
-              frames[currentFrame],
-              videoDimensions,
+              frames[currentFrame], 
+              videoDimensions, 
               { width, height }
             )}
-            style={{ border: '1px solid #555', background: '#111' }}
           />
         )}
       </div>
@@ -441,6 +413,29 @@ const ViewSavedPoses = () => {
 export default ViewSavedPoses;
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    flexDirection: 'row', 
+    alignItems: "flex-start", 
+    padding: "2rem",  
+  },
+
+  listWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    gap: '1rem',
+  },
+
+  listHeader: {
+    flexDirection: 'row', 
+    alignItems: 'flex-end',
+    justifyContent: 'flex-start', 
+    marginBottom: '1rem', 
+    paddingBottom: '0.2rem',
+  },
+
   list: {
     width: 320,
     maxHeight: '25vh',
