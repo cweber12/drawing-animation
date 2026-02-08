@@ -69,6 +69,44 @@ export function smoothLandmarks(landmarksArray, windowSize = 5) {
     return smoothed;
 }
 
+export function interpolateLandmarkFrames(frames, steps = 1) {
+  if (!Array.isArray(frames) || frames.length < 2 || steps < 1) return frames;
+
+  const out = [];
+  for (let i = 0; i < frames.length - 1; i++) {
+    const a = frames[i];
+    const b = frames[i + 1];
+    out.push(a); // keep original frame
+
+    for (let s = 1; s <= steps; s++) {
+      const t = s / (steps + 1);
+      const interp = a.map((kpA, idx) => {
+        const kpB = b[idx];
+        if (!kpA || !kpB || kpA.x == null || kpB.x == null || kpA.y == null || kpB.y == null) {
+          return { x: NaN, y: NaN };
+        }
+        const x = kpA.x + (kpB.x - kpA.x) * t;
+        const y = kpA.y + (kpB.y - kpA.y) * t;
+        const z =
+          kpA.z != null && kpB.z != null
+            ? kpA.z + (kpB.z - kpA.z) * t
+            : undefined;
+        return z == null ? { x, y } : { x, y, z };
+      });
+      out.push(interp);
+    }
+  }
+  // push last frame
+  out.push(frames[frames.length - 1]);
+  return out;
+}
+
+// Optionally combine smoothing + interpolation:
+export function smoothAndInterpolateLandmarks(frames, smoothWindow = 5, steps = 1) {
+  const smoothed = smoothLandmarks(frames, smoothWindow);
+  return interpolateLandmarkFrames(smoothed, steps);
+}
+
 /* Scale landmarks from original dimensions to target dimensions
 --------------------------------------------------------------------------------
 landmarks: Array of landmarks to scale.

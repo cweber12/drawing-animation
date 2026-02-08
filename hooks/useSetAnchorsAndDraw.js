@@ -171,7 +171,7 @@ export function useSetAnchorsAndDraw({
       }
     }
 
-    ctx.strokeStyle = 'transparent';
+    ctx.strokeStyle = 'red';
     ctx.lineWidth = 2;
     CONNECTED_KEYPOINTS.forEach(([i, j]) => {
       const kp1 = scaledLandmarks[i];
@@ -184,7 +184,7 @@ export function useSetAnchorsAndDraw({
       }
     });
 
-    ctx.fillStyle = 'transparent';
+    ctx.fillStyle = 'green';
     scaledLandmarks.forEach((kp) => {
       if (kp && kp.score > 0.3) {
         ctx.beginPath();

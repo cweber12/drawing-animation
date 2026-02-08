@@ -35,11 +35,7 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
         
         try {
           const { width: svgW, height: svgH } = getSvgDimensions(svgString);
-          let svgToSend;
-        
-        let topLeft = false, topRight = false, bottomRight = false, bottomLeft = false;
-        let radius = CANVAS_BORDER_RADIUS;
-        if (roundCorners) { 
+          let svgToSend = svgString;
           
           if (part === 'torso') {
             svgToSend = addSvgClipPath(
@@ -71,14 +67,14 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
               svgW / 2, // radius
               true, //TL
               true, //TR
-              false, //BR
-              false  //BL
+              true, //BR
+              true  //BL
             ); 
           } else if (part === 'leftUpperLeg' || part === 'rightUpperLeg') {
             svgToSend = addSvgClipPath(
               svgString,
               svgW, svgH,
-              svgW / 4, 
+              svgW / 2, 
               false, false, true, true  
             ); 
           } else if (part === 'leftUpperArm' ) {
@@ -86,44 +82,27 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
              svgToSend = addSvgClipPath(
               svgString,
               svgW,svgH,
-              svgW / 4, 
-              true, false, false, true  
+              svgW / 2, 
+              false, true, true, true  
             );
 
-            // round armpit corner more
-            // *** future update : round conditionally based on arm orientation) 
-            svgToSend = addSvgClipPath(
-              svgString,
-              svgW, svgH,
-              svgW / 1.5,
-              false, false, false, true  
-            ); 
           } else if (part === 'rightUpperArm' ) {
             // round shoulder and elbow corners
              svgToSend = addSvgClipPath(
               svgString,
               svgW,svgH,
-              svgW / 4, 
-              false, true, true, false  
+              svgW / 2, 
+              true, true, true, true  
             );
-            // round armpit corner more
-            // *** future update : round conditionally based on arm orientation) 
+ 
+          } else if (part === 'leftFoot' || part === 'rightFoot') {
             svgToSend = addSvgClipPath(
               svgString,
               svgW, svgH,
-              svgW / 1.5,
-              false, false, true, false  
+              svgW / 2, 
+              true, true, false, false  
             ); 
           }
-          else {
-            svgToSend = svgString;
-          }
-
-
-          
-        } else {
-          svgToSend = svgString;
-        }
           const img = await svgStringToImage(svgToSend);
           if (img) next[part] = img;
         } catch (e) {

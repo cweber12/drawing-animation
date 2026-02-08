@@ -11,11 +11,11 @@ import {
 } from './drawingUtils';
 import { getSvgSize } from './svgUtils';
 
-  const debugTorsoAnchors = false;
+  const debugTorsoAnchors = true;
   const debugHeadAnchors = false;
   const debugArmAnchors = false;
   const debugHandAnchors = false;
-  const debugLegAnchors = false;
+  const debugLegAnchors = true;
   const debugFootAnchors = false;
 
 /*==============================================================================
@@ -83,17 +83,17 @@ export function setTorsoAnchorsAndDraw({
 
   ctx.save();
   ctx.setTransform(M.a, M.b, M.c, M.d, M.e, M.f);
-  ctx.scale(1, 1.1); // Slightly scale height to cover gaps
+  ctx.scale(1, 1); // Slightly scale height to cover gaps
   ctx.drawImage(img, 0, 0, svgW, svgH);
   ctx.restore();
 
   // Draw anchor points for debugging
   if (debugTorsoAnchors) {
     ctx.save();
-    ctx.fillStyle = 'lime';
+    ctx.fillStyle = 'red';
     [tl, tr, bl, br, hipCenter].forEach((pt) => {
       ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 2, 0, 2 * Math.PI);
+      ctx.arc(pt.x, pt.y, 5, 0, 2 * Math.PI);
       ctx.fill();
     });
     ctx.restore();
@@ -285,12 +285,12 @@ export function setLegAnchors({
 
   if (debugLegAnchors) {
     ctx.save();
-    ctx.fillStyle = 'lime';
+    ctx.fillStyle = 'red';
     ctx.beginPath();
-    ctx.arc(from.x, from.y, 2, 0, 2 * Math.PI);
+    ctx.arc(from.x, from.y, 5, 0, 2 * Math.PI);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(to.x, to.y, 2, 0, 2 * Math.PI);
+    ctx.arc(to.x, to.y, 5, 0, 2 * Math.PI);
     ctx.fill();
     ctx.restore();
   }

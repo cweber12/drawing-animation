@@ -15,6 +15,7 @@ import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
+import { addFeetFromHipKneeVectors } from "../utils/calcFootVectors";
 
 /* Import Constants
 ------------------------------------------------------------------------------*/
@@ -25,7 +26,10 @@ import {
 
 /* Import Utils and Hooks
 ------------------------------------------------------------------------------*/
-import { smoothLandmarks } from '../utils/poseUtils';
+import { 
+  smoothLandmarks, 
+  smoothAndInterpolateLandmarks
+ } from '../utils/poseUtils';
 import { FootCalculator } from '../utils/FootCalculator';
 import { downloadLandmarksToDevice } from '../utils/storageUtils';
 import { uploadToS3 } from '../utils/s3Utils';
@@ -111,33 +115,6 @@ const DetectPose = () => {
   const [naturalVideoHeight, setNaturalVideoHeight] = useState(null);
   const [showExportOptions, setShowExportOptions] = useState(false);
 
-  /* ===========================================================================
-                              MEMOIZED VALUES
-  ============================================================================*/
-  
-  /* Filter saved landmarks to remove low-confidence points (score < 0.3)
-  ----------------------------------------------------------------------------*/
-  const filteredLandmarks = useMemo(() =>
-    savedLandmarks.map(
-      frame =>frame.map(point => point && point.score > 0.3 ? point : null)
-    ),[savedLandmarks]
-  );
-  
-  /* Apply smoothing to saved landmarks for pose animation
-  ----------------------------------------------------------------------------*/
-  const smoothedSavedLandmarks = useMemo(() => (
-    showPoseAnimation && filteredLandmarks.length > 0
-      ? smoothLandmarks(filteredLandmarks, 5)
-      : filteredLandmarks
-  ), [showPoseAnimation, filteredLandmarks]);
-
-  /* Add foot landmarks to smoothed landmarks
-  ----------------------------------------------------------------------------*/
-  const estimatedLandmarks = useMemo(() => {
-    if (smoothedSavedLandmarks.length === 0) return smoothedSavedLandmarks;
-    return footCalculator.current.addFeetToLandmarks(smoothedSavedLandmarks);
-  }, [smoothedSavedLandmarks]);
-
   /*============================================================================
                             CALLBACK FUNCTIONS
   ============================================================================*/
@@ -158,19 +135,19 @@ const DetectPose = () => {
   ----------------------------------------------------------------------------*/
   const handleDownloadLandmarksToDevice = useCallback(() => {
     downloadLandmarksToDevice(
-      estimatedLandmarks
+      savedLandmarks
     );
-  }, [estimatedLandmarks]);
+  }, [savedLandmarks]);
 
   /* Upload saved landmarks to S3
   ----------------------------------------------------------------------------*/
   const handleUploadToS3 = useCallback(() => {
     uploadToS3({
-      landmarks: estimatedLandmarks,
+      landmarks: savedLandmarks,
       svgs: null,
       fileType: "json",
     });
-  }, [estimatedLandmarks]);
+  }, [savedLandmarks]);
 
   /* ===========================================================================
                                    HOOKS
@@ -229,7 +206,7 @@ const DetectPose = () => {
       onToggleExportOptions: toggleExportOptions,
       viewMode,
       showPoseAnimation,
-      estimatedLandmarks,
+      savedLandmarks,
       isDetecting,
     });
   }, [
@@ -242,7 +219,7 @@ const DetectPose = () => {
     setShowPoseInfo,
     viewMode,
     showPoseAnimation,
-    estimatedLandmarks,
+    savedLandmarks,
     isDetecting,
     
   ]);
@@ -272,6 +249,7 @@ const DetectPose = () => {
     naturalVideoHeight,
     setLandmarks,
     setSavedLandmarks,
+    savedLandmarks,
     setLoading,
     viewMode,
   });
@@ -309,7 +287,7 @@ const DetectPose = () => {
               webcamWidth={webcamWidth}
               webcamHeight={webcamHeight}
               landmarks={landmarks}
-              savedLandmarks={estimatedLandmarks}
+              savedLandmarks={savedLandmarks}
               replay={showPoseAnimation}
               svgs={svgs}
               mapping={mapping}

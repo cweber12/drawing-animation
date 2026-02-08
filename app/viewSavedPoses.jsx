@@ -267,6 +267,28 @@ const ViewSavedPoses = () => {
     });
   }, [showDeviceFiles]);
 
+  /* PRECOMPUTE SCALED FRAMES
+  ---------------------------------------------------------------------------
+  Avoid recomputing scaled frames on every render. Compute once whenever the
+  source `frames` or video/canvas dimensions change and store in state.
+  This reduces CPU, GC churn, and should stop the fan/cpu from pegging.
+  ------------------------------------------------------------------------*/
+  useEffect(() => {
+    if (!frames || frames.length === 0) {
+      setScaledFrames([]);
+      return;
+    }
+
+    // compute scaled frames once
+    try {
+      const scaled = scaleLandmarkFrames(frames, videoDimensions, { width, height });
+      setScaledFrames(scaled);
+    } catch (e) {
+      console.error('Scaling frames failed:', e);
+      setScaledFrames([]);
+    }
+  }, [frames, videoDimensions.width, videoDimensions.height, width, height]);
+
 
   /*============================================================================
                                 RENDER 
@@ -387,7 +409,7 @@ const ViewSavedPoses = () => {
             webcamWidth={videoDimensions.width}
             webcamHeight={videoDimensions.height}
             landmarks={null}
-            savedLandmarks={scaleLandmarkFrames(frames, videoDimensions, { width, height })}
+            savedLandmarks={scaledFrames}
             replay={frames.length > 1}
             svgs={selectedSvgString}
             mapping={CANVAS_LANDMARK_MAP}
@@ -398,11 +420,7 @@ const ViewSavedPoses = () => {
           <PoseCanvas
             width={width}
             height={height}
-            landmarks={scaleLandmarks(
-              frames[currentFrame], 
-              videoDimensions, 
-              { width, height }
-            )}
+            landmarks={scaledFrames && scaledFrames[currentFrame] ? scaledFrames[currentFrame] : null}
           />
         )}
       </div>

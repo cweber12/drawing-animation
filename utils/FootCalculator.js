@@ -1,46 +1,64 @@
-/* FootCalculator.js
---------------------------------------------------------------------------------
-Calculate and track leg angles and leg angle averages over time to estimate foot
-positions based on knee positions.
 
-- knee -> ankle <- foot angle assumed to always have opposite sign to
-  hip -> knee <- ankle angle.
-
-- foot position is estimated from ankle position, knee->ankle vector, and
-  a foot angle derived from the knee angle.
-
-- Used to add foot landmarks (17=left foot, 18=right foot) to pose landmarks.
-------------------------------------------------------------------------------*/
 export class FootCalculator {
+  /* Initialize state for foot estimation
+  ----------------------------------------------------------------------------*/
   constructor() {
     // Average Hip Width for scaling and detecting flips
     this.avgHipWidth = 0;
+    this.currentHipWidth = 0;
     this.hipAlpha = 0.1;
     this.initFlipFlag = false;
     this.sameAfterFlipCount = 0;
 
-    // Leg angles to calculating ankle angle and foot position
+    // Leg angles for calculating ankle angle and foot position
     this.avgRightLegAngle = 0;
     this.currentRightLegAngle = 0;
     this.avgLeftLegAngle = 0;
     this.currentLeftLegAngle = 0;
 
-    // Direction of leg bend
-    this.currentRightLegDirection = 0; // sign (+1/-1)
-    this.currentLeftLegDirection = 0;  // sign (+1/-1)
+    // Direction of leg bend (+1 / -1)
+    this.currentRightLegDirection = 1;
+    this.currentLeftLegDirection = 1;
 
-    // Reference angles and alphas for foot estimation
+    // Reference angles for foot estimation
     this.leftThetaRef = null;
     this.rightThetaRef = null;
-    this.leftAlphaRef = 0;   
-    this.rightAlphaRef = 0;
 
-    // Smoothed alphas for foot angle
-    this.leftAlpha = 0;
-    this.rightAlpha = 0;
+    // Default side orientation (relative to knee->ankle axis)
+    // left foot outward = negative, right foot outward = positive
+    this.leftAlphaRef = -(3 * Math.PI) / 4;
+    this.rightAlphaRef = (3 * Math.PI) / 4;
 
-    // Gain for knee to foot angle relation
-    this.kneeToFootGain = 1.0; // k in alpha = alphaRef + s*k*(theta-thetaRef)
+    // Current alphas
+    this.leftAlpha = this.leftAlphaRef;
+    this.rightAlpha = this.rightAlphaRef;
+
+    // Gain for knee -> foot angle relation
+    this.kneeToFootGain = 1.0; // scale bend influence (0..1+)
+
+    // Knee bend normalization span
+    this.maxBend = Math.PI * 0.75;
+
+    // Flip-only smoothing state
+    this.prevLeftKneeDir = 1;
+    this.prevRightKneeDir = 1;
+
+    this.leftFlipT = 1;   // 1 => no active transition
+    this.rightFlipT = 1;
+    this.flipFrames = 5;  // tune: 3..8
+
+    this.leftFlipFrom = this.leftAlphaRef;
+    this.leftFlipTo = this.leftAlphaRef;
+    this.rightFlipFrom = this.rightAlphaRef;
+    this.rightFlipTo = this.rightAlphaRef;
+  }
+
+  _clamp01(t) {
+    return Math.max(0, Math.min(1, t));
+  }
+
+  _lerp(a, b, t) {
+    return a + (b - a) * t;
   }
 
   // Keep angle in (-PI, PI]
@@ -50,20 +68,14 @@ export class FootCalculator {
     return x - Math.PI;
   }
 
-  // Step from prev -> target by at most maxStep, taking shortest angular route
+  // Step from prev -> target by at most maxStep, shortest angular route
   _stepAngle(prev, target, maxStep) {
-    const diff = this._wrapPi(target - prev); // shortest signed difference
+    const diff = this._wrapPi(target - prev);
     const step = Math.max(-maxStep, Math.min(maxStep, diff));
     return prev + step;
   }
-  
+
   /* Update average hip width with smoothing and flip detection
-  ------------------------------------------------------------------------------
-  1. Calculates difference between left and right hip x coord. 
-     - Sign change indicates possible flip.
-     - Ignore large sudden changes in hip width (>50%) to avoid outliers.
-  2. If flip detected, wait for 3 consecutive frames with same sign to confirm.
-  3. Update average hip width with exponential smoothing.
   ----------------------------------------------------------------------------*/
   _updateAvgHipWidth(newWidth) {
     if (this.avgHipWidth !== 0) {
@@ -96,7 +108,7 @@ export class FootCalculator {
     }
   }
 
-  /* Update average right leg angle 
+  /* Update average right leg angle
   ----------------------------------------------------------------------------*/
   _updateAvgRightLegAngle(newAngle) {
     const angleAlpha = 0.1;
@@ -124,19 +136,26 @@ export class FootCalculator {
     const dot = v1.x * v2.x + v1.y * v2.y;
     const m1 = Math.hypot(v1.x, v1.y);
     const m2 = Math.hypot(v2.x, v2.y);
+
+    // Guard against zero-length vectors
+    if (m1 < 1e-9 || m2 < 1e-9) {
+      return { angle: 0, direction: 1 };
+    }
+
     const cosine = dot / (m1 * m2);
 
     const cross = v1.x * v2.y - v1.y * v2.x;
     const direction = Math.sign(cross) || 1; // avoid 0
 
-    const angle = Math.acos(Math.min(Math.max(cosine, -1), 1)); // 0..pi (radians)
+    const angle = Math.acos(Math.min(Math.max(cosine, -1), 1)); // 0..pi
     return { angle, direction };
   }
 
   /* Rotate vector by angle t (radians)
   ----------------------------------------------------------------------------*/
   _rotate(v, t) {
-    const c = Math.cos(t), s = Math.sin(t);
+    const c = Math.cos(t);
+    const s = Math.sin(t);
     return { x: v.x * c - v.y * s, y: v.x * s + v.y * c };
   }
 
@@ -150,178 +169,187 @@ export class FootCalculator {
   /* Update left leg angle and direction
   ----------------------------------------------------------------------------*/
   _updateLeftLegAngle(leftHip, leftKnee, leftAnkle) {
-    const vThigh = { // knee -> hip
-        x: leftHip.x - leftKnee.x, 
-        y: leftHip.y - leftKnee.y 
-    };    
-    const vShank = { // knee->ankle
-        x: leftAnkle.x - leftKnee.x, 
-        y: leftAnkle.y - leftKnee.y 
-    }; 
-    const { angle, direction } = 
-        this._calculateAngleBetweenVectors(vThigh, vShank);
+    const vThigh = { x: leftHip.x - leftKnee.x, y: leftHip.y - leftKnee.y };     // knee->hip
+    const vShank = { x: leftAnkle.x - leftKnee.x, y: leftAnkle.y - leftKnee.y }; // knee->ankle
+    const { angle, direction } = this._calculateAngleBetweenVectors(vThigh, vShank);
 
     this.currentLeftLegAngle = angle;
     this.currentLeftLegDirection = direction;
     this._updateAvgLeftLegAngle(angle);
 
-
     if (this.leftThetaRef === null) {
-      this.leftThetaRef = Math.min(angle - Math.PI / 8, 3 * Math.PI / 4); 
-    } 
+      this.leftThetaRef = angle;
+    }
   }
 
   /* Update right leg angle and direction
   ----------------------------------------------------------------------------*/
   _updateRightLegAngle(rightHip, rightKnee, rightAnkle) {
-    const vThigh = { // knee -> hip
-        x: rightHip.x - rightKnee.x, 
-        y: rightHip.y - rightKnee.y 
-    };     
-    const vShank = { // knee->ankle
-        x: rightAnkle.x - rightKnee.x, 
-        y: rightAnkle.y - rightKnee.y 
-    };
-    const { angle, direction } = 
-        this._calculateAngleBetweenVectors(vThigh, vShank);
+    const vThigh = { x: rightHip.x - rightKnee.x, y: rightHip.y - rightKnee.y };     // knee->hip
+    const vShank = { x: rightAnkle.x - rightKnee.x, y: rightAnkle.y - rightKnee.y }; // knee->ankle
+    const { angle, direction } = this._calculateAngleBetweenVectors(vThigh, vShank);
 
     this.currentRightLegAngle = angle;
     this.currentRightLegDirection = direction;
     this._updateAvgRightLegAngle(angle);
 
     if (this.rightThetaRef === null) {
-      this.rightThetaRef = Math.min(angle - Math.PI / 8, 3 * Math.PI / 4); // init reference
+      this.rightThetaRef = angle;
     }
   }
 
   /* Estimate foot coordinate from knee and ankle positions and angles
   ------------------------------------------------------------------------------
-  1. Calculate knee->ankle unit vector.
-  2. Estimate foot length as ratio of shank length.
-  3. Calculate ankle->foot direction by rotating knee->ankle vector by alpha
-    (angle between ankle->foot and ankle->knee).
-  4. Calculate foot position as ankle position + ankle->foot vector.
-  5. Smooth alpha over time to avoid sudden jumps.
-  6. Return foot position and alpha.
+  Behavior:
+  - |alpha| is bounded between:
+      straight leg -> 3PI/4
+      bent leg     -> PI/2
+  - Smoothing only occurs when knee direction flips:
+      interpolate between old max (+/-3PI/4) and new max (+/-3PI/4)
+  - Otherwise alpha snaps directly to current bounded target.
   ----------------------------------------------------------------------------*/
- _estimateFootCoordinate({
-    theta,     // knee angle (rad)
-    thetaRef,  // reference knee angle (rad)
-    alphaRef,  // reference ankle-foot angle (rad) (your "default outward" baseline)
-    sideSign,  // +1/-1 to pick rotation side (keep whatever you're passing now)
-    knee,      // knee position
-    ankle,     // ankle position
-    footLenRatio = 0.5, // foot length as ratio of shank length
-    side,      // 'left' or 'right'
+  _estimateFootCoordinate({
+    theta,
+    thetaRef,
+    alphaRef,
+    knee,
+    ankle,
+    hip,
+    footLenRatio = 0.5,
+    side,
   }) {
-    // ankle->knee vector (swapped so foot points away from knee)
+    // 1) Shank direction and length
     const kneeToAnkle = { x: ankle.x - knee.x, y: ankle.y - knee.y };
     const u = this._norm(kneeToAnkle);
-
-    // placeholder foot length: ratio of shank length
-    const shankLen = Math.hypot(knee.x - ankle.x, knee.y - ankle.y);
+    const shankLen = Math.hypot(kneeToAnkle.x, kneeToAnkle.y);
     const footLen = shankLen * footLenRatio;
 
-    // --- helpers (local, so you don't have to modify other parts of the file) ---
-    const wrapPi = (a) => {
-      // normalize to (-PI, PI]
-      let x = (a + Math.PI) % (2 * Math.PI);
-      if (x < 0) x += 2 * Math.PI;
-      return x - Math.PI;
-    };
+    // 2) Bend factor: 0=straight, 1=bent
+    const bendAmount = Math.max(0, Math.PI - theta);
+    const bendT = this._clamp01(
+      (this.kneeToFootGain * bendAmount) / Math.max(this.maxBend, 1e-6)
+    );
 
-    const stepAngle = (prev, target, maxStep) => {
-      // move from prev toward target along the shortest arc, limited by maxStep
-      const diff = wrapPi(target - prev);
-      const step = Math.max(-maxStep, Math.min(maxStep, diff));
-      return prev + step;
-    };
+    // 3) Angle bounds (your requirement)
+    const ALPHA_STRAIGHT = (3 * Math.PI) / 4; // 135°
+    const ALPHA_BENT = Math.PI / 2;           // 90°
+    const alphaMag = this._lerp(ALPHA_STRAIGHT, ALPHA_BENT, bendT);
 
-    // --- target ankle-foot angle ---
-    // This preserves your existing behavior:
-    // - alphaRef provides the "default outward" angle when legs are straight
-    // - the knee term bends the foot opposite-ish depending on sideSign and gain
-    const targetAlpha =
-      alphaRef + sideSign * this.kneeToFootGain * (theta - thetaRef);
+    // ------------------------------------------------------------------
+    // 4) Determine outward side robustly (fixes "both feet same direction")
+    // ------------------------------------------------------------------
+    // Build thigh vector (hip->knee) and signed knee orientation wrt shank.
+    const thigh = { x: knee.x - hip.x, y: knee.y - hip.y };
+    const cross = u.x * thigh.y - u.y * thigh.x; // z-component
 
-    // previous filtered angle
-    const prevAlpha = side === "left" ? this.leftAlpha : this.rightAlpha;
+    // If cross > 0, thigh is on one side of shank; if <0, opposite side.
+    // We want foot to point OUTWARD from body:
+    // - left foot uses opposite side convention from right foot.
+    // This guarantees opposite directions between feet.
+    let outwardSign;
+    if (side === "left") {
+      outwardSign = cross >= 0 ? 1 : -1;
+    } else {
+      outwardSign = cross >= 0 ? -1 : 1;
+    }
 
-    // --- smooth the flip by stepping over multiple frames ---
-    // Tune this: smaller = slower/smoother, larger = snappier
-    const maxStep = 0.30; // radians per frame (~17°). Try 0.15–0.45.
+    // Stable fallback when nearly collinear (cross ~ 0): keep previous sign
+    const eps = 1e-6;
+    if (Math.abs(cross) < eps) {
+      const prev = side === "left" ? this.leftAlpha : this.rightAlpha;
+      outwardSign = prev >= 0 ? 1 : -1;
+    }
 
-    // Step toward target using wrap-aware shortest path
-    const steppedAlpha = stepAngle(prevAlpha, targetAlpha, maxStep);
+    const directTargetAlpha = outwardSign * alphaMag;
 
-    // Optional extra smoothing (you can set smoothing=1 to disable)
-    const smoothing = 0.6;
-    const alpha = smoothing * steppedAlpha + (1 - smoothing) * prevAlpha;
+    // ------------------------------------------------------------------
+    // 5) Smooth ONLY on direction flips (max->max), otherwise snap
+    // ------------------------------------------------------------------
+    let flipT, flipFrom, flipTo, prevAlpha;
+    if (side === "left") {
+      flipT = this.leftFlipT;
+      flipFrom = this.leftFlipFrom;
+      flipTo = this.leftFlipTo;
+      prevAlpha = this.leftAlpha;
+    } else {
+      flipT = this.rightFlipT;
+      flipFrom = this.rightFlipFrom;
+      flipTo = this.rightFlipTo;
+      prevAlpha = this.rightAlpha;
+    }
 
-    // store for next frame
-    if (side === "left") this.leftAlpha = alpha;
-    else if (side === "right") this.rightAlpha = alpha;
+    const prevSign = prevAlpha >= 0 ? 1 : -1;
+    const currSign = outwardSign;
+    const signFlipped = prevSign !== currSign;
 
-    // ankle->foot direction (IMPORTANT: use alpha, not targetAlpha/currAlpha)
+    if (signFlipped && flipT >= 1) {
+      flipFrom = prevSign * ALPHA_STRAIGHT;
+      flipTo = currSign * ALPHA_STRAIGHT;
+      flipT = 0;
+    }
+
+    let alpha;
+    if (flipT < 1) {
+      const step = 1 / Math.max(this.flipFrames, 1);
+      flipT = Math.min(1, flipT + step);
+      alpha = this._lerp(flipFrom, flipTo, flipT);
+    } else {
+      alpha = directTargetAlpha;
+    }
+
+    // Persist
+    if (side === "left") {
+      this.leftAlpha = alpha;
+      this.leftFlipT = flipT;
+      this.leftFlipFrom = flipFrom;
+      this.leftFlipTo = flipTo;
+    } else {
+      this.rightAlpha = alpha;
+      this.rightFlipT = flipT;
+      this.rightFlipFrom = flipFrom;
+      this.rightFlipTo = flipTo;
+    }
+
+    // 6) Final foot coordinate
     const dir = this._rotate(u, alpha);
-
     return {
       x: ankle.x + dir.x * footLen,
       y: ankle.y + dir.y * footLen,
-      alpha, // angle between ankle->foot and ankle->knee (signed)
+      alpha,
     };
   }
-  /* Estimate left foot coordinate
-  ------------------------------------------------------------------------------
-  1. Get current left leg angle and direction.
-  2. Use reference angle if available, otherwise use current angle.
-  3. Call _estimateFootCoordinate with left leg parameters.
-  4. Return estimated foot coordinate.
-  ----------------------------------------------------------------------------*/
-  _estimateLeftFootCoordinate(leftKnee, leftAnkle) {
+
+  _estimateLeftFootCoordinate(leftHip, leftKnee, leftAnkle) {
     const theta = this.avgLeftLegAngle;
     const thetaRef = this.leftThetaRef ?? theta;
-    const sideSign = this.currentLeftLegDirection || 1;
     return this._estimateFootCoordinate({
       theta,
       thetaRef,
       alphaRef: this.leftAlphaRef,
-      sideSign,
       knee: leftKnee,
       ankle: leftAnkle,
+      hip: leftHip,
       footLenRatio: 0.5,
-      side: 'left',
+      side: "left",
     });
   }
 
-  /* Estimate right foot coordinate
-  ----------------------------------------------------------------------------*/
-  _estimateRightFootCoordinate(rightKnee, rightAnkle) {
+  _estimateRightFootCoordinate(rightHip, rightKnee, rightAnkle) {
     const theta = this.avgRightLegAngle;
     const thetaRef = this.rightThetaRef ?? theta;
-    const sideSign = this.currentRightLegDirection || 1;
-    const side = 'right';
     return this._estimateFootCoordinate({
       theta,
       thetaRef,
       alphaRef: this.rightAlphaRef,
-      sideSign,
       knee: rightKnee,
       ankle: rightAnkle,
+      hip: rightHip,
       footLenRatio: 0.5,
-      side,
+      side: "right",
     });
   }
 
   /* Add foot landmarks to landmarks array
-  ------------------------------------------------------------------------------
-  1. Check if required landmarks (hips, knees, ankles) are present. If not, no 
-     need to estimate feet.
-  2. Update average hip width for scaling and flip detection.
-  3. Update left and right leg angles.
-  4. Estimate left and right foot coordinates.
-  5. Add foot landmarks (17=left foot, 18=right foot) to landmarks.
-  6. Return updated landmarks array.
   ----------------------------------------------------------------------------*/
   addFeetToLandmarks(landmarksArray) {
     for (let i = 0; i < landmarksArray.length; i++) {
@@ -345,8 +373,8 @@ export class FootCalculator {
       this._updateLeftLegAngle(leftHip, leftKnee, leftAnkle);
       this._updateRightLegAngle(rightHip, rightKnee, rightAnkle);
 
-      const leftFoot = this._estimateLeftFootCoordinate(leftKnee, leftAnkle);
-      const rightFoot = this._estimateRightFootCoordinate(rightKnee, rightAnkle);
+      const leftFoot = this._estimateLeftFootCoordinate(leftHip, leftKnee, leftAnkle);
+      const rightFoot = this._estimateRightFootCoordinate(rightHip, rightKnee, rightAnkle);
 
       landmarks[17] = { x: leftFoot.x, y: leftFoot.y, score: 0.9 };
       landmarks[18] = { x: rightFoot.x, y: rightFoot.y, score: 0.9 };

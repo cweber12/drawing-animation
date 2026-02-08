@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import * as poseDetection from '@tensorflow-models/pose-detection';
+import { smoothAndInterpolateLandmarks } from '../utils/poseUtils';
+import { addFeetFromHipKneeVectors } from '../utils/calcFootVectors';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
 
 export function usePoseDetection({
@@ -13,9 +15,19 @@ export function usePoseDetection({
   naturalVideoHeight,
   setLandmarks,
   setSavedLandmarks,
+  savedLandmarks,
   setLoading,
   viewMode,
 }) {
+
+  useEffect(() => {
+    if (!isDetecting && savedLandmarks?.length) {
+      const processed = smoothAndInterpolateLandmarks(savedLandmarks, 5, 1);
+      const estimatedLandmarks = addFeetFromHipKneeVectors( processed );
+      setSavedLandmarks(estimatedLandmarks);
+    }
+  }, [isDetecting]);
+
   useEffect(() => {
     let detector;
     let cancelled = false;
