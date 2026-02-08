@@ -78,6 +78,7 @@ const DetectPose = () => {
   ----------------------------------------------------------------------------*/
   const webcamRef = useRef(null);
   const videoRef = useRef(null);
+  const landmarksRef = useRef({ data: [], __token: 0 });
   
   /* Ref for foot calculator utility
   ----------------------------------------------------------------------------*/
@@ -252,6 +253,7 @@ const DetectPose = () => {
     savedLandmarks,
     setLoading,
     viewMode,
+    landmarksRef,
   });
 
   if (!isTfReady || loading) {
@@ -366,6 +368,7 @@ const DetectPose = () => {
                     : webcamHeight
                 }
                 landmarks={landmarks}
+                landmarksRef={landmarksRef}
                 style={{
                   position: 'absolute',
                   left: 0,
