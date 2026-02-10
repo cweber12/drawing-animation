@@ -95,8 +95,7 @@ const SketchPage = () => {
     /* SVG data state for upload/download
     --------------------------------------------------------------------------*/
     const [svgData, setSvgData] = useState(null);
-    const [viewMode, setViewMode] = useState('svg'); 
-    
+
     /* =========================================================================
                                     REFS
     ==========================================================================*/
@@ -310,7 +309,6 @@ const SketchPage = () => {
     --------------------------------------------------------------------------*/
     useEffect(() => {
         navigation.setParams({
-            viewMode: viewMode,
             eraseMode: erase,
             setEraseMode: setErase,
             strokeColor: selectedColor,
@@ -326,7 +324,6 @@ const SketchPage = () => {
             navigation, 
             clearAll, 
             goToDetectPose, 
-            viewMode, 
             selectedColor,
             erase,
             saveAll,
@@ -373,8 +370,8 @@ const SketchPage = () => {
                 <DetectPoseDropdown
                     style={styles.sketchControls}
                     onPickVideo={handlePickVideo}
-                    setPoseView={() => goToDetectPose('pose', null)}
-                    setSvgView={() => goToDetectPose('svg', null)}
+                    setPoseView={() => goToDetectPose('replay', null)}
+                    setSvgView={() => goToDetectPose('live', null)}
                 />
             )}
             {showExportOptions && (

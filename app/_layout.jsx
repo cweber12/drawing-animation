@@ -78,7 +78,7 @@ const RootLayout = () => {
                                     onDetectionStarted={route.params?.onDetectionStarted}
                                     onDetectionStopped={route.params?.onDetectionStopped}
                                     onShowPoseInfo={route.params?.onShowPoseInfo}
-                                    savedLandmarks={route.params?.estimatedLandmarks}
+                                    savedLandmarks={route.params?.savedLandmarks}
                                     isDetecting={route.params?.isDetecting}
                                     onHoverTitle={(title) => setHeaderTitle(title)}
                                     onToggleExportOptions={route.params?.onToggleExportOptions} />

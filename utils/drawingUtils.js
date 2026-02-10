@@ -2,19 +2,12 @@
 import { getSvgSize } from './svgUtils';
 import { affineFrom3Points } from './svgUtils';
 
-const ARM_SHIFT_FACTOR_X = 6; 
-const ARM_SHIFT_FACTOR_Y = 6;
-
-const LEG_SHIFT_FACTOR_X = 6;
-const LEG_SHIFT_FACTOR_Y = 12;
-
 /*==============================================================================
                                     DRAW TORSO
 ================================================================================
 Draw torso SVG using affine transform to fit between shoulder and hip anchors
 ==============================================================================*/
 export function drawTorsoSvg(ctx, img, tl, tr, bl, br) {
-    console.log('DRAWING:  torso');
     const { w: svgW, h: svgH } = getSvgSize(img);
     const shoulderWidth = tr.x - tl.x;
     const offset = shoulderWidth / 2;
@@ -56,11 +49,11 @@ export function drawTorsoSvg(ctx, img, tl, tr, bl, br) {
 Draw head SVG scaled and rotated between left and right ears
 ------------------------------------------------------------------------------*/
 export function drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims, earDist) {
-    console.log('DRAWING:  head');
     const { w: svgW, h: svgH } = getSvgSize(img);
     const avgEarDistance = earDist?.avgEarDistance;
     const avgTorsoHeight = torsoDims?.avgTorsoHeight;
     const avgTorsoWidth = torsoDims?.avgTorsoWidth;
+    
     // Calculate the distance and angle between ears
     const dx = rightEar.x - leftEar.x;
     const dy = rightEar.y - leftEar.y;
@@ -87,13 +80,7 @@ export function drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims, earDist) {
 ================================================================================
 Draw arm SVG rotated to match elbow-wrist angle
 ------------------------------------------------------------------------------*/
-/*==============================================================================
-                                DRAW HORIZONTAL ARMS
-================================================================================
-Draw arm SVG rotated to match elbow-wrist angle
-------------------------------------------------------------------------------*/
 export function drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims) {
-    console.log('DRAWING: ', part);
     const { w: svgW, h: svgH } = getSvgSize(img);
     const avgTorsoHeight = torsoDims?.avgTorsoHeight;
     const avgTorsoWidth = torsoDims?.avgTorsoWidth;
@@ -137,7 +124,6 @@ export function drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims) {
 Draw arm SVG rotated to match elbow-wrist angle
 ------------------------------------------------------------------------------*/
 export function drawVerticalSegmentSvg(ctx, img, from, to, part, torsoDims) {
-    console.log('DRAWING: ', part);
     const { w: svgW, h: svgH } = getSvgSize(img);      
     const avgTorsoWidth = torsoDims?.avgTorsoWidth;
     const avgTorsoHeight = torsoDims?.avgTorsoHeight;
@@ -174,7 +160,6 @@ export function drawVerticalSegmentSvg(ctx, img, from, to, part, torsoDims) {
 Draw hand SVG rotated to align with wrist-elbow segment
 ------------------------------------------------------------------------------*/
 export function drawHandSvg(ctx, img, wrist, elbow, armsDown, part, torsoDims) {
-    console.log('DRAWING: ', part);
     const { w: svgW, h: svgH } = getSvgSize(img);
     const avgTorsoWidth = torsoDims?.avgTorsoWidth;
     const avgTorsoHeight = torsoDims?.avgTorsoHeight;
@@ -228,7 +213,6 @@ Draw leg SVG rotated to align with segment
 ------------------------------------------------------------------------------*/
 export function drawLegSvg(ctx, img, from, to, part, torsoDims) {
     try {
-        console.log('DRAWING: ', part);
         const { w: svgW, h: svgH } = getSvgSize(img);
         const avgTorsoWidth = torsoDims?.avgTorsoWidth;
         const avgHipWidth = torsoDims?.avgHipWidth;
@@ -275,16 +259,17 @@ Draw foot SVG rotated to align with ankle-foot segment
   pose detection model
 ------------------------------------------------------------------------------*/
 export function drawFootSvg(ctx, img, from, to, part, torsoDims) {
-    
     const { w: svgW, h: svgH } = getSvgSize(img);
     const avgTorsoWidth = torsoDims?.avgTorsoWidth;
     const avgTorsoHeight = torsoDims?.avgTorsoHeight;
     
-    let fromOffset = { x: from.x, y: from.y };
-    let toOffset = { x: to.x, y: to.y };
+    let fx = from.x;
+    let fy = from.y; 
+    let tx = to.x;
+    let ty = to.y;
 
-    const dx =  toOffset.x - fromOffset.x;
-    const dy = toOffset.y - fromOffset.y; 
+    const dx =  tx - fx;
+    const dy = ty - fy; 
     
     const angle = Math.atan2(dy, dx);
     const length = Math.hypot(dx, dy);
@@ -297,7 +282,7 @@ export function drawFootSvg(ctx, img, from, to, part, torsoDims) {
         (avgTorsoWidth * 0.45 / Math.max(1, svgW))) / 2; 
 
     ctx.save();
-    ctx.translate(fromOffset.x, fromOffset.y);
+    ctx.translate(fx, fy);
     ctx.rotate(angle - Math.PI / 2); // vertical authoring
 
     if (part === 'leftFoot') {

@@ -1,38 +1,51 @@
 // utils/footFromThighVectors.js
 
-/**
- * Adds feet landmarks (17 left foot, 18 right foot) by matching ankle->foot vectors
- * to hip->knee vectors (signed direction/magnitude trend), with optional upward toe bias.
- *
- * Landmark indices expected:
- * 11 leftHip, 12 rightHip, 13 leftKnee, 14 rightKnee, 15 leftAnkle, 16 rightAnkle
- * Writes:
- * 17 leftFoot, 18 rightFoot
- *
- * @param {Array<Array<{x:number,y:number,score?:number}>>} landmarksArray
- * @param {Object} [opts]
- * @param {number} [opts.footLenRatio=0.5] - foot length = shank length * ratio
- * @param {number} [opts.yUpPadding=10] - upward bias in px applied before normalize
- * @param {number} [opts.score=0.9] - score for synthesized foot landmarks
- * @returns {Array<Array<{x:number,y:number,score?:number}>>}
- */
+/*==============================================================================
+                        ADD FOOT LANDMARKS
+================================================================================
+Adds foot landmarks (17, 18) based on hip->knee vectors for each leg and current
+hip width. Tensorflow.js pose detection models do not include foot landmarks, 
+but they can be estimated with the assumptions: 
+- foot points in similar direction as thigh (ankle angle ~ - knee angle)
+- when currentHipWidth < averageHipWidth, subject is likely turned to the side,
+  so feet should point to the side more (xAdjust > 1). 
+- when currentHipWidth > averageHipWidth, subject is likely facing forward, so 
+  feet should point more downward (xAdjust < 1).
+--------------------------------------------------------------------------------
+INPUT:
+- landmarksArray: landmarks[frame][index] === { x, y, score } (index 0-16)
+- opts: {
+    footLenRatio: foot length as ratio of shank length (default 0.5)
+    yAdjust: multiplier to increase upward bias of foot direction (default 1.2)
+    score: confidence score to assign to generated foot landmarks (default 0.9)
+  }
+OUTPUT: 
+- landmarksArray: landmarks[frame][index] === { x, y, score } (index 0-18)
+
+------------------------------------------------------------------------------*/
 export function addFeetFromHipKneeVectors(landmarksArray, opts = {}) {
   const footLenRatio = opts.footLenRatio ?? 0.5;
-  const yUpPadding = opts.yUpPadding ?? 54;
+  const yAdjust = opts.yAdjust ?? 1.2;
   const score = opts.score ?? 0.9;
 
   if (!Array.isArray(landmarksArray)) return landmarksArray;
 
+  // Utility to normalize a vector
   const norm = (v) => {
     const m = Math.hypot(v.x, v.y);
     if (m < 1e-9) return { x: 0, y: 0 };
     return { x: v.x / m, y: v.y / m };
   };
 
+  // Running average of hip width to smooth foot direction adjustments
+  let accumulatedHipWidth = 0;
+
+  // Process each frame of landmarks
   for (let i = 0; i < landmarksArray.length; i++) {
     const lm = landmarksArray[i];
     if (!Array.isArray(lm)) continue;
 
+    // Extract relevant landmarks
     const leftHip = lm[11];
     const rightHip = lm[12];
     const leftKnee = lm[13];
@@ -40,9 +53,22 @@ export function addFeetFromHipKneeVectors(landmarksArray, opts = {}) {
     const leftAnkle = lm[15];
     const rightAnkle = lm[16];
 
-    if (!leftHip || !rightHip || !leftKnee || !rightKnee || !leftAnkle || !rightAnkle) {
+    // Ensure all required landmarks are present
+    if (!leftHip || !rightHip || !leftKnee || !rightKnee || !leftAnkle || 
+        !rightAnkle) {
       continue;
     }
+    
+    // Calculate current hip width and update running average
+    const currentHipWidth = Math.hypot(
+      rightHip.x - leftHip.x, rightHip.y - leftHip.y
+    );
+    accumulatedHipWidth += currentHipWidth;
+    const avgHipWidth = accumulatedHipWidth / (i + 1);
+    // Calculate x adjustment factor based on hip width ratio
+    // xAdjust > 1 (turned to side) => increase foot x direction ( < > ) 
+    // xAdjust < 1 (facing forward) => decrease foot x direction ( V )
+    const xAdjust = avgHipWidth / currentHipWidth;
 
     // hip->knee vectors (signed)
     const leftHipToKnee = {
@@ -54,16 +80,17 @@ export function addFeetFromHipKneeVectors(landmarksArray, opts = {}) {
       y: rightKnee.y - rightHip.y,
     };
 
-    // add upward toe bias (screen y grows downward, so subtract to angle upward)
+    // Adjust hip->knee vectors by xAdjust and yAdjust to bias foot direction
     const leftBiased = {
-      x: leftHipToKnee.x,
-      y: leftHipToKnee.y - yUpPadding,
+      x: leftHipToKnee.x * xAdjust,
+      y: leftHipToKnee.y * yAdjust,
     };
     const rightBiased = {
-      x: rightHipToKnee.x,
-      y: rightHipToKnee.y - yUpPadding,
+      x: rightHipToKnee.x * xAdjust,
+      y: rightHipToKnee.y * yAdjust,
     };
 
+    // Normalize to get foot direction unit vectors
     const leftDir = norm(leftBiased);
     const rightDir = norm(rightBiased);
 
@@ -74,7 +101,7 @@ export function addFeetFromHipKneeVectors(landmarksArray, opts = {}) {
     const leftFootLen = leftShankLen * footLenRatio;
     const rightFootLen = rightShankLen * footLenRatio;
 
-    // ankle->foot follows hip->knee vector direction
+    // ankle->foot follows adjusted hip->knee vector direction
     lm[17] = {
       x: leftAnkle.x + leftDir.x * leftFootLen,
       y: leftAnkle.y + leftDir.y * leftFootLen,

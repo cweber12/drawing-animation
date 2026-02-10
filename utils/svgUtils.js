@@ -119,3 +119,66 @@ export function getSvgDimensions(svgString) {
     };
   }
 }
+
+
+export function addSvgOpacityGradient(svgString, options = {}) {
+  const {
+    direction = 'topToBottom',
+    stops = [
+      { offset: 0, opacity: 1 },
+      { offset: 1, opacity: 0 },
+    ],
+    idSuffix = '',
+  } = options;
+
+  if (typeof svgString !== 'string' || !svgString.includes('<svg')) return svgString;
+
+  const { width, height } = parseSvgSize(svgString);
+
+  // Extract outer <svg ...> and inner content
+  const openTagMatch = svgString.match(/<svg[^>]*>/i);
+  const closeTagIndex = svgString.toLowerCase().lastIndexOf('</svg>');
+  if (!openTagMatch || closeTagIndex === -1) return svgString;
+
+  const openTag = openTagMatch[0];
+  const openTagEnd = svgString.indexOf(openTag) + openTag.length;
+  const inner = svgString.slice(openTagEnd, closeTagIndex);
+
+  const uid = `${Date.now()}_${Math.random().toString(36).slice(2)}${idSuffix}`;
+  const gradId = `opacityGrad_${uid}`;
+  const maskId = `opacityMask_${uid}`;
+
+  let x1 = '0%'; let y1 = '0%'; let x2 = '0%'; let y2 = '100%';
+  if (direction === 'bottomToTop') { x1 = '0%'; y1 = '100%'; x2 = '0%'; y2 = '0%'; }
+  if (direction === 'leftToRight') { x1 = '0%'; y1 = '0%'; x2 = '100%'; y2 = '0%'; }
+  if (direction === 'rightToLeft') { x1 = '100%'; y1 = '0%'; x2 = '0%'; y2 = '0%'; }
+
+  const stopTags = stops
+    .map(({ offset, opacity }) => {
+      const clampedOffset = Math.max(0, Math.min(1, offset));
+      const clampedOpacity = Math.max(0, Math.min(1, opacity));
+      return `<stop offset="${clampedOffset * 100}%" stop-color="white" stop-opacity="${clampedOpacity}" />`;
+    })
+    .join('');
+
+  const defs = `
+    <defs>
+      <linearGradient id="${gradId}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">
+        ${stopTags}
+      </linearGradient>
+      <mask id="${maskId}" maskUnits="userSpaceOnUse" x="0" y="0" width="${width}" height="${height}">
+        <rect x="0" y="0" width="${width}" height="${height}" fill="url(#${gradId})" />
+      </mask>
+    </defs>`;
+
+  // Remove existing top-level defs only if you want to avoid duplication;
+  // for safety, we keep existing defs and append ours.
+  const rebuilt = `${openTag}
+    ${defs}
+    <g mask="url(#${maskId})">
+    ${inner}
+    </g>
+    </svg>`;
+
+  return rebuilt;
+}

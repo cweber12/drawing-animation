@@ -35,7 +35,7 @@ export function useSetAnchorsAndDraw({
   earDistRef,
 }) {
   useEffect(() => {
-    
+    const debugPipeline = false; // Set to true to enable detailed logging of anchor setting and drawing
     const torsoDims = torsoDimsRef?.current;
     //if (!torsoDims) return;
     const canvas = canvasRef?.current; 
@@ -69,7 +69,7 @@ export function useSetAnchorsAndDraw({
     for (const [part, img] of Object.entries(images)) {
       const map = ANCHOR_MAP[part];
       if (!map || !img) continue;
-      console.log('LOADED:', part);
+      if (debugPipeline) console.log('LOADED:', part);
       const anchorIndices = Object.values(map).filter(idx => typeof idx === 'number');
       const anchors = anchorIndices.map(idx => scaledLandmarks[idx]);
       const hasInvalidAnchor = anchors.some(lm =>
@@ -86,7 +86,7 @@ export function useSetAnchorsAndDraw({
       if (hasInvalidAnchor) continue;
 
       const { w: svgW, h: svgH } = getSvgSize(img);
-      console.log('VALID: ', part);
+      if (debugPipeline) console.log('VALID: ', part);
 
       /*========================================================================
                                         TORSO 
@@ -96,7 +96,7 @@ export function useSetAnchorsAndDraw({
         map.topLeft !== undefined && map.topRight !== undefined &&
         map.bottomLeft !== undefined && map.bottomRight !== undefined
       ) {
-          console.log('SET ANCHORS: ', part);
+          if (debugPipeline) console.log('SET ANCHORS: ', part);
           const tl = scaledLandmarks[map.topLeft];
           const tr = scaledLandmarks[map.topRight];
           const bl = scaledLandmarks[map.bottomLeft];
@@ -104,7 +104,7 @@ export function useSetAnchorsAndDraw({
         
           if (!tl || !tr || !bl || !br) continue;
           if (tl.score < 0.3 || tr.score < 0.3 || bl.score < 0.3 || br.score < 0.3) continue;
-          console.log('VALID ANCHORS: ', part);
+          if (debugPipeline) console.log('VALID ANCHORS: ', part);
           const shoulderWidth = tr.x - tl.x;
           const offset = shoulderWidth / 2;
           
@@ -120,7 +120,7 @@ export function useSetAnchorsAndDraw({
         
           const success = drawTorsoSvg(ctx, img, tl, tr, bl, br);     
           if (success) { 
-            console.log('DREW: ', part);
+            if (debugPipeline) console.log('DREW: ', part);
             continue;
           }
       }
@@ -133,7 +133,7 @@ export function useSetAnchorsAndDraw({
         map.leftAnchor !== undefined &&
         map.rightAnchor !== undefined
       ) {
-        console.log('SET ANCHORS: ', part);
+        if (debugPipeline) console.log('SET ANCHORS: ', part);
         const earDist = earDistRef?.current;
         const leftEar = scaledLandmarks[map.leftAnchor];
         const rightEar = scaledLandmarks[map.rightAnchor];
@@ -141,7 +141,7 @@ export function useSetAnchorsAndDraw({
         if (!leftEar || !rightEar || leftEar.score < 0.3 ||
            rightEar.score < 0.3) { continue };
         
-        console.log('VALID ANCHORS: ', part);
+        if (debugPipeline) console.log('VALID ANCHORS: ', part);
         
         earDist.updateAvgEarDistance(
           Math.hypot(
@@ -152,7 +152,7 @@ export function useSetAnchorsAndDraw({
   
         const success = drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims, earDist); 
         if (success) { 
-          console.log('DREW: ', part);
+          if (debugPipeline) console.log('DREW: ', part);
           continue;
         }
       }
@@ -165,15 +165,15 @@ export function useSetAnchorsAndDraw({
         part === 'leftUpperArm' || part === 'leftLowerArm') && 
         (map.start !== undefined && map.end !== undefined)
       ) {
-        console.log('SET ANCHORS: ', part);
+        if (debugPipeline) console.log('SET ANCHORS: ', part);
         const from = scaledLandmarks[map.start];
         const to = scaledLandmarks[map.end];
         if (!from || !to) continue;
-        console.log('VALID ANCHORS: ', part);
+        if (debugPipeline) console.log('VALID ANCHORS: ', part);
         const success = 
           drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims);
         if (success) { 
-          console.log('DREW: ', part);
+          if (debugPipeline) console.log('DREW: ', part);
           continue;
         }
       }
@@ -191,12 +191,12 @@ export function useSetAnchorsAndDraw({
         if (!from || !to) continue;
         if (!to || !from || to.score < 0.3 || from.score < 0.3) continue;
 
-        console.log('VALID ANCHORS: ', part);
+        if (debugPipeline) console.log('VALID ANCHORS: ', part);
 
         const success = drawHandSvg(
           ctx, img, from, to, armsDown, part, torsoDims);
         if (success) { 
-          console.log('DREW: ', part);
+          if (debugPipeline) console.log('DREW: ', part);
           continue;
         }
         
@@ -210,14 +210,14 @@ export function useSetAnchorsAndDraw({
         part === 'rightUpperLeg' || part === 'rightLowerLeg') &&
         (map.start !== undefined && map.end !== undefined)
       ) {
-        console.log('SET ANCHORS: ', part);
+        if (debugPipeline) console.log('SET ANCHORS: ', part);
         const from = scaledLandmarks[map.start];
         const to = scaledLandmarks[map.end];
         if (!from || !to) continue;
-        console.log('VALID ANCHORS: ', part);
+        if (debugPipeline) console.log('VALID ANCHORS: ', part);
         const success = drawLegSvg(ctx, img, from, to, part, torsoDims); 
         if (success) { 
-          console.log('DREW: ', part);
+          if (debugPipeline) console.log('DREW: ', part);
           continue;
         } 
       }
@@ -226,46 +226,29 @@ export function useSetAnchorsAndDraw({
                                         FEET
       ========================================================================*/
       if (part === 'leftFoot' || part === 'rightFoot') {
-        console.log('SET ANCHORS: ', part);
-        const success = setFootAnchors({
-            ctx,
-            img,
-            scaledLandmarks,
-            map,
-            part,
-            torsoDimsRef
-        });
+        if (debugPipeline) console.log('SET ANCHORS: ', part);
+        const torsoDims = torsoDimsRef?.current;
+        if (map.start === undefined || map.end === undefined) return false;
+        const start = scaledLandmarks[map.start];
+        const end = scaledLandmarks[map.end];
+        if (!start || !end || start.score < 0.3) return false;
+
+        let from, to;
+        if (part === 'rightFoot') {
+          to = end;
+          from = start;
+        } else {
+          to = end;
+          from = start;
+        }
+
+        const success = drawFootSvg(ctx, img, from, to, part, torsoDims);
         if (success) { 
-          console.log('DREW: ', part);
+          if (debugPipeline) console.log('DREW: ', part);
           continue;
         }
       }
     }
-
-    /*========================================================================
-                                        DEBUG LANDMARKS
-    ========================================================================*/
-    ctx.strokeStyle = 'red';
-    ctx.lineWidth = 2;
-    CONNECTED_KEYPOINTS.forEach(([i, j]) => {
-      const kp1 = scaledLandmarks[i];
-      const kp2 = scaledLandmarks[j];
-      if (kp1 && kp2 && kp1.score > 0.3 && kp2.score > 0.3) {
-        ctx.beginPath();
-        ctx.moveTo(kp1.x, kp1.y);
-        ctx.lineTo(kp2.x, kp2.y);
-        ctx.stroke();
-      }
-    });
-
-    ctx.fillStyle = 'green';
-    scaledLandmarks.forEach((kp) => {
-      if (kp && kp.score > 0.3) {
-        ctx.beginPath();
-        ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
-        ctx.fill();
-      }
-    });
 
   }, [
     displayLandmarks,

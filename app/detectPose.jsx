@@ -4,18 +4,17 @@ This page uses TensorFlow.js to detect human poses from the webcam feed and uses
 landmarks as anchors to overlay SVGs body parts sketched in sketchPage. It supports two view 
 modes:
 
-- 'svg': Live animation mode where SVGs are animated in real-time based on detected poses.
-- 'pose': Pose recording mode where detected poses are recorded and can be replayed as an animation.
+- 'live': Live animation mode where SVGs are animated in real-time based on detected poses.
+- 'replay': Pose recording mode where detected poses are recorded and can be replayed as an animation.
 --------------------------------------------------------------------------------------------------*/
 /* Import Libraries
 ------------------------------------------------------------------------------*/
-import React, { useEffect,  useRef, useState,  useCallback, useMemo, } from 'react';
+import React, { useEffect,  useRef, useState,  useCallback} from 'react';
 import Webcam from 'react-webcam';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
-import { addFeetFromHipKneeVectors } from "../utils/calcFootVectors";
 
 /* Import Constants
 ------------------------------------------------------------------------------*/
@@ -26,10 +25,6 @@ import {
 
 /* Import Utils and Hooks
 ------------------------------------------------------------------------------*/
-import { 
-  smoothLandmarks, 
-  smoothAndInterpolateLandmarks
- } from '../utils/poseUtils';
 import { FootCalculator } from '../utils/FootCalculator';
 import { downloadLandmarksToDevice } from '../utils/storageUtils';
 import { uploadToS3 } from '../utils/s3Utils';
@@ -69,7 +64,7 @@ const DetectPose = () => {
   ----------------------------------------------------------------------------*/
   const viewModeParam = 
     Array.isArray(params.viewMode) ? params.viewMode[0] : params.viewMode;
-  const viewMode = viewModeParam || 'svg';
+  const viewMode = viewModeParam || 'live';
   
   /* ===========================================================================
                                 REFS
@@ -79,10 +74,6 @@ const DetectPose = () => {
   const webcamRef = useRef(null);
   const videoRef = useRef(null);
   const landmarksRef = useRef({ data: [], __token: 0 });
-  
-  /* Ref for foot calculator utility
-  ----------------------------------------------------------------------------*/
-  const footCalculator = useRef(new FootCalculator()); 
 
   /* Ref to track if it's the first start of detection
   ----------------------------------------------------------------------------*/
@@ -171,9 +162,9 @@ const DetectPose = () => {
   /* Update isDetecting based on viewMode
   ----------------------------------------------------------------------------*/
   useEffect(() => {
-    if (viewMode === 'pose') {
+    if (viewMode === 'replay') {
       setIsDetecting(false); 
-    } else if (viewMode === 'svg') {
+    } else if (viewMode === 'live') {
       setIsDetecting(true); 
     }
   }, [viewMode]);
@@ -282,7 +273,7 @@ const DetectPose = () => {
             />
           )}
           {showPoseInfo && <PoseInfo />}
-          {(viewMode === 'svg' || showPoseAnimation) && (
+          {(viewMode === 'live' || showPoseAnimation) && (
             <SvgCanvas
               width={CANVAS_WIDTH}
               height={CANVAS_HEIGHT}
@@ -306,7 +297,7 @@ const DetectPose = () => {
             />
 
           )}
-          {(viewMode === 'svg' || (viewMode === 'pose' && !showPoseAnimation)) && (
+          {(viewMode === 'live' || (viewMode === 'replay' && !showPoseAnimation)) && (
             <>
               {videoUri ? (
                 <video
@@ -342,40 +333,41 @@ const DetectPose = () => {
                     top: 0,
                     zIndex: 2,
                     visibility: showWebcam ? 'visible' : 'hidden',
-                    width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
-                    height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
+                    width: viewMode === 'replay' ? CANVAS_WIDTH : webcamWidth,
+                    height: viewMode === 'replay' ? CANVAS_HEIGHT : webcamHeight,
                   }}
                   videoConstraints={{
-                    width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
-                    height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
+                    width: viewMode === 'replay' ? CANVAS_WIDTH : webcamWidth,
+                    height: viewMode === 'replay' ? CANVAS_HEIGHT : webcamHeight,
                     facingMode: 'user',
                   }}
                 />
               )}
               <PoseCanvas
                 width={
-                  viewMode === 'pose'
+                  viewMode === 'replay'
                     ? (videoUri
                         ? CANVAS_WIDTH
                         : naturalVideoWidth || CANVAS_WIDTH)
                     : webcamWidth
                 }
                 height={
-                  viewMode === 'pose'
+                  viewMode === 'replay'
                     ? (videoUri
                         ? CANVAS_HEIGHT
                         : naturalVideoHeight || CANVAS_HEIGHT)
                     : webcamHeight
                 }
                 landmarks={landmarks}
+                savedLandmarks={savedLandmarks}
                 landmarksRef={landmarksRef}
                 style={{
                   position: 'absolute',
                   left: 0,
                   top: 0,
                   zIndex: 3,
-                  width: viewMode === 'pose' ? CANVAS_WIDTH : webcamWidth,
-                  height: viewMode === 'pose' ? CANVAS_HEIGHT : webcamHeight,
+                  width: viewMode === 'replay' ? CANVAS_WIDTH : webcamWidth,
+                  height: viewMode === 'replay' ? CANVAS_HEIGHT : webcamHeight,
                 }}
               />
 

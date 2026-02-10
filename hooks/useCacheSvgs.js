@@ -21,10 +21,7 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
   const imagesRef = useRef({});
   const torsoDims = torsoDimsRef?.current;
   useEffect(() => {
-    console.log('svgCanvas: Caching SVG images');
-    console.log('SVG parts:', Object.keys(svgs));
-    console.log('SVG strings:', svgs);
-    console.log('Mapping:', mapping);
+
     let cancelled = false;
     let roundCorners = true; // Set to true to enable rounded corners on SVGs
     (async () => {
@@ -127,6 +124,8 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
               true, true, false, false  
             ); 
           }
+          console.log(`Caching SVG for ${part} with dimensions ${svgW}x${svgH}`);
+          console.log(`SVG string with clip path: ${svgToSend}`);
           const img = await svgStringToImage(svgToSend);
           if (img) next[part] = img;
         } catch (e) {
