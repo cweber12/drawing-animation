@@ -13,7 +13,7 @@ import { useRouter, useNavigation } from 'expo-router';
 
 /* Import constants
 -----------------------------------------------------------------------------*/
-import { CANVAS_LANDMARK_MAP} from '../constants/landmarkData';
+import { ANCHOR_MAP } from '../constants/descriptors/anchorDescriptors';
 import ThemedView from '../components/view/ThemedView';
 import { Colors } from '../constants/Colors';
 import { getSvgSizes } from '../constants/Sizes';
@@ -277,7 +277,7 @@ const SketchPage = () => {
             pathname: '/detectPose',
             params: {
             svgs: JSON.stringify(svgsToSend),
-            mapping: JSON.stringify(CANVAS_LANDMARK_MAP),
+            mapping: JSON.stringify(ANCHOR_MAP),
             viewMode: mode,
             videoUri: poseVideoUri,
             armOrientation: armsDown ? 'vertical' : 'horizontal',

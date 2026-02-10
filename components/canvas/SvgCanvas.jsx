@@ -68,7 +68,7 @@ const SvgCanvas = ({
       setFrame(0);
       const interval = setInterval(() => {
         setFrame(prev => (prev + 1) % savedLandmarks.length);
-      }, 1000 / 24); // 24 FPS
+      }, 1000 / 30); // 30 FPS
       return () => clearInterval(interval);
     }
     setFrame(0);
@@ -93,6 +93,7 @@ const SvgCanvas = ({
     torsoDimsRef, // ref to torso dimensions utility for dynamic scaling
     earDistRef, // ref to ear distance utility for head scaling
   });
+
 
   /* RENDER CANVAS
   ----------------------------------------------------------------------------*/

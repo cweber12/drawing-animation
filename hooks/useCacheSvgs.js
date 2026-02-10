@@ -53,7 +53,7 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
               svgString,
               svgW,
               svgH,
-              svgW / 2, // radius
+              svgW / 4, // radius
               false, //TL
               false, //TR
               true, //BR
@@ -64,25 +64,32 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
               svgString,
               svgW,
               svgH,
-              svgW / 2, // radius
+              svgW / 4, // radius
               true, //TL
               true, //TR
               true, //BR
               true  //BL
             ); 
-          } else if (part === 'leftUpperLeg' || part === 'rightUpperLeg') {
+          } else if (part === 'leftUpperLeg') {
             svgToSend = addSvgClipPath(
               svgString,
               svgW, svgH,
-              svgW / 2, 
-              false, false, true, true  
+              svgW / 4, 
+              false, true, true, true  
             ); 
+          } else if (part === 'rightUpperLeg') {
+              svgToSend = addSvgClipPath(
+                svgString,
+                svgW, svgH,
+                svgW / 2, 
+                true, false, true, true  
+              ); 
           } else if (part === 'leftUpperArm' ) {
             // round shoulder and elbow corners
              svgToSend = addSvgClipPath(
               svgString,
               svgW,svgH,
-              svgW / 2, 
+              svgW / 4, 
               false, true, true, true  
             );
 
@@ -91,15 +98,32 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
              svgToSend = addSvgClipPath(
               svgString,
               svgW,svgH,
-              svgW / 2, 
-              true, true, true, true  
+              svgW / 4, 
+              true, false, true, true  
             );
- 
+
+          } else if (part === 'leftLowerArm' ) {
+            // round elbow and wrist corners
+             svgToSend = addSvgClipPath(
+              svgString,
+              svgW,svgH,
+              svgW / 4, 
+              true, false, false, true  
+            );
+          } else if (part === 'rightLowerArm' ) {
+            // round elbow and wrist corners
+             svgToSend = addSvgClipPath(
+              svgString,
+              svgW,svgH,
+              svgW / 4, 
+              false, true, true, false  
+            );
+
           } else if (part === 'leftFoot' || part === 'rightFoot') {
             svgToSend = addSvgClipPath(
               svgString,
               svgW, svgH,
-              svgW / 2, 
+              svgW / 4, 
               true, true, false, false  
             ); 
           }

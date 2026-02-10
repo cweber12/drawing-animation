@@ -19,7 +19,7 @@ import { useNavigation } from 'expo-router';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
 import { Colors } from '../constants/Colors';
 import { useColorScheme } from 'react-native';
-import { CANVAS_LANDMARK_MAP } from '../constants/landmarkData';
+import { ANCHOR_MAP } from '../constants/descriptors/anchorDescriptors';
 import { fetchFiles, downloadLandmarkFile, downloadSvgFile } from '../utils/s3Utils';
 import {
   selectPoseFolder,
@@ -412,7 +412,7 @@ const ViewSavedPoses = () => {
             savedLandmarks={scaledFrames}
             replay={frames.length > 1}
             svgs={selectedSvgString}
-            mapping={CANVAS_LANDMARK_MAP}
+            mapping={ANCHOR_MAP}
             armOrientation={"horizontal"}
         />
         )}

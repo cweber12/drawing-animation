@@ -13,9 +13,9 @@ import { getSvgSize } from './svgUtils';
 
   const debugTorsoAnchors = true;
   const debugHeadAnchors = false;
-  const debugArmAnchors = false;
+  const debugArmAnchors = true;
   const debugHandAnchors = false;
-  const debugLegAnchors = true;
+  const debugLegAnchors = false;
   const debugFootAnchors = false;
 
 /*==============================================================================
@@ -84,7 +84,7 @@ export function setTorsoAnchorsAndDraw({
   ctx.save();
   ctx.setTransform(M.a, M.b, M.c, M.d, M.e, M.f);
   ctx.scale(1, 1); // Slightly scale height to cover gaps
-  ctx.drawImage(img, 0, 0, svgW, svgH);
+  ctx.drawImage(img, 0, -svgH * 0.05, svgW, svgH);
   ctx.restore();
 
   // Draw anchor points for debugging
@@ -169,11 +169,11 @@ export function setArmAnchors({
     to = scaledLandmarks[map.end];
   } else {
     if(part === 'leftUpperArm' || part === 'leftLowerArm') {
-    from = scaledLandmarks[map.leftCenter];
-    to = scaledLandmarks[map.rightCenter];
+    from = scaledLandmarks[map.start];
+    to = scaledLandmarks[map.end];
     } else {
-    from = scaledLandmarks[map.rightCenter];
-    to = scaledLandmarks[map.leftCenter];
+    from = scaledLandmarks[map.start];
+    to = scaledLandmarks[map.end];
     }
   }
 
@@ -239,7 +239,7 @@ export function setHandAnchors({
   const wristAdjusted = { x: wrist.x, y: wrist.y };
   const elbowAdjusted = { x: elbow.x, y: elbow.y };
 
-  drawHandSvg(ctx, img, wristAdjusted, elbowAdjusted, armsDown, part, torsoDims);
+  drawHandSvg(ctx, img, elbowAdjusted, wristAdjusted, armsDown, part, torsoDims);
 
   if (debugHandAnchors) {
     ctx.save();
@@ -262,40 +262,6 @@ export function setHandAnchors({
   return true;
 }
 
-/* Utility for leg anchors
---------------------------------------------------------------------------------
-Sets the leg anchors and draws the leg SVG onto the canvas.
-Anchors: start, end
-------------------------------------------------------------------------------*/
-export function setLegAnchors({
-  ctx,
-  img,
-  scaledLandmarks,
-  map,
-  part,
-  torsoDimsRef,
-}) {
-  const torsoDims = torsoDimsRef?.current;
-  if (map.start === undefined || map.end === undefined) return false;
-  const from = scaledLandmarks[map.start];
-  const to = scaledLandmarks[map.end];
-  if (!from || !to || from.score < 0.3 || to.score < 0.3) return false;
-
-  drawLegSvg(ctx, img, from, to, part, torsoDims);
-
-  if (debugLegAnchors) {
-    ctx.save();
-    ctx.fillStyle = 'red';
-    ctx.beginPath();
-    ctx.arc(from.x, from.y, 5, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(to.x, to.y, 5, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.restore();
-  }
-  return true;
-}
 
 /* Utility for foot anchors
 --------------------------------------------------------------------------------

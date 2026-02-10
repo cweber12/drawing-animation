@@ -1,7 +1,7 @@
 // components/canvas/PoseCanvas.jsx
 
 import React, { useEffect, useRef } from 'react'
-import { CONNECTED_KEYPOINTS } from '../../constants/landmarkData';
+import { CONNECTED_KEYPOINTS } from '../../constants/descriptors/landmarkDescriptors';
 import { Colors } from '../../constants/Colors';
 import { useColorScheme } from 'react-native';
 
