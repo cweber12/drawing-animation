@@ -7,7 +7,7 @@ import { FaPalette } from 'react-icons/fa';
 
 /* Dropdown menu for selecting color and stroke width for sketching 
 ------------------------------------------------------------------------------*/
-const ColorPicker = forwardRef(({ onColorChange, selectedColor}) => {
+const ColorPicker = ({ onColorChange, selectedColor }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
 
@@ -29,6 +29,6 @@ const ColorPicker = forwardRef(({ onColorChange, selectedColor}) => {
             
         </div>
     )
-})
+}
 
 export default ColorPicker

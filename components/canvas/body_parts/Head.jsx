@@ -18,8 +18,7 @@ const Head = ( {
     // Get current theme colors
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-
-    
+  
     return (
         <CanvasView 
             style={[

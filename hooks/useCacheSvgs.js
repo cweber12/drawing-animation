@@ -2,22 +2,21 @@
 import { useEffect, useRef } from 'react';
 import { 
   getSvgDimensions, 
-  addSvgClipPath, 
+  addSvgClipPath,
+  addSvgOpacityGradient, 
   svgStringToImage 
 } from '../utils/svgUtils';
-import { CANVAS_BORDER_RADIUS } from '../constants/Sizes';
-import { add } from 'lodash';
+
 /* Hook to cache SVG images from SVG strings
 --------------------------------------------------------------------------------
 Takes in an object of SVG strings and returns a ref containing loaded Image
 objects for each SVG part.
-Props | svgs : object containing SVG strings
-      | mapping : object mapping body parts to landmark indices (not used here 
+Props | svgs : object containing SVG strings 
       | but kept for consistency)
 --------------------------------------------------------------------------------      
 Returns | ref with cached Image objects
 ------------------------------------------------------------------------------*/
-export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
+export function useCacheSvgs(svgs, torsoDimsRef) {
   const imagesRef = useRef({});
   const torsoDims = torsoDimsRef?.current;
   useEffect(() => {
@@ -40,8 +39,8 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
               svgW,
               svgH,
               svgW / 4, // radius
-              true, //TL
-              true, //TR
+              false, //TL
+              false, //TR
               false, //BR
               false  //BL
             );
@@ -53,8 +52,8 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
               svgW / 4, // radius
               false, //TL
               false, //TR
-              true, //BR
-              true  //BL
+              false, //BR
+              false  //BL
             ); 
           } else if (part === 'leftLowerLeg' || part === 'rightLowerLeg') {
             svgToSend = addSvgClipPath(
@@ -87,7 +86,7 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
               svgString,
               svgW,svgH,
               svgW / 4, 
-              false, true, true, true  
+              false, false, false, false  
             );
 
           } else if (part === 'rightUpperArm' ) {
@@ -96,7 +95,7 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
               svgString,
               svgW,svgH,
               svgW / 4, 
-              true, false, true, true  
+              false, false, false, false  
             );
 
           } else if (part === 'leftLowerArm' ) {
@@ -104,15 +103,15 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
              svgToSend = addSvgClipPath(
               svgString,
               svgW,svgH,
-              svgW / 4, 
-              true, false, false, true  
+              svgW / 2, 
+              true, true, false, true  
             );
           } else if (part === 'rightLowerArm' ) {
             // round elbow and wrist corners
              svgToSend = addSvgClipPath(
               svgString,
               svgW,svgH,
-              svgW / 4, 
+              svgW / 2, 
               false, true, true, false  
             );
 
@@ -123,6 +122,54 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
               svgW / 4, 
               true, true, false, false  
             ); 
+          }
+
+          if (part === 'leftUpperArm') {
+            // left edge strong -> right edge softer
+            svgToSend = addSvgOpacityGradient(svgToSend, {
+              direction: 'leftToRight',
+              stops: [
+                { offset: 0.0, opacity: 0.0 },
+                { offset: 0.1, opacity: 0.25 },
+                { offset: 0.25, opacity: 1.0 },
+                { offset: 0.75, opacity: 1.0 },
+                { offset: 0.9, opacity: 0.25 },
+                { offset: 1.0, opacity: 0.0 },
+              ],
+              idSuffix: '_lua'
+            });
+          } else if (part === 'rightUpperArm') {
+            // mirror for right arm
+            svgToSend = addSvgOpacityGradient(svgToSend, {
+              direction: 'rightToLeft',
+              stops: [
+                { offset: 0.0, opacity: 0.0 },
+                { offset: 0.1, opacity: 0.45 },
+                { offset: 0.25, opacity: 1.0 },
+                { offset: 0.75, opacity: 1.0 },
+                { offset: 0.9, opacity: 0.45 },
+                { offset: 1.0, opacity: 0.0 },
+              ],
+              idSuffix: '_rua'
+            });
+          } else if (part === 'leftLowerArm') {
+            svgToSend = addSvgOpacityGradient(svgToSend, {
+              direction: 'leftToRight',
+              stops: [
+                { offset: 0.0, opacity: 0.9 },
+                { offset: 1.0, opacity: 0.7 },
+              ],
+              idSuffix: '_lla'
+            });
+          } else if (part === 'rightLowerArm') {
+            svgToSend = addSvgOpacityGradient(svgToSend, {
+              direction: 'rightToLeft',
+              stops: [
+                { offset: 0.0, opacity: 0.9 },
+                { offset: 1.0, opacity: 0.7 },
+              ],
+              idSuffix: '_rla'
+            });
           }
           console.log(`Caching SVG for ${part} with dimensions ${svgW}x${svgH}`);
           console.log(`SVG string with clip path: ${svgToSend}`);
@@ -139,7 +186,7 @@ export function useCacheSvgs(svgs, mapping, torsoDimsRef) {
     })();
 
     return () => { cancelled = true; };
-  }, [svgs, mapping, torsoDimsRef]);
+  }, [svgs, torsoDimsRef]);
 
   return imagesRef;
 }

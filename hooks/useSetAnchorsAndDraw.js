@@ -16,6 +16,7 @@ import {
   drawLegSvg,
   drawFootSvg,
 } from '../utils/drawingUtils';
+import { drawArmSegmentSingleAnchor } from '../utils/drawArm';
 import { LANDMARKS, CONNECTED_KEYPOINTS } from '../constants/descriptors/landmarkDescriptors';
 import { ANCHOR_MAP } from '../constants/descriptors/anchorDescriptors';
 
@@ -28,7 +29,6 @@ export function useSetAnchorsAndDraw({
   replay,
   scaleWebcamX,
   scaleWebcamY,
-  mapping,
   svgs,
   armOrientation,
   torsoDimsRef, 
@@ -106,6 +106,7 @@ export function useSetAnchorsAndDraw({
           if (tl.score < 0.3 || tr.score < 0.3 || bl.score < 0.3 || br.score < 0.3) continue;
           if (debugPipeline) console.log('VALID ANCHORS: ', part);
           const shoulderWidth = tr.x - tl.x;
+          const hipWidth = br.x - bl.x;
           const offset = shoulderWidth / 2;
           
           torsoDims.updateAvgTorsoHeight(
@@ -115,8 +116,8 @@ export function useSetAnchorsAndDraw({
             )
           );
         
-          torsoDims.updateAvgTorsoWidth(Math.abs(tr.x - tl.x));
-          torsoDims.updateAvgHipWidth(Math.abs(br.x - bl.x));
+          torsoDims.updateAvgTorsoWidth(shoulderWidth);
+          torsoDims.updateAvgHipWidth(hipWidth);
         
           const success = drawTorsoSvg(ctx, img, tl, tr, bl, br);     
           if (success) { 
@@ -170,8 +171,18 @@ export function useSetAnchorsAndDraw({
         const to = scaledLandmarks[map.end];
         if (!from || !to) continue;
         if (debugPipeline) console.log('VALID ANCHORS: ', part);
-        const success = 
-          drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims);
+        //const success = 
+          //drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims);
+        let success; 
+        if (part === 'leftUpperArm') {
+          success = drawArmSegmentSingleAnchor(ctx, img, from, to, -1, torsoDims, part);
+        } else if (part === 'rightUpperArm') {
+          success = drawArmSegmentSingleAnchor(ctx, img, from, to, 1, torsoDims, part);
+        } else if (part === 'leftLowerArm') {
+          success = drawArmSegmentSingleAnchor(ctx, img, from, to, -1, torsoDims, part);
+        } else if (part === 'rightLowerArm') {
+          success = drawArmSegmentSingleAnchor(ctx, img, from, to, 1, torsoDims, part);
+        }
         if (success) { 
           if (debugPipeline) console.log('DREW: ', part);
           continue;
@@ -254,7 +265,6 @@ export function useSetAnchorsAndDraw({
     displayLandmarks,
     width, height,
     scaleWebcamX, scaleWebcamY,
-    mapping,
     svgs,
     armOrientation,
     torsoDimsRef,

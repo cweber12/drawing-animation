@@ -20,7 +20,6 @@ const SvgCanvas = ({
   savedLandmarks = [], // saved landmarks for replay
   replay, // whether in replay mode
   svgs = {}, // original SVG strings
-  mapping = {}, // body part to landmark index mapping
   armOrientation, // extended horizintal (large screen) or vertical (mobile)
   style
 }) => {
@@ -55,7 +54,7 @@ const SvgCanvas = ({
   Uses useCacheSvgs hook to convert SVG strings into Image objects for drawing
   svgs(string) -> cachedSvgsRef(Image objects)
   ----------------------------------------------------------------------------*/
-  const cachedSvgsRef = useCacheSvgs(svgs, mapping, torsoDimsRef);
+  const cachedSvgsRef = useCacheSvgs(svgs, torsoDimsRef);
   
   /* ANIMATE THROUGH SAVED LANDMARKS
   ------------------------------------------------------------------------------
@@ -87,7 +86,6 @@ const SvgCanvas = ({
     displayLandmarks, // landmarks to use for setting anchors
     replay, // whether in replay mode
     scaleWebcamX, scaleWebcamY, // scaling factors from webcam to canvas size
-    mapping, // body part to landmark index mapping
     svgs, // original SVG strings
     armOrientation, // horizontal or vertical arm orientation
     torsoDimsRef, // ref to torso dimensions utility for dynamic scaling

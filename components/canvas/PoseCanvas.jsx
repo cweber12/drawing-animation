@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react'
 import { CONNECTED_KEYPOINTS } from '../../constants/descriptors/landmarkDescriptors';
 import { Colors } from '../../constants/Colors';
 import { useColorScheme } from 'react-native';
+import { has } from 'lodash';
 
 /*==============================================================================
                           POSE CANVAS COMPONENT
@@ -14,9 +15,13 @@ landmarks.
 const PoseCanvas = ({ 
   width, height, // canvas dimensions 
   landmarks, // pose landmarks to draw (fallback)
+  savedLandmarks = [], // saved landmarks for replay (fallback)
   landmarksRef, // optional ref provided for imperative drawing
+  
   style 
 }) => {
+  console.log('RENDERING POSE CANVAS');
+  
   /* Theme setup
   ----------------------------------------------------------------------------*/
   const colorScheme = useColorScheme();
@@ -61,12 +66,41 @@ const PoseCanvas = ({
       });
     };
 
+    const hasSaved = Array.isArray(savedLandmarks) && savedLandmarks.length > 0;
+
+    // If saved landmarks are provided (replay mode), play them back frame-by-frame.
+    if (hasSaved) {
+      console.log('PoseCanvas: Playing back saved landmarks, count:', savedLandmarks.length);
+      let raf = null;
+      let frameIndex = 0;
+      let lastTime = 0;
+      const fps = 30; // replay FPS (adjustable)
+      const frameDuration = 1000 / fps;
+
+      const replayLoop = (time) => {
+        if (!lastTime) lastTime = time;
+        const elapsed = time - lastTime;
+        if (elapsed >= frameDuration) {
+          lastTime = time;
+          const frame = savedLandmarks[frameIndex] || [];
+          drawFrame(frame);
+          frameIndex = (frameIndex + 1) % savedLandmarks.length;
+        }
+        raf = requestAnimationFrame(replayLoop);
+      };
+
+      raf = requestAnimationFrame(replayLoop);
+      return () => cancelAnimationFrame(raf);
+    }
+
+    // If an imperative landmarksRef is provided, use its RAF-driven updates for live drawing.
     if (landmarksRef && landmarksRef.current) {
       let raf = null;
-      let lastToken = 0;
+      let lastToken = null;
       const loop = () => {
         const token = landmarksRef.current?.__token;
-        if (token && token !== lastToken) {
+        // use explicit null/undefined check so token=0 isn't treated as false
+        if (token != null && token !== lastToken) {
           lastToken = token;
           const data = landmarksRef.current.data;
           drawFrame(data);
@@ -77,10 +111,10 @@ const PoseCanvas = ({
       return () => cancelAnimationFrame(raf);
     }
 
-    // Fallback: prop-driven draw when landmarksRef not provided
+    // Fallback: prop-driven draw when no landmarksRef and no saved frames
     drawFrame(landmarks);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [landmarksRef, landmarks, width, height, theme]);
+  }, [landmarksRef, landmarks, width, height, theme, savedLandmarks]);
 
   return (
     <canvas

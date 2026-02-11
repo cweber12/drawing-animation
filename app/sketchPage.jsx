@@ -35,6 +35,7 @@ import DetectPoseDropdown from '../components/dropdown/select/DetectPoseDropdown
 -----------------------------------------------------------------------------*/
 import { uploadToS3 } from '../utils/s3Utils';
 import { downloadSvgToDevice } from '../utils/storageUtils';
+import { set } from 'lodash';
 
 const SketchPage = () => {
     
@@ -52,6 +53,7 @@ const SketchPage = () => {
     const { width, height } = useWindowDimensions();
     const [sizes, setSizes] = useState(getSvgSizes(height));
     const [armsDown, setArmsDown] = useState(true);
+    const [viewMode, setViewMode] = useState('replay'); 
 
     useEffect(() => {
         setSizes(getSvgSizes(height));
@@ -126,7 +128,6 @@ const SketchPage = () => {
     /* Toggle options for detect pose (upload video, record, or live)
     --------------------------------------------------------------------------*/
     const toggleDetectPoseOptions = useCallback(() => {
-        console.log('SketchPage: Toggling detect pose options: ', showDetectPoseOptions);
         setShowSketchControls(false);
         setShowExportOptions(false);
         setShowSketchInfo(false);
@@ -136,7 +137,6 @@ const SketchPage = () => {
     /* Toggle sketch settings (brush size, color picker)
     --------------------------------------------------------------------------*/
     const toggleSettings = useCallback(() => {
-        console.log('SketchPage: Toggling sketch settings: ', showSketchControls);
         setShowDetectPoseOptions(false);
         setShowExportOptions(false);
         setShowSketchInfo(false);
@@ -150,7 +150,6 @@ const SketchPage = () => {
         setShowSketchControls(false);
         setShowSketchInfo(false);
         setShowExportOptions(prev => {
-            console.log('SketchPage: Toggling export options: ', !prev);
             return !prev;
         });
     }, []);
@@ -190,8 +189,7 @@ const SketchPage = () => {
     --------------------------------------------------------------------------*/
     const saveAll = useCallback(async () => {
         try {
-            const refs = { 
-                               
+            const refs = {                            
                 rightUpperLeg: rightUpperLegRef,
                 rightFoot: rightFootRef,
                 rightLowerLeg: rightLowerLegRef,          
@@ -213,20 +211,27 @@ const SketchPage = () => {
 
             const svgs = {};
             for (const [key, ref] of Object.entries(refs)) {
-            if (ref.current?.exportSvg) {
-                const svgString = await ref.current.exportSvg();
-                svgs[key] = svgString;
-                console.log(`sketchPage: Saved SVG for ${key}`);
-            } else {
-                svgs[key] = null;
-                console.log(`sketchPage: No SVG for ${key}`);
-            }
+                if (!ref.current) { svgs[key] = null; continue; }
+
+                if (ref.current.exportPaths) {
+                    const paths = await ref.current.exportPaths();
+                    if (!paths || paths.length === 0) {
+                        svgs[key] = null; 
+                        continue;
+                    }
+                }
+
+                // only serialize when there are paths
+                if (ref.current.exportSvg) {
+                    svgs[key] = await ref.current.exportSvg();
+                } else {
+                    svgs[key] = null;
+                }
             }
 
             bodySvgsRef.current = svgs;
             return svgs;
         } catch (e) {
-            console.error('sketchPage: Error saving SVGs:', e);
             return null;
         }
     }, []);
@@ -234,8 +239,10 @@ const SketchPage = () => {
     /* Handle upload SVGs to S3
     --------------------------------------------------------------------------*/
     const handleUploadSvg = useCallback(async () => {
-        console.log('sketchPage: handleUpload called');
         const svgs = await saveAll();
+        if (!svgs) {
+            return;
+        }
         setSvgData(svgs); 
         uploadToS3({
             landmarks: null,
@@ -247,10 +254,12 @@ const SketchPage = () => {
     /* Handle download SVGs to device
     --------------------------------------------------------------------------*/
     const handleDownloadSvg = useCallback(async () => {
-        console.log('sketchPage: handleDownloadSvg called');
         const svgs = await saveAll();
+        if (!svgs) {
+            console.error('No SVGs to download');
+            return;
+        }
         setSvgData(svgs); 
-        console.log('sketchPage: Downloading SVGs:', svgs);
         downloadSvgToDevice(svgs);
     }, [saveAll]);
 
@@ -261,28 +270,31 @@ const SketchPage = () => {
             type: 'video/*',
         });
         if (!result.canceled) {
-            goToDetectPose('pose', result.assets[0].uri);    
+            setViewMode('replay');
+            goToDetectPose(result.assets[0].uri);    
         }
     };
 
     /* Navigate to detectPose screen with SVGs
     --------------------------------------------------------------------------*/
-    const goToDetectPose = useCallback(async (mode, poseVideoUri) => {
-        const svgsToSend = await saveAll();
-        if (!svgsToSend) return;
-
+    const goToDetectPose = useCallback(async (poseVideoUri) => {
+        
+        let svgsToSend = {};
+        const savedSvgs = await saveAll();
+        if (savedSvgs) {
+            svgsToSend = JSON.stringify(savedSvgs);
+        } 
         // Navigate to detectPose with SVGs and mode
         router.push({
             pathname: '/detectPose',
             params: {
-            svgs: JSON.stringify(svgsToSend),
-            mapping: JSON.stringify(ANCHOR_MAP),
-            viewMode: mode,
+            svgs: svgsToSend,
+            viewMode: viewMode,
             videoUri: poseVideoUri,
             armOrientation: armsDown ? 'vertical' : 'horizontal',
             },
         });
-    }, [router, saveAll, armsDown]);
+    }, [router, saveAll, armsDown, viewMode]);
 
     /* =========================================================================
                                     HOOKS
@@ -309,6 +321,7 @@ const SketchPage = () => {
     --------------------------------------------------------------------------*/
     useEffect(() => {
         navigation.setParams({
+            viewMode: viewMode,
             eraseMode: erase,
             setEraseMode: setErase,
             strokeColor: selectedColor,
@@ -324,6 +337,7 @@ const SketchPage = () => {
             navigation, 
             clearAll, 
             goToDetectPose, 
+            viewMode,
             selectedColor,
             erase,
             saveAll,
@@ -370,8 +384,14 @@ const SketchPage = () => {
                 <DetectPoseDropdown
                     style={styles.sketchControls}
                     onPickVideo={handlePickVideo}
-                    setPoseView={() => goToDetectPose('replay', null)}
-                    setSvgView={() => goToDetectPose('live', null)}
+                    setPoseView={() => {
+                        setViewMode('replay');
+                        goToDetectPose(null);
+                    }}
+                    setSvgView={() => {
+                        setViewMode('live');
+                        goToDetectPose(null);
+                    }}
                 />
             )}
             {showExportOptions && (

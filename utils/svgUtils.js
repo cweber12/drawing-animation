@@ -120,44 +120,72 @@ export function getSvgDimensions(svgString) {
   }
 }
 
+/*==============================================================================
+                              ARM ANCHOR CALCULATIONS
+==============================================================================*/
 
-export function addSvgOpacityGradient(svgString, options = {}) {
+function safeNormalize(dx, dy) {
+  const len = Math.hypot(dx, dy) || 1;
+  return { ux: dx / len, uy: dy / len, len };
+}
+
+export function createSingleBaseAnchor(from, to, thicknessPx, side = 'left') {
+  if (!from || !to) return null;
+
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const { ux, uy } = safeNormalize(dx, dy);
+
+  // perpendicular unit
+  const nx = -uy;
+  const ny = ux;
+
+  const half = (thicknessPx || 1) / 2;
+  const dir = side === 'right' ? -1 : 1;
+
+  return {
+    x: from.x + nx * half * dir,
+    y: from.y + ny * half * dir,
+  };
+}
+
+
+export function addSvgOpacityGradient(svgString, opts = {}) {
   const {
-    direction = 'topToBottom',
+    direction = 'leftToRight',
     stops = [
       { offset: 0, opacity: 1 },
       { offset: 1, opacity: 0 },
     ],
     idSuffix = '',
-  } = options;
+  } = opts;
 
   if (typeof svgString !== 'string' || !svgString.includes('<svg')) return svgString;
 
-  const { width, height } = parseSvgSize(svgString);
+  // Find opening <svg ...> and closing </svg>
+  const openMatch = svgString.match(/<svg\b[^>]*>/i);
+  const closeIdx = svgString.toLowerCase().lastIndexOf('</svg>');
+  if (!openMatch || closeIdx < 0) return svgString;
 
-  // Extract outer <svg ...> and inner content
-  const openTagMatch = svgString.match(/<svg[^>]*>/i);
-  const closeTagIndex = svgString.toLowerCase().lastIndexOf('</svg>');
-  if (!openTagMatch || closeTagIndex === -1) return svgString;
+  const openTag = openMatch[0];
+  const openEnd = svgString.indexOf(openTag) + openTag.length;
+  const inner = svgString.slice(openEnd, closeIdx);
 
-  const openTag = openTagMatch[0];
-  const openTagEnd = svgString.indexOf(openTag) + openTag.length;
-  const inner = svgString.slice(openTagEnd, closeTagIndex);
+  // Direction mapping
+  let x1 = '0%', y1 = '0%', x2 = '100%', y2 = '0%';
+  if (direction === 'rightToLeft') { x1 = '100%'; y1 = '0%'; x2 = '0%'; y2 = '0%'; }
+  if (direction === 'topToBottom') { x1 = '0%'; y1 = '0%'; x2 = '0%'; y2 = '100%'; }
+  if (direction === 'bottomToTop') { x1 = '0%'; y1 = '100%'; x2 = '0%'; y2 = '0%'; }
 
   const uid = `${Date.now()}_${Math.random().toString(36).slice(2)}${idSuffix}`;
-  const gradId = `opacityGrad_${uid}`;
-  const maskId = `opacityMask_${uid}`;
-
-  let x1 = '0%'; let y1 = '0%'; let x2 = '0%'; let y2 = '100%';
-  if (direction === 'bottomToTop') { x1 = '0%'; y1 = '100%'; x2 = '0%'; y2 = '0%'; }
-  if (direction === 'leftToRight') { x1 = '0%'; y1 = '0%'; x2 = '100%'; y2 = '0%'; }
-  if (direction === 'rightToLeft') { x1 = '100%'; y1 = '0%'; x2 = '0%'; y2 = '0%'; }
+  const gradId = `opGrad_${uid}`;
+  const maskId = `opMask_${uid}`;
 
   const stopTags = stops
-    .map(({ offset, opacity }) => {
-      const clampedOffset = Math.max(0, Math.min(1, offset));
-      const clampedOpacity = Math.max(0, Math.min(1, opacity));
-      return `<stop offset="${clampedOffset * 100}%" stop-color="white" stop-opacity="${clampedOpacity}" />`;
+    .map((s) => {
+      const off = Math.max(0, Math.min(1, s.offset));
+      const op = Math.max(0, Math.min(1, s.opacity));
+      return `<stop offset="${off * 100}%" stop-color="white" stop-opacity="${op}" />`;
     })
     .join('');
 
@@ -166,19 +194,15 @@ export function addSvgOpacityGradient(svgString, options = {}) {
       <linearGradient id="${gradId}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">
         ${stopTags}
       </linearGradient>
-      <mask id="${maskId}" maskUnits="userSpaceOnUse" x="0" y="0" width="${width}" height="${height}">
-        <rect x="0" y="0" width="${width}" height="${height}" fill="url(#${gradId})" />
+      <mask id="${maskId}">
+        <rect x="0" y="0" width="100%" height="100%" fill="url(#${gradId})" />
       </mask>
     </defs>`;
 
-  // Remove existing top-level defs only if you want to avoid duplication;
-  // for safety, we keep existing defs and append ours.
-  const rebuilt = `${openTag}
+  return `${openTag}
     ${defs}
     <g mask="url(#${maskId})">
     ${inner}
     </g>
     </svg>`;
-
-  return rebuilt;
 }

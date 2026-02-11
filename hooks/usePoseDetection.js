@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import { smoothAndInterpolateLandmarks } from '../utils/poseUtils';
 import { addFeetFromHipKneeVectors } from '../utils/calcFootVectors';
@@ -30,9 +30,11 @@ export function usePoseDetection({
   // Save every Nth detected frame to reduce memory/clone cost
   const SAVE_EVERY_N = 2;
 
+  const [cachedLandmarks, setCachedLandmarks] = useState([]);
+
   useEffect(() => {
-    if (!isDetecting && savedLandmarks?.length) {
-      const processed = smoothAndInterpolateLandmarks(savedLandmarks, 5, 1);
+    if (!isDetecting && cachedLandmarks?.length) {
+      const processed = smoothAndInterpolateLandmarks(cachedLandmarks, 5, 1);
       const estimatedLandmarks = addFeetFromHipKneeVectors( processed );
       setSavedLandmarks(estimatedLandmarks);
     }
@@ -96,14 +98,15 @@ export function usePoseDetection({
             }
 
             // Sample and cheaply clone frames for savedLandmarks to reduce GC pressure
-            if (viewMode === 'pose') {
+            // Support both legacy 'pose' mode and the current 'replay' viewMode
+            if (viewMode === 'replay') {
               saveFrameCounterRef.current += 1;
               if (saveFrameCounterRef.current % SAVE_EVERY_N === 0) {
                 // Use structuredClone when available (faster than JSON), otherwise shallow-clone each keypoint
                 const copy = typeof structuredClone === 'function'
                   ? structuredClone(currentLandmarks)
                   : currentLandmarks.map(kp => (kp ? { ...kp } : kp));
-                setSavedLandmarks(prev => [...prev, copy]);
+                setCachedLandmarks(prev => [...prev, copy]);
               }
             }
           }
@@ -135,8 +138,8 @@ export function usePoseDetection({
     naturalVideoWidth,
     naturalVideoHeight,
     setLandmarks,
-    setSavedLandmarks,
     setLoading,
     viewMode,
+    landmarksRef,
   ]);
 }

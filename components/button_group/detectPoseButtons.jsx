@@ -28,7 +28,7 @@ const DetectPoseButtons = ({
 
     return (
         <View style={styles.container}>
-            {viewMode === 'pose' && (
+            {viewMode === 'replay' && (
                 <>
                     {/* INFO BUTTON -----------------------------------------*/}
                     <HeaderButton 

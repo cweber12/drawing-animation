@@ -57,7 +57,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 24,
         margin: 0,
-        textDecoration: 'underline',
     },
 
     text: {

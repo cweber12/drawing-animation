@@ -61,9 +61,8 @@ export function drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims, earDist) {
     // Midpoint between ears
     const midX = (leftEar.x + rightEar.x) / 2;
     const midY = ((leftEar.y + rightEar.y) / 2);  
-    const scaleY = 
-        ((avgTorsoHeight * 0.9 / Math.max(1, svgH)) +
-        (avgTorsoWidth / Math.max(1, svgW))) / 2; 
+    const scaleY =  Math.max((avgTorsoHeight * 0.9 / Math.max(1, svgH)), 
+        (avgTorsoWidth / Math.max(1, svgW))); 
     const scaleX = 
         ((avgEarDistance * 1.5 / svgW) + 
         (avgTorsoWidth / Math.max(1, svgH))) / 2; 
@@ -79,6 +78,8 @@ export function drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims, earDist) {
                                 DRAW HORIZONTAL ARMS
 ================================================================================
 Draw arm SVG rotated to match elbow-wrist angle
+***** TODO ******
+IMPLEMENT AFFINE TRANSFORM FOR ARMS
 ------------------------------------------------------------------------------*/
 export function drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims) {
     const { w: svgW, h: svgH } = getSvgSize(img);
@@ -186,8 +187,8 @@ export function drawHandSvg(ctx, img, wrist, elbow, armsDown, part, torsoDims) {
     if (!armsDown) {
         ctx.rotate(angle);
         if (isRight) {
-            ctx.scale(scaleX, -scaleY);
-            ctx.drawImage(img, svgW, -svgH / 2, svgW, svgH);
+            ctx.scale(-scaleX, -scaleY);
+            ctx.drawImage(img, -svgW * 2, -svgH / 2, svgW, svgH);
         } else {
             ctx.scale(scaleX, scaleY);
             ctx.drawImage(img, svgW, -svgH / 2, svgW, svgH);
@@ -219,10 +220,13 @@ export function drawLegSvg(ctx, img, from, to, part, torsoDims) {
         const avgTorsoHeight = torsoDims?.avgTorsoHeight;
         const currentHipWidth = torsoDims?.currentHipWidth;
         
-        let fromOffset = { x: from.x , y: from.y };
-        let toOffset = { x: to.x, y: to.y };
-        const dx = toOffset.x - fromOffset.x;
-        const dy = toOffset.y - fromOffset.y;
+        let fx = from.x;
+        let fy = from.y; 
+        let tx = to.x;
+        let ty = to.y; 
+
+        const dx = tx - fx;
+        const dy = ty - fy;
         
         const angle = Math.atan2(dy, dx);
         const length = Math.hypot(dx, dy);
@@ -233,7 +237,7 @@ export function drawLegSvg(ctx, img, from, to, part, torsoDims) {
             (avgHipWidth * 0.6 / Math.max(1, svgW))) / 2; 
         
         ctx.save();
-        ctx.translate(fromOffset.x, fromOffset.y);
+        ctx.translate(fx, fy);
         
         if (part === 'rightUpperLeg' || part === 'rightLowerLeg') {
             ctx.rotate(angle - Math.PI / 2); // vertical authoring
@@ -276,7 +280,7 @@ export function drawFootSvg(ctx, img, from, to, part, torsoDims) {
     
     const scaleY = 
         ((length / Math.max(1, svgH)) +  
-        (avgTorsoWidth * 0.5 / Math.max(1, svgW))) / 2; 
+        (avgTorsoHeight * 0.35 / Math.max(1, svgW))) / 2; 
     const scaleX = 
         ((avgTorsoHeight * 0.35 / Math.max(1, svgH)) + 
         (avgTorsoWidth * 0.45 / Math.max(1, svgW))) / 2; 
