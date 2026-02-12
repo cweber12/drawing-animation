@@ -1,6 +1,7 @@
 // utils/drawingUtils.js
 import { getSvgSize } from './svgUtils';
 import { affineFrom3Points } from './svgUtils';
+import { useScaleFactors } from '../context/ScaleFactorsContext';
 
 /*==============================================================================
                                     DRAW TORSO
@@ -48,7 +49,9 @@ export function drawTorsoSvg(ctx, img, tl, tr, bl, br) {
 ================================================================================
 Draw head SVG scaled and rotated between left and right ears
 ------------------------------------------------------------------------------*/
-export function drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims, earDist) {
+export function drawHeadSvg(
+    ctx, img, leftEar, rightEar, torsoDims, earDist, headScaleFactors
+) {
     const { w: svgW, h: svgH } = getSvgSize(img);
     const avgEarDistance = earDist?.avgEarDistance;
     const avgTorsoHeight = Math.abs(torsoDims?.avgTorsoHeight);
@@ -63,7 +66,10 @@ export function drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims, earDist) {
                     (avgTorsoWidth * 0.5 / Math.max(1, torsoSvgW))) / 2;
     ctx.save();
     ctx.translate(midX, midY);
-    ctx.scale(scale, scale);
+    ctx.scale(
+        scale * headScaleFactors.x, 
+        scale * headScaleFactors.y
+    );
     ctx.drawImage(img, -svgW / 2, -svgH / 1.2, svgW, svgH);
     ctx.restore();
     return true;
@@ -76,7 +82,9 @@ Draw arm SVG rotated to match elbow-wrist angle
 ***** TODO ******
 IMPLEMENT AFFINE TRANSFORM FOR ARMS
 ------------------------------------------------------------------------------*/
-export function drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims) {
+export function drawHorizontalSegmentSvg(
+    ctx, img, from, to, part, torsoDims, armScaleFactors
+) {
     const { w: svgW, h: svgH } = getSvgSize(img);
     const avgTorsoHeight = Math.abs(torsoDims?.avgTorsoHeight);
     const avgTorsoWidth = Math.abs(torsoDims?.avgTorsoWidth);
@@ -100,10 +108,14 @@ export function drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims) {
     ctx.rotate(angle);
 
     if (!isLeft) {
-        ctx.scale(-scaleX, -scaleY);
+        ctx.scale(
+            -scaleX * armScaleFactors.x, 
+            -scaleY * armScaleFactors.y);
         ctx.drawImage(img, -svgW, -svgH / 2, svgW, svgH);
     } else {
-        ctx.scale(scaleX, scaleY);    
+        ctx.scale(
+            scaleX * armScaleFactors.x, 
+            scaleY * armScaleFactors.y);    
         ctx.drawImage(img, 0, -svgH / 2, svgW, svgH);
 
     }
@@ -116,7 +128,9 @@ export function drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims) {
 ================================================================================
 Draw arm SVG rotated to match elbow-wrist angle
 ------------------------------------------------------------------------------*/
-export function drawVerticalSegmentSvg(ctx, img, from, to, part, torsoDims) {
+export function drawVerticalSegmentSvg(
+    ctx, img, from, to, part, torsoDims, legScaleFactors
+) {
     const { w: svgW, h: svgH } = getSvgSize(img);      
     const avgTorsoWidth = Math.abs(torsoDims?.avgTorsoWidth);
     const torsoSvgW = torsoDims?.torsoSvgWidth;
@@ -133,7 +147,9 @@ export function drawVerticalSegmentSvg(ctx, img, from, to, part, torsoDims) {
     ctx.translate(from.x, from.y);
     ctx.rotate(angle - Math.PI / 2); // Rotate to point toward elbow/wrist
     
-    ctx.scale(scaleX, scaleY); 
+    ctx.scale(
+        scaleX * legScaleFactors.x, 
+        scaleY * legScaleFactors.y); 
     ctx.drawImage(img, - svgW / 2, 0, svgW, svgH); 
     ctx.restore();
     return true;
@@ -144,7 +160,9 @@ export function drawVerticalSegmentSvg(ctx, img, from, to, part, torsoDims) {
 ================================================================================
 Draw hand SVG rotated to align with wrist-elbow segment
 ------------------------------------------------------------------------------*/
-export function drawHandSvg(ctx, img, wrist, elbow, armsDown, part, torsoDims) {
+export function drawHandSvg(
+    ctx, img, wrist, elbow, armsDown, part, torsoDims, handScaleFactors
+) {
     const { w: svgW, h: svgH } = getSvgSize(img);
     const avgTorsoWidth = Math.abs(torsoDims?.avgTorsoWidth);
     const avgTorsoHeight = Math.abs(torsoDims?.avgTorsoHeight);
@@ -166,19 +184,27 @@ export function drawHandSvg(ctx, img, wrist, elbow, armsDown, part, torsoDims) {
     if (!armsDown) {
         ctx.rotate(angle);
         if (isRight) {
-            ctx.scale(scale, scale);
+            ctx.scale(
+                scale * handScaleFactors.x, 
+                scale * handScaleFactors.y);
             ctx.drawImage(img, -svgW, -svgH / 2, svgW, svgH);
         } else {
-            ctx.scale(-scale, -scale);
+            ctx.scale(
+                -scale * handScaleFactors.x, 
+                -scale * handScaleFactors.y);
             ctx.drawImage(img, 0, -svgH / 2, svgW, svgH);
         }
     } else {
         ctx.rotate(angle - Math.PI / 2); 
         if (isRight) {
-            ctx.scale(-scale, scale);   
+            ctx.scale(
+                -scale * handScaleFactors.x, 
+                scale * handScaleFactors.y);
             ctx.drawImage(img, 0, 0, svgW, svgH);
         } else {
-            ctx.scale(scale, scale);
+            ctx.scale(
+                scale * handScaleFactors.x, 
+                scale * handScaleFactors.y);
             ctx.drawImage(img, -svgW, 0, svgW, svgH);
         }
     }
@@ -191,7 +217,9 @@ export function drawHandSvg(ctx, img, wrist, elbow, armsDown, part, torsoDims) {
 ================================================================================
 Draw leg SVG rotated to align with segment
 ------------------------------------------------------------------------------*/
-export function drawLegSvg(ctx, img, from, to, part, torsoDims) {
+export function drawLegSvg(
+    ctx, img, from, to, part, torsoDims, legScaleFactors
+) {
     try {
         const { w: svgW, h: svgH } = getSvgSize(img);
         const avgTorsoWidth = Math.abs(torsoDims?.avgTorsoWidth);
@@ -220,11 +248,15 @@ export function drawLegSvg(ctx, img, from, to, part, torsoDims) {
         
         if (part === 'rightUpperLeg' || part === 'rightLowerLeg') {
             ctx.rotate(angle - Math.PI / 2); // vertical authoring
-            ctx.scale(scaleX, scaleY);
+            ctx.scale(
+                scaleX * legScaleFactors.x, 
+                scaleY * legScaleFactors.y);
             ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
         } else {
             ctx.rotate(angle - Math.PI / 2); // vertical authoring
-            ctx.scale(scaleX, scaleY);
+            ctx.scale(
+                scaleX * legScaleFactors.x, 
+                scaleY * legScaleFactors.y);
             ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
         }
         ctx.restore();
@@ -241,7 +273,9 @@ Draw foot SVG rotated to align with ankle-foot segment
 - Foot coordinates calculated with FootCalculator utility, not provided by
   pose detection model
 ------------------------------------------------------------------------------*/
-export function drawFootSvg(ctx, img, from, to, part, torsoDims) {
+export function drawFootSvg(
+    ctx, img, from, to, part, torsoDims, footScaleFactors
+) {
     const { w: svgW, h: svgH } = getSvgSize(img);
     const avgTorsoWidth = Math.abs(torsoDims?.avgTorsoWidth);
     const avgTorsoHeight = Math.abs(torsoDims?.avgTorsoHeight);
@@ -267,10 +301,14 @@ export function drawFootSvg(ctx, img, from, to, part, torsoDims) {
     ctx.rotate(angle - Math.PI / 2); // vertical authoring
 
     if (part === 'leftFoot') {
-        ctx.scale(scaleX, scaleY);
+        ctx.scale(
+            scaleX * footScaleFactors.x, 
+            scaleY * footScaleFactors.y);
         ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
     } else if (part === 'rightFoot') {
-        ctx.scale(scaleX, scaleY);
+        ctx.scale(
+            scaleX * footScaleFactors.x, 
+            scaleY * footScaleFactors.y);
         ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
     }
 

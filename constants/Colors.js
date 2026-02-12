@@ -6,7 +6,7 @@ export const Colors = {
         text: "#FEFBE2",
         title: "#A4D100",
         background: "#222222",
-        navBackground: "#121214",
+        navBackground: "rgba(0,0,0,0.75)",
         controlsBackground: "rgba(0,0,0,0.5)",
         
         listItemBackground: "rgba(0,0,0,0.5)",
@@ -25,7 +25,8 @@ export const Colors = {
         actionButtonHover: "#779800",
         actionButtonPressed: "#457a00",
         
-        iconHover: "rgba(106, 187, 0, 0.6)",
+        icon: "rgba(164, 209, 0, 1)",
+        iconHover: "rgba(164, 209, 0, 0.75)",
         stopButton: "#FF4500",
         homeButton: "#0A0A0A",
          
@@ -63,7 +64,8 @@ export const Colors = {
         actionButtonHover: "#274500",
         actionButtonPressed: "#274500",
         
-        iconHover: "rgba(106, 187, 0, 0.3)",
+        icon: "rgba(164, 209, 0, 1)",
+        iconHover: "rgba(164, 209, 0, 0.75)",
         stopButton: "#FF4500",
         homeButton: "#0A0A0A",
         

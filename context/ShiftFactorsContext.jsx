@@ -1,4 +1,5 @@
 // context/ShiftFactorsContext.jsx
+import { topLeft } from '@shopify/react-native-skia';
 import React, { createContext, useContext, useMemo, useRef, useState, useEffect } from 'react';
 
 /* Context to manage shift factors for body part adjustments.
@@ -17,6 +18,7 @@ shoulderShiftY = factors.shoulderShift.y;
 /* Default shift factors for each body part
 ------------------------------------------------------------------------------*/
 const defaultFactors = {
+    torsoShift:     { x: 0, y: 0 },
     headShift:      { x: 0, y: 0},
     shoulderShift:  { x: 0, y: 0 },
     elbowShift:     { x: 0, y: 0 },

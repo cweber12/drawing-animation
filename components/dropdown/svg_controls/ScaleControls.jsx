@@ -1,6 +1,6 @@
 // components/ShiftControls.jsx
 import React, { useState } from 'react';
-import { useShiftFactors } from '../../../context/ShiftFactorsContext';
+import { useScaleFactors } from '../../../context/ScaleFactorsContext';
 import { Colors } from '../../../constants/Colors';
 import { 
     View, 
@@ -13,21 +13,18 @@ import './Controls.css';
 import { list } from '@aws-amplify/storage';
 
 const BODY_PARTS = [
-    { id: 'torsoShift', label: 'Torso' },
-    { id: 'headShift', label: 'Head' },
-    { id: 'shoulderShift', label: 'Shoulders' },
-    { id: 'elbowShift', label: 'Elbows' },
-    { id: 'wristShift', label: 'Hands' },
-    { id: 'hipShift', label: 'Hips' },
-    { id: 'kneeShift', label: 'Knees' },
-    { id: 'ankleShift', label: 'Ankles' },
-    { id: 'footShift', label: 'Feet' },
+    { id: 'headScale', label: 'Head' },
+    { id: 'armScale', label: 'Arms' },
+    { id: 'handScale', label: 'Hands' },
+    { id: 'legScale', label: 'Legs' },
+    { id: 'footScale', label: 'Feet' },
+
 ];
 
-export default function ShiftControls() {
+export default function ScaleControls() {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-  const { factors, updateFactor } = useShiftFactors();
+  const { factors, updateFactor } = useScaleFactors();
   const [selected, setSelected] = useState(BODY_PARTS[0].id);
 
   const current = factors[selected] || { x: 0, y: 0 };
@@ -85,9 +82,9 @@ export default function ShiftControls() {
                 className="range"
                 style={{ '--slider-color': theme.actionButton }}
                 type="range"
-                min={-5000}
-                max={5000}
-                step={5}
+                min={0}
+                max={10}
+                step={0.01}
                 value={current.x}
                 onChange={(e) => setAxis('x', e.target.value)}
             />
@@ -99,9 +96,9 @@ export default function ShiftControls() {
                     className="range"
                     style={{ '--slider-color': theme.actionButton }}
                     type="range"
-                    min={-5000}
-                    max={5000}
-                    step={5}
+                    min={0}
+                    max={10}
+                    step={0.01}
                     value={current.y}
                     onChange={(e) => setAxis('y', e.target.value)}
                 />
@@ -113,11 +110,10 @@ export default function ShiftControls() {
 
 const styles = StyleSheet.create({
     mainWrapper: {
-        display: 'flex',
+        display: 'flex', 
         flex: 1,
-        flexDirection: 'column', 
+        flexDirection: 'column',
         gap: 12,
-        minWidth: 240,
     },
 
     button: {

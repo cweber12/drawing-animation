@@ -10,10 +10,12 @@ import {
   View,
   StyleSheet,
   useWindowDimensions,
+  TouchableOpacity,
+  useColorScheme,
+  Text, 
 } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigation } from 'expo-router';
-import { useColorScheme } from 'react-native';
 
 import { ANCHOR_MAP } from '../constants/descriptors/anchorDescriptors';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
@@ -21,10 +23,14 @@ import { Colors } from '../constants/Colors';
 import { scaleLandmarkFrames } from '../utils/poseUtils';
 
 import { ShiftFactorsProvider } from '../context/ShiftFactorsContext';
+import { ScaleFactorsProvider } from '../context/ScaleFactorsContext';
 import SvgCanvas from '../components/canvas/SvgCanvas';
 import ThemedView from '../components/view/ThemedView';
 import PoseCanvas from '../components/canvas/PoseCanvas';
 import ShiftControls from '../components/dropdown/svg_controls/ShiftControls';
+import ScaleControls from '../components/dropdown/svg_controls/ScaleControls';
+
+import { MdSwitchLeft, MdSwitchRight } from "react-icons/md";
 
 // IMPORTANT: adjust this path if your FileList is in a different folder
 import FileList from '../components/list/FileList';
@@ -68,6 +74,11 @@ const ViewSavedPoses = () => {
 
   // Conditional rendering and file loading (S3 or device)
   const [showDeviceFiles, setShowDeviceFiles] = useState(false);
+
+  const [showShiftControls, setShowShiftControls] = useState(true);
+  const [showScaleControls, setShowScaleControls] = useState(false);
+
+  const [controlIconHovered, setControlIconHovered] = useState(false);
 
   // Ref for animation interval
   const animationRef = useRef(null);
@@ -124,9 +135,52 @@ const ViewSavedPoses = () => {
                                 RENDER
   ============================================================================*/
   return (
+    <ScaleFactorsProvider>
     <ShiftFactorsProvider>
       <ThemedView style={styles.mainContainer}>
-        <ShiftControls />
+        
+        <View 
+        style={{ 
+          flexDirection: 'column',  
+          minWidth: 240, position: 'absolute', top: 16, right: 16, zIndex: 10
+          }}>
+            <View 
+              style={{ 
+                flexDirection: 'row', 
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: 8, 
+                backgroundColor: theme.navBackground,
+                }}>
+              <Text 
+              style={{ 
+                color: theme.text, 
+                fontFamily: 'Segoe UI', 
+                fontSize: 16 
+                }}>
+                {showShiftControls ? 'Shift Anchors' : 'Scale Parts'}
+              </Text>
+              <TouchableOpacity
+                onPress={() => (
+                  setShowShiftControls((prev) => !prev), 
+                  setShowScaleControls((prev) => !prev)
+                )}
+                onMouseEnter={() => setControlIconHovered(true)}
+                onMouseLeave={() => setControlIconHovered(false)}
+              >
+                {showShiftControls ? (
+                  <MdSwitchLeft 
+                    size={38} 
+                    color={controlIconHovered ? theme.iconHover : theme.icon} /> ) : ( 
+                  <MdSwitchRight 
+                    size={38} 
+                    color={controlIconHovered ? theme.iconHover : theme.icon} /> 
+                  )}
+              </TouchableOpacity>
+            </View>
+          {showScaleControls && <ScaleControls />}
+          {showShiftControls && <ShiftControls />}
+        </View>
 
         <FileList
           // file lists + selections
@@ -191,11 +245,13 @@ const ViewSavedPoses = () => {
               width={width}
               height={height}
               landmarks={scaledFrames?.[currentFrame] ?? null}
+              savedLandmarks={scaledFrames}
             />
           )}
         </div>
       </ThemedView>
     </ShiftFactorsProvider>
+    </ScaleFactorsProvider>
   );
 };
 
