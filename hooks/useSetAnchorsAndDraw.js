@@ -1,12 +1,6 @@
 import { useEffect } from 'react';
+import { ANCHOR_MAP } from '../constants/descriptors/anchorDescriptors';
 import { getSvgSize } from '../utils/svgUtils';
-import { 
-  setTorsoAnchorsAndDraw, 
-  setHeadAnchors, 
-  setArmAnchors, 
-  setHandAnchors, 
-  setFootAnchors 
-} from '../utils/anchorUtils';
 import {
   drawTorsoSvg,
   drawHeadSvg,
@@ -16,9 +10,7 @@ import {
   drawLegSvg,
   drawFootSvg,
 } from '../utils/drawingUtils';
-import { drawArmSegmentSingleAnchor } from '../utils/drawArm';
-import { LANDMARKS, CONNECTED_KEYPOINTS } from '../constants/descriptors/landmarkDescriptors';
-import { ANCHOR_MAP } from '../constants/descriptors/anchorDescriptors';
+import { useShiftFactors } from '../context/ShiftFactorsContext';
 
 export function useSetAnchorsAndDraw({
   canvasRef,
@@ -34,10 +26,13 @@ export function useSetAnchorsAndDraw({
   torsoDimsRef, 
   earDistRef,
 }) {
+  const { factorsRef } = useShiftFactors();
   useEffect(() => {
-    const debugPipeline = false; // Set to true to enable detailed logging of anchor setting and drawing
+    const debugPipeline = false;     
     const torsoDims = torsoDimsRef?.current;
-    //if (!torsoDims) return;
+    const avgTorsoWidth = torsoDims?.avgTorsoWidth; 
+    const avgTorsoHeight = torsoDims?.avgTorsoHeight;
+
     const canvas = canvasRef?.current; 
     if (!canvas) return;
     const images = imagesRef?.current;
@@ -86,7 +81,8 @@ export function useSetAnchorsAndDraw({
       if (hasInvalidAnchor) continue;
 
       const { w: svgW, h: svgH } = getSvgSize(img);
-      if (debugPipeline) console.log('VALID: ', part);
+      if (debugPipeline) console.log(`Part: ${part}, Anchors:`, anchors); 
+
 
       /*========================================================================
                                         TORSO 
@@ -142,16 +138,26 @@ export function useSetAnchorsAndDraw({
         if (!leftEar || !rightEar || leftEar.score < 0.3 ||
            rightEar.score < 0.3) { continue };
         
-        if (debugPipeline) console.log('VALID ANCHORS: ', part);
-        
         earDist.updateAvgEarDistance(
           Math.hypot(
             rightEar.x - leftEar.x,
             rightEar.y - leftEar.y
           )
-        );
-  
-        const success = drawHeadSvg(ctx, img, leftEar, rightEar, torsoDims, earDist); 
+        ); 
+        
+        let leftEarAdjusted = leftEar;
+        let rightEarAdjusted = rightEar;
+        
+        leftEarAdjusted = {
+          x: leftEar.x + factorsRef.current.headShift.x,
+          y: leftEar.y + factorsRef.current.headShift.y,
+        };
+        rightEarAdjusted = {
+          x: rightEar.x - factorsRef.current.headShift.x,
+          y: rightEar.y + factorsRef.current.headShift.y,
+        };
+
+        const success = drawHeadSvg(ctx, img, leftEarAdjusted, rightEarAdjusted, torsoDims, earDist); 
         if (success) { 
           if (debugPipeline) console.log('DREW: ', part);
           continue;
@@ -167,22 +173,60 @@ export function useSetAnchorsAndDraw({
         (map.start !== undefined && map.end !== undefined)
       ) {
         if (debugPipeline) console.log('SET ANCHORS: ', part);
+        
         const from = scaledLandmarks[map.start];
         const to = scaledLandmarks[map.end];
         if (!from || !to) continue;
+        
         if (debugPipeline) console.log('VALID ANCHORS: ', part);
-        //const success = 
-          //drawHorizontalSegmentSvg(ctx, img, from, to, part, torsoDims);
-        let success; 
-        if (part === 'leftUpperArm') {
-          success = drawArmSegmentSingleAnchor(ctx, img, from, to, -1, torsoDims, part);
-        } else if (part === 'rightUpperArm') {
-          success = drawArmSegmentSingleAnchor(ctx, img, from, to, 1, torsoDims, part);
-        } else if (part === 'leftLowerArm') {
-          success = drawArmSegmentSingleAnchor(ctx, img, from, to, -1, torsoDims, part);
+
+        /* Apply shifts to anchors 
+        ----------------------------------------------------------------------*/
+        let fromAdjusted = from; 
+        let toAdjusted = to; 
+
+        if (part === 'rightUpperArm') {
+          fromAdjusted = {
+            x: from.x + factorsRef.current.shoulderShift.x,
+            y: from.y + factorsRef.current.shoulderShift.y, 
+          }; 
+          toAdjusted = {
+            x: to.x + factorsRef.current.elbowShift.x,
+            y: to.y + factorsRef.current.elbowShift.y,
+          }; 
+        } else if (part === 'leftUpperArm') {
+          fromAdjusted = {
+            x: from.x - factorsRef.current.shoulderShift.x,
+            y: from.y + factorsRef.current.shoulderShift.y,
+          }; 
+          toAdjusted = {
+            x: to.x - factorsRef.current.elbowShift.x,
+            y: to.y + factorsRef.current.elbowShift.y,
+          }; 
         } else if (part === 'rightLowerArm') {
-          success = drawArmSegmentSingleAnchor(ctx, img, from, to, 1, torsoDims, part);
+          fromAdjusted = {
+            x: from.x + factorsRef.current.elbowShift.x,
+            y: from.y + factorsRef.current.elbowShift.y,
+          }; 
+          toAdjusted = {
+            x: to.x + factorsRef.current.wristShift.x,
+            y: to.y + factorsRef.current.wristShift.y,
+          }; 
+        } else if (part === 'leftLowerArm') {
+          fromAdjusted = {
+            x: from.x - factorsRef.current.elbowShift.x,
+            y: from.y + factorsRef.current.elbowShift.y,
+          }; 
+          toAdjusted = {
+            x: to.x - factorsRef.current.wristShift.x,
+            y: to.y + factorsRef.current.wristShift.y,
+          }; 
         }
+        
+        /* Draw
+        ----------------------------------------------------------------------*/
+        const success = 
+          drawHorizontalSegmentSvg(ctx, img, fromAdjusted, toAdjusted, part, torsoDims);
         if (success) { 
           if (debugPipeline) console.log('DREW: ', part);
           continue;
@@ -204,8 +248,30 @@ export function useSetAnchorsAndDraw({
 
         if (debugPipeline) console.log('VALID ANCHORS: ', part);
 
+        let fromAdjusted = from;
+        let toAdjusted = to;
+        if (part === 'rightHand') {
+          fromAdjusted = {
+            x: from.x + factorsRef.current.wristShift.x,
+            y: from.y + factorsRef.current.wristShift.y,
+          };
+          toAdjusted = {
+            x: to.x + factorsRef.current.elbowShift.x,
+            y: to.y + factorsRef.current.elbowShift.y,
+          };
+        } else {
+          fromAdjusted = {
+            x: from.x - factorsRef.current.wristShift.x,
+            y: from.y + factorsRef.current.wristShift.y,
+          };
+          toAdjusted = {
+            x: to.x - factorsRef.current.elbowShift.x,
+            y: to.y + factorsRef.current.elbowShift.y,
+          };
+        }
+
         const success = drawHandSvg(
-          ctx, img, from, to, armsDown, part, torsoDims);
+          ctx, img, fromAdjusted, toAdjusted, armsDown, part, torsoDims);
         if (success) { 
           if (debugPipeline) console.log('DREW: ', part);
           continue;
@@ -222,11 +288,60 @@ export function useSetAnchorsAndDraw({
         (map.start !== undefined && map.end !== undefined)
       ) {
         if (debugPipeline) console.log('SET ANCHORS: ', part);
+        
         const from = scaledLandmarks[map.start];
         const to = scaledLandmarks[map.end];
+        
         if (!from || !to) continue;
         if (debugPipeline) console.log('VALID ANCHORS: ', part);
-        const success = drawLegSvg(ctx, img, from, to, part, torsoDims); 
+
+        /* Apply shifts to anchors
+        ----------------------------------------------------------------------*/
+        let fromAdjusted = from; 
+        let toAdjusted = to; 
+        
+        if (part === 'rightUpperLeg') {
+          fromAdjusted = {
+            x: from.x + factorsRef.current.hipShift.x,
+            y: from.y + factorsRef.current.hipShift.y,
+          };
+          toAdjusted = {
+            x: to.x + factorsRef.current.kneeShift.x,
+            y: to.y + factorsRef.current.kneeShift.y,
+          };
+        } else if (part === 'leftUpperLeg') {
+          fromAdjusted = {
+            x: from.x - factorsRef.current.hipShift.x,
+            y: from.y + factorsRef.current.hipShift.y,
+          };
+          toAdjusted = {
+            x: to.x - factorsRef.current.kneeShift.x,
+            y: to.y + factorsRef.current.kneeShift.y,
+          };
+        } else if (part === 'rightLowerLeg') {
+          fromAdjusted = {
+            x: from.x + factorsRef.current.kneeShift.x,
+            y: from.y + factorsRef.current.kneeShift.y,
+          };
+          toAdjusted = {
+            x: to.x + factorsRef.current.ankleShift.x,
+            y: to.y + factorsRef.current.ankleShift.y,
+          };
+        } else if (part === 'leftLowerLeg') {
+          fromAdjusted = {
+            x: from.x - factorsRef.current.kneeShift.x,
+            y: from.y + factorsRef.current.kneeShift.y,
+          };
+          toAdjusted = {
+            x: to.x - factorsRef.current.ankleShift.x,
+            y: to.y + factorsRef.current.ankleShift.y,
+          };
+        }
+
+        /* Draw
+        ----------------------------------------------------------------------*/
+        const success = 
+          drawLegSvg(ctx, img, fromAdjusted, toAdjusted, part, torsoDims); 
         if (success) { 
           if (debugPipeline) console.log('DREW: ', part);
           continue;
@@ -240,20 +355,31 @@ export function useSetAnchorsAndDraw({
         if (debugPipeline) console.log('SET ANCHORS: ', part);
         const torsoDims = torsoDimsRef?.current;
         if (map.start === undefined || map.end === undefined) return false;
-        const start = scaledLandmarks[map.start];
-        const end = scaledLandmarks[map.end];
-        if (!start || !end || start.score < 0.3) return false;
+        const from = scaledLandmarks[map.start];
+        const to = scaledLandmarks[map.end];
+        if (!from || !to || from.score < 0.3) return false;
 
-        let from, to;
+        let fromAdjusted, toAdjusted;
         if (part === 'rightFoot') {
-          to = end;
-          from = start;
+          fromAdjusted = {
+            x: from.x + factorsRef.current.ankleShift.x,
+            y: from.y + factorsRef.current.ankleShift.y,
+          };
+          toAdjusted = {
+            x: to.x + factorsRef.current.footShift.x,
+            y: to.y + factorsRef.current.footShift.y,
+          };
         } else {
-          to = end;
-          from = start;
+          fromAdjusted = {
+            x: from.x - factorsRef.current.ankleShift.x,
+            y: from.y + factorsRef.current.ankleShift.y,
+          };
+          toAdjusted = {
+            x: to.x - factorsRef.current.footShift.x,
+            y: to.y + factorsRef.current.footShift.y,
+          };
         }
-
-        const success = drawFootSvg(ctx, img, from, to, part, torsoDims);
+        const success = drawFootSvg(ctx, img, fromAdjusted, toAdjusted, part, torsoDims);
         if (success) { 
           if (debugPipeline) console.log('DREW: ', part);
           continue;

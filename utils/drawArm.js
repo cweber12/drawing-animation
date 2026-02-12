@@ -70,8 +70,10 @@ export function drawArmSegmentSingleAnchor(
     const svgW = img.naturalWidth || img.width || 1;
     const svgH = img.naturalHeight || img.height || 1;
 
-    const baseExtra = createBaseExtraAnchorPerp(from, to, Math.max(svgW, svgH) * 0.5, sideSign);
-    const shiftX = svgH / 2;
+
+    const baseExtra = createBaseExtraAnchorPerp(
+        from, to, Math.max(svgW, svgH) * 0.5, sideSign);
+   
 
     const src0 = { x: 0, y: 0 };
     const src1 = { x: 0, y: svgH};
@@ -85,11 +87,11 @@ export function drawArmSegmentSingleAnchor(
     if (!t) return;
 
     // keep your existing scale logic but guard missing torsoDims methods
-    const avgTorsoHeight = torsoDims?.getAvgTorsoHeight?.() ;
-    const currentTorsoWidth = torsoDims?.getCurrentTorsoWidth?.() ;
-    const length = Math.hypot(to.x - from.x, to.y - from.y);
-
-    const scaleY = 1; // default to no vertical scaling 
+    const avgTorsoHeight = torsoDims?.avgTorsoHeight;
+    const avgTorsoWidth = torsoDims?.avgTorsoWidth;
+    console.log(`svgW: ${svgW}, svgH: ${svgH}, avgTorsoWidth: ${avgTorsoWidth}, avgTorsoHeight: ${avgTorsoHeight}` )
+    const scaleY = ((avgTorsoHeight / Math.max(1, svgW)) + 
+                    (avgTorsoWidth / Math.max(1, svgW))) / 2 ; 
     ctx.save();
     ctx.setTransform(t.a, t.b, t.c, t.d, t.e, t.f);
     ctx.scale(1, -scaleY); 

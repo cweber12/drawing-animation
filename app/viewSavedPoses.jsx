@@ -5,6 +5,7 @@
 A page for viewing saved pose landmark files and SVG sketches. Landmarks can be 
 selected and rendered as an animation, and SVGs can be overlaid on the landmarks.
 ------------------------------------------------------------------------------*/
+// React and React Native imports
 import { 
   ActivityIndicator, 
   TouchableOpacity, 
@@ -16,27 +17,32 @@ import {
 } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigation } from 'expo-router';
+import { useColorScheme } from 'react-native';
+import { GiSkeleton } from "react-icons/gi";
+import { BsPersonRaisedHand } from "react-icons/bs";
+// Constant imports
+import { ANCHOR_MAP } from '../constants/descriptors/anchorDescriptors';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
 import { Colors } from '../constants/Colors';
-import { useColorScheme } from 'react-native';
-import { ANCHOR_MAP } from '../constants/descriptors/anchorDescriptors';
-import { fetchFiles, downloadLandmarkFile, downloadSvgFile } from '../utils/s3Utils';
+// Util imports
+import { 
+  fetchFiles, 
+  downloadLandmarkFile, 
+  downloadSvgFile 
+} from '../utils/s3Utils';
 import {
   selectPoseFolder,
   listDevicePoseFiles,
   readDeviceFileText,
 } from "../utils/storageUtils";
-import { scaleLandmarks, scaleLandmarkFrames } from '../utils/poseUtils';
-
-import { FaPencilAlt } from "react-icons/fa";
-import { GiSkeleton, GiShamblingZombie } from "react-icons/gi";
+import { scaleLandmarkFrames } from '../utils/poseUtils';
+// Context and hook imports
+import { ShiftFactorsProvider } from '../context/ShiftFactorsContext';
+// Component imports
 import SvgCanvas from '../components/canvas/SvgCanvas';
 import ThemedView from '../components/view/ThemedView';
 import PoseCanvas from '../components/canvas/PoseCanvas';
 import DropdownSelect from '../components/button/DropdownSelect';
-import { BsPersonRaisedHand } from "react-icons/bs";
-import { scale } from '@shopify/react-native-skia';
-
 
 const ViewSavedPoses = () => {
   
@@ -294,137 +300,140 @@ const ViewSavedPoses = () => {
                                 RENDER 
   ============================================================================*/
   return (
-    <ThemedView style={styles.mainContainer}>
+    <ShiftFactorsProvider>
 
-      <View style={styles.listWrapper}>               
-        <View style={styles.listHeader}>
-          <GiSkeleton 
-            size={50} 
-            color={theme.actionButton} 
-            style={{ marginRight: "1rem" }} />
-          <Text style={{ fontSize: 24, fontWeight: 'bold', color: theme.text }}>
-            Animation Files
-          </Text>
-        </View>
-        {/* Landmark Files List */}
-        <FlatList
-          style={[
-            styles.list, 
-            {
-              borderTop: `1px solid ${theme.border}`,
-              borderRight: `1px solid ${theme.border}`,
-              borderLeft: `1px solid ${theme.border}`, 
-              marginBottom: '2rem',
-            }]}
-          data={landmarkFiles}
-          keyExtractor={(item) => item}
-          renderItem={({ item }) => (
-            <DropdownSelect onPress={() => handleSelectLandmarkFile(item)} >
-              <Text 
-                style={[
-                  styles.listItemText, 
-                  { color: item === selectedLandmarkFile ? theme.actionButton : theme.text }]}>
-                  {item}
-              </Text>
-            </DropdownSelect>
-          )}
-        />
-        
-        {selectedLandmarkFile &&
-          <>
-            <View 
-              style={{
-                flexDirection: 'row', 
-                alignItems: 'center', 
-                justifyContent: 'flex-start',
-                marginBottom: '1rem', 
-                paddingBottom: '0.2rem',
-                }}>
-              <BsPersonRaisedHand 
-                size={50} 
-                color={theme.actionButton} 
-                style={{ marginRight: "1rem" }} />
-              <Text 
-                style={{ 
-                  fontSize: 24,
-                  fontWeight: 'bold',
-                  color: theme.text,
-                  marginBottom: 0,
-                }}>
-                Sketches
-              </Text>
-            </View>
-            {/* SVG Files List */}
-            <FlatList
-              style={[
-                styles.list, 
-                {
-                  borderTop: `1px solid ${theme.border}`,
-                  borderRight: `1px solid ${theme.border}`,
-                  borderLeft: `1px solid ${theme.border}`,
-                  marginBottom: 20,
-                }]}
-              data={svgFiles}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
+      <ThemedView style={styles.mainContainer}>
+
+        <View style={styles.listWrapper}>               
+          <View style={styles.listHeader}>
+            <GiSkeleton 
+              size={50} 
+              color={theme.actionButton} 
+              style={{ marginRight: "1rem" }} />
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: theme.text }}>
+              Animation Files
+            </Text>
+          </View>
+          {/* Landmark Files List */}
+          <FlatList
+            style={[
+              styles.list, 
+              {
+                borderTop: `1px solid ${theme.border}`,
+                borderRight: `1px solid ${theme.border}`,
+                borderLeft: `1px solid ${theme.border}`, 
+                marginBottom: '2rem',
+              }]}
+            data={landmarkFiles}
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => (
+              <DropdownSelect onPress={() => handleSelectLandmarkFile(item)} >
+                <Text 
                   style={[
-                    styles.listItem, 
-                    item === selectedSvgFile && styles.selectedListItem, 
-                    {borderBottom: `1px solid ${theme.border}`}
-                  ]}
-                  onPress={() => handleSelectSvgFile(item)}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = theme.border;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  <Text 
-                    style={[
-                      styles.listItemText, 
-                      { color: item === selectedSvgFile ? theme.actionButton : theme.text }]}>
-                      {item}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-          </>
-        }
-      </View>
-      {/* Canvas Area */}
-      <div style={{ 
-        flex: 1, 
-        display: 'flex',
-        alignItems: 'center', 
-        justifyContent: 'center',
-        
-        }}>
-        {loading && <ActivityIndicator />}
-        {selectedLandmarkFile && selectedSvgString && (
-          <SvgCanvas
-            width={width}
-            height={height}
-            webcamWidth={videoDimensions.width}
-            webcamHeight={videoDimensions.height}
-            landmarks={null}
-            savedLandmarks={scaledFrames}
-            replay={frames.length > 1}
-            svgs={selectedSvgString}
-            mapping={ANCHOR_MAP}
-            armOrientation={"horizontal"}
-        />
-        )}
-        {frames.length > 0 && selectedLandmarkFile && !selectedSvgFile && (
-          <PoseCanvas
-            width={width}
-            height={height}
-            landmarks={scaledFrames && scaledFrames[currentFrame] ? scaledFrames[currentFrame] : null}
+                    styles.listItemText, 
+                    { color: item === selectedLandmarkFile ? theme.actionButton : theme.text }]}>
+                    {item}
+                </Text>
+              </DropdownSelect>
+            )}
           />
-        )}
-      </div>
-    </ThemedView>
+          
+          {selectedLandmarkFile &&
+            <>
+              <View 
+                style={{
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  justifyContent: 'flex-start',
+                  marginBottom: '1rem', 
+                  paddingBottom: '0.2rem',
+                  }}>
+                <BsPersonRaisedHand 
+                  size={50} 
+                  color={theme.actionButton} 
+                  style={{ marginRight: "1rem" }} />
+                <Text 
+                  style={{ 
+                    fontSize: 24,
+                    fontWeight: 'bold',
+                    color: theme.text,
+                    marginBottom: 0,
+                  }}>
+                  Sketches
+                </Text>
+              </View>
+              {/* SVG Files List */}
+              <FlatList
+                style={[
+                  styles.list, 
+                  {
+                    borderTop: `1px solid ${theme.border}`,
+                    borderRight: `1px solid ${theme.border}`,
+                    borderLeft: `1px solid ${theme.border}`,
+                    marginBottom: 20,
+                  }]}
+                data={svgFiles}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.listItem, 
+                      item === selectedSvgFile && styles.selectedListItem, 
+                      {borderBottom: `1px solid ${theme.border}`}
+                    ]}
+                    onPress={() => handleSelectSvgFile(item)}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = theme.border;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <Text 
+                      style={[
+                        styles.listItemText, 
+                        { color: item === selectedSvgFile ? theme.actionButton : theme.text }]}>
+                        {item}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </>
+          }
+        </View>
+        {/* Canvas Area */}
+        <div style={{ 
+          flex: 1, 
+          display: 'flex',
+          alignItems: 'center', 
+          justifyContent: 'center',
+          
+          }}>
+          {loading && <ActivityIndicator />}
+          {selectedLandmarkFile && selectedSvgString && (
+            <SvgCanvas
+              width={width}
+              height={height}
+              webcamWidth={videoDimensions.width}
+              webcamHeight={videoDimensions.height}
+              landmarks={null}
+              savedLandmarks={scaledFrames}
+              replay={frames.length > 1}
+              svgs={selectedSvgString}
+              mapping={ANCHOR_MAP}
+              armOrientation={"horizontal"}
+          />
+          )}
+          {frames.length > 0 && selectedLandmarkFile && !selectedSvgFile && (
+            <PoseCanvas
+              width={width}
+              height={height}
+              landmarks={scaledFrames && scaledFrames[currentFrame] ? scaledFrames[currentFrame] : null}
+            />
+          )}
+        </div>
+      </ThemedView>
+    </ShiftFactorsProvider>
   );
 };
 
