@@ -11,6 +11,7 @@ import {
   drawFootSvg,
 } from '../utils/drawingUtils';
 import { useShiftFactors } from '../context/ShiftFactorsContext';
+import { debugAnchors } from '../test/debugAnchors';
 
 export function useSetAnchorsAndDraw({
   canvasRef,
@@ -28,10 +29,12 @@ export function useSetAnchorsAndDraw({
 }) {
   const { factorsRef } = useShiftFactors();
   useEffect(() => {
+    let debugPoints = true; // Set to true to visualize anchor points and shifts for debugging
     const debugPipeline = false;     
     const torsoDims = torsoDimsRef?.current;
-    const avgTorsoWidth = torsoDims?.avgTorsoWidth; 
-    const avgTorsoHeight = torsoDims?.avgTorsoHeight;
+    const avgTorsoWidth = Math.abs(torsoDims?.avgTorsoWidth); 
+    const avgTorsoHeight = Math.abs(torsoDims?.avgTorsoHeight);
+    const torsoDimAvg = (avgTorsoWidth + avgTorsoHeight) / 2;
 
     const canvas = canvasRef?.current; 
     if (!canvas) return;
@@ -149,12 +152,13 @@ export function useSetAnchorsAndDraw({
         let rightEarAdjusted = rightEar;
         
         leftEarAdjusted = {
-          x: leftEar.x + factorsRef.current.headShift.x,
-          y: leftEar.y + factorsRef.current.headShift.y,
+          x: leftEar.x + factorsRef.current.headShift.x / avgTorsoWidth + 1e-5,
+          y: leftEar.y + factorsRef.current.headShift.y / avgTorsoHeight + 1e-5,
         };
+
         rightEarAdjusted = {
-          x: rightEar.x - factorsRef.current.headShift.x,
-          y: rightEar.y + factorsRef.current.headShift.y,
+          x: rightEar.x + factorsRef.current.headShift.x / avgTorsoWidth + 1e-5,
+          y: rightEar.y + factorsRef.current.headShift.y / avgTorsoHeight + 1e-5,
         };
 
         const success = drawHeadSvg(ctx, img, leftEarAdjusted, rightEarAdjusted, torsoDims, earDist); 
@@ -181,54 +185,59 @@ export function useSetAnchorsAndDraw({
         if (debugPipeline) console.log('VALID ANCHORS: ', part);
 
         /* Apply shifts to anchors 
+        ------------------------------------------------------------------------
+        - Fetch current shift factors from context and apply to anchor points 
+        - 
         ----------------------------------------------------------------------*/
         let fromAdjusted = from; 
         let toAdjusted = to; 
 
+        
         if (part === 'rightUpperArm') {
           fromAdjusted = {
-            x: from.x + factorsRef.current.shoulderShift.x,
-            y: from.y + factorsRef.current.shoulderShift.y, 
+            x: from.x + factorsRef.current.shoulderShift.x / avgTorsoWidth + 1e-5,
+            y: from.y + factorsRef.current.shoulderShift.y / avgTorsoHeight + 1e-5, 
           }; 
           toAdjusted = {
-            x: to.x + factorsRef.current.elbowShift.x,
-            y: to.y + factorsRef.current.elbowShift.y,
+            x: to.x + factorsRef.current.elbowShift.x / avgTorsoWidth + 1e-5,
+            y: to.y + factorsRef.current.elbowShift.y / avgTorsoHeight + 1e-5,
           }; 
         } else if (part === 'leftUpperArm') {
           fromAdjusted = {
-            x: from.x - factorsRef.current.shoulderShift.x,
-            y: from.y + factorsRef.current.shoulderShift.y,
+            x: from.x - factorsRef.current.shoulderShift.x / avgTorsoWidth + 1e-5,
+            y: from.y + factorsRef.current.shoulderShift.y / avgTorsoHeight + 1e-5,
           }; 
           toAdjusted = {
-            x: to.x - factorsRef.current.elbowShift.x,
-            y: to.y + factorsRef.current.elbowShift.y,
+            x: to.x - factorsRef.current.elbowShift.x / avgTorsoWidth + 1e-5,
+            y: to.y + factorsRef.current.elbowShift.y / avgTorsoHeight + 1e-5,
           }; 
         } else if (part === 'rightLowerArm') {
           fromAdjusted = {
-            x: from.x + factorsRef.current.elbowShift.x,
-            y: from.y + factorsRef.current.elbowShift.y,
+            x: from.x + factorsRef.current.elbowShift.x / avgTorsoWidth + 1e-5,
+            y: from.y + factorsRef.current.elbowShift.y / avgTorsoHeight + 1e-5,
           }; 
           toAdjusted = {
-            x: to.x + factorsRef.current.wristShift.x,
-            y: to.y + factorsRef.current.wristShift.y,
+            x: to.x + factorsRef.current.wristShift.x / avgTorsoWidth + 1e-5,
+            y: to.y + factorsRef.current.wristShift.y / avgTorsoHeight + 1e-5,
           }; 
         } else if (part === 'leftLowerArm') {
           fromAdjusted = {
-            x: from.x - factorsRef.current.elbowShift.x,
-            y: from.y + factorsRef.current.elbowShift.y,
+            x: from.x - factorsRef.current.elbowShift.x / avgTorsoWidth + 1e-5,
+            y: from.y + factorsRef.current.elbowShift.y / avgTorsoHeight + 1e-5,
           }; 
           toAdjusted = {
-            x: to.x - factorsRef.current.wristShift.x,
-            y: to.y + factorsRef.current.wristShift.y,
+            x: to.x - factorsRef.current.wristShift.x / avgTorsoWidth + 1e-5, 
+            y: to.y + factorsRef.current.wristShift.y / avgTorsoHeight + 1e-5, 
           }; 
         }
-        
+
         /* Draw
         ----------------------------------------------------------------------*/
         const success = 
           drawHorizontalSegmentSvg(ctx, img, fromAdjusted, toAdjusted, part, torsoDims);
         if (success) { 
           if (debugPipeline) console.log('DREW: ', part);
+          if (debugPoints) { debugAnchors(fromAdjusted, toAdjusted, ctx, part, avgTorsoHeight); }
           continue;
         }
       }
@@ -252,21 +261,21 @@ export function useSetAnchorsAndDraw({
         let toAdjusted = to;
         if (part === 'rightHand') {
           fromAdjusted = {
-            x: from.x + factorsRef.current.wristShift.x,
-            y: from.y + factorsRef.current.wristShift.y,
+            x: from.x + factorsRef.current.wristShift.x / avgTorsoWidth + 1e-5,
+            y: from.y + factorsRef.current.wristShift.y / avgTorsoHeight + 1e-5,
           };
           toAdjusted = {
-            x: to.x + factorsRef.current.elbowShift.x,
-            y: to.y + factorsRef.current.elbowShift.y,
+            x: to.x + factorsRef.current.elbowShift.x / avgTorsoWidth + 1e-5,
+            y: to.y + factorsRef.current.elbowShift.y / avgTorsoHeight + 1e-5,
           };
         } else {
           fromAdjusted = {
-            x: from.x - factorsRef.current.wristShift.x,
-            y: from.y + factorsRef.current.wristShift.y,
+            x: from.x - factorsRef.current.wristShift.x / avgTorsoWidth + 1e-5,
+            y: from.y + factorsRef.current.wristShift.y / avgTorsoHeight + 1e-5,
           };
           toAdjusted = {
-            x: to.x - factorsRef.current.elbowShift.x,
-            y: to.y + factorsRef.current.elbowShift.y,
+            x: to.x - factorsRef.current.elbowShift.x / avgTorsoWidth + 1e-5,
+            y: to.y + factorsRef.current.elbowShift.y / avgTorsoHeight + 1e-5,
           };
         }
 
@@ -274,6 +283,7 @@ export function useSetAnchorsAndDraw({
           ctx, img, fromAdjusted, toAdjusted, armsDown, part, torsoDims);
         if (success) { 
           if (debugPipeline) console.log('DREW: ', part);
+          if (debugPoints) { debugAnchors(fromAdjusted, toAdjusted, ctx, part, avgTorsoHeight); }
           continue;
         }
         
@@ -302,39 +312,39 @@ export function useSetAnchorsAndDraw({
         
         if (part === 'rightUpperLeg') {
           fromAdjusted = {
-            x: from.x + factorsRef.current.hipShift.x,
-            y: from.y + factorsRef.current.hipShift.y,
+            x: from.x + factorsRef.current.hipShift.x / avgTorsoWidth + 1e-5,
+            y: from.y + factorsRef.current.hipShift.y / avgTorsoHeight + 1e-5,
           };
           toAdjusted = {
-            x: to.x + factorsRef.current.kneeShift.x,
-            y: to.y + factorsRef.current.kneeShift.y,
+            x: to.x + factorsRef.current.kneeShift.x / avgTorsoWidth + 1e-5,
+            y: to.y + factorsRef.current.kneeShift.y / avgTorsoHeight + 1e-5,
           };
         } else if (part === 'leftUpperLeg') {
           fromAdjusted = {
-            x: from.x - factorsRef.current.hipShift.x,
-            y: from.y + factorsRef.current.hipShift.y,
+            x: from.x - factorsRef.current.hipShift.x / avgTorsoWidth + 1e-5,
+            y: from.y + factorsRef.current.hipShift.y / avgTorsoHeight + 1e-5,
           };
           toAdjusted = {
-            x: to.x - factorsRef.current.kneeShift.x,
-            y: to.y + factorsRef.current.kneeShift.y,
+            x: to.x - factorsRef.current.kneeShift.x / avgTorsoWidth + 1e-5,
+            y: to.y + factorsRef.current.kneeShift.y / avgTorsoHeight + 1e-5,
           };
         } else if (part === 'rightLowerLeg') {
           fromAdjusted = {
-            x: from.x + factorsRef.current.kneeShift.x,
-            y: from.y + factorsRef.current.kneeShift.y,
+            x: from.x + factorsRef.current.kneeShift.x / avgTorsoWidth + 1e-5,
+            y: from.y + factorsRef.current.kneeShift.y / avgTorsoHeight + 1e-5,
           };
           toAdjusted = {
-            x: to.x + factorsRef.current.ankleShift.x,
-            y: to.y + factorsRef.current.ankleShift.y,
+            x: to.x + factorsRef.current.ankleShift.x / avgTorsoWidth + 1e-5,
+            y: to.y + factorsRef.current.ankleShift.y / avgTorsoHeight + 1e-5, // add tiny value to prevent exact overlap with original anchor
           };
         } else if (part === 'leftLowerLeg') {
           fromAdjusted = {
-            x: from.x - factorsRef.current.kneeShift.x,
-            y: from.y + factorsRef.current.kneeShift.y,
+            x: from.x - factorsRef.current.kneeShift.x / avgTorsoWidth + 1e-5,
+            y: from.y + factorsRef.current.kneeShift.y / avgTorsoHeight + 1e-5,
           };
           toAdjusted = {
-            x: to.x - factorsRef.current.ankleShift.x,
-            y: to.y + factorsRef.current.ankleShift.y,
+            x: to.x - factorsRef.current.ankleShift.x / avgTorsoWidth + 1e-5,
+            y: to.y + factorsRef.current.ankleShift.y / avgTorsoHeight + 1e-5,
           };
         }
 
@@ -344,6 +354,7 @@ export function useSetAnchorsAndDraw({
           drawLegSvg(ctx, img, fromAdjusted, toAdjusted, part, torsoDims); 
         if (success) { 
           if (debugPipeline) console.log('DREW: ', part);
+          if (debugPoints) { debugAnchors(fromAdjusted, toAdjusted, ctx, part, avgTorsoHeight); }
           continue;
         } 
       }
@@ -362,26 +373,29 @@ export function useSetAnchorsAndDraw({
         let fromAdjusted, toAdjusted;
         if (part === 'rightFoot') {
           fromAdjusted = {
-            x: from.x + factorsRef.current.ankleShift.x,
-            y: from.y + factorsRef.current.ankleShift.y,
+            x: from.x + factorsRef.current.ankleShift.x / avgTorsoWidth + 1e-5,
+            y: from.y + factorsRef.current.ankleShift.y / avgTorsoHeight + 1e-5,
           };
           toAdjusted = {
-            x: to.x + factorsRef.current.footShift.x,
-            y: to.y + factorsRef.current.footShift.y,
+            x: to.x + factorsRef.current.footShift.x / avgTorsoWidth + 1e-5,
+            y: to.y + factorsRef.current.footShift.y / avgTorsoHeight + 1e-5,
           };
         } else {
           fromAdjusted = {
-            x: from.x - factorsRef.current.ankleShift.x,
-            y: from.y + factorsRef.current.ankleShift.y,
+            x: from.x - factorsRef.current.ankleShift.x / avgTorsoWidth + 1e-5,
+            y: from.y + factorsRef.current.ankleShift.y / avgTorsoHeight + 1e-5,
           };
           toAdjusted = {
-            x: to.x - factorsRef.current.footShift.x,
-            y: to.y + factorsRef.current.footShift.y,
+            x: to.x - factorsRef.current.footShift.x / avgTorsoWidth + 1e-5,
+            y: to.y + factorsRef.current.footShift.y / avgTorsoHeight + 1e-5, 
           };
         }
+
+        
         const success = drawFootSvg(ctx, img, fromAdjusted, toAdjusted, part, torsoDims);
         if (success) { 
           if (debugPipeline) console.log('DREW: ', part);
+          if (debugPoints) { debugAnchors(fromAdjusted, toAdjusted, ctx, part, avgTorsoHeight); }
           continue;
         }
       }

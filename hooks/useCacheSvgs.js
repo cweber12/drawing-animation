@@ -31,6 +31,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
         
         try {
           const { width: svgW, height: svgH } = getSvgDimensions(svgString);
+          torsoDims.updateTorsoSvgDimensions(svgW, svgH);
           let svgToSend = svgString;
           
           if (part === 'torso') {
@@ -169,6 +170,33 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
                 { offset: 1.0, opacity: 0.7 },
               ],
               idSuffix: '_rla'
+            });
+          } else if (part === 'leftUpperLeg') {
+            svgToSend = addSvgOpacityGradient(svgToSend, {
+              direction: 'leftToRight',
+              stops: [
+                { offset: 0.0, opacity: 0.9 },
+                { offset: 1.0, opacity: 0.7 },
+              ],
+              idSuffix: '_lul'
+            });
+          } else if (part === 'rightUpperLeg') {
+            svgToSend = addSvgOpacityGradient(svgToSend, {
+              direction: 'rightToLeft',
+              stops: [
+                { offset: 0.0, opacity: 0.9 },
+                { offset: 1.0, opacity: 0.7 },
+              ],
+              idSuffix: '_rul'
+            });
+          } else if (part === 'torso') {
+            svgToSend = addSvgOpacityGradient(svgToSend, {
+              direction: 'topToBottom',
+              stops: [
+                { offset: 0.0, opacity: 0.9 },
+                { offset: 1.0, opacity: 0.7 },
+              ],
+              idSuffix: '_torso'
             });
           }
           console.log(`Caching SVG for ${part} with dimensions ${svgW}x${svgH}`);

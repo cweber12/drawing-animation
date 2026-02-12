@@ -232,40 +232,39 @@ export default function FileList({
   return (
     <View style={styles.listWrapper}>
       <View style={styles.listHeader}>
-        <GiSkeleton
-          size={50}
-          color={theme.actionButton}
-          style={{ marginRight: '1rem' }}
-        />
-        <Text style={{ fontSize: 24, fontWeight: 'bold', color: theme.text }}>
-          Animation Files
+        <Text style={{ fontSize: 24, margin: 0, fontWeight: 'bold', color: theme.text }}>
+          Landmark Files
         </Text>
       </View>
 
       {/* Landmark Files List */}
       <FlatList
-        style={[
-          styles.list,
-          {
-            borderTop: `1px solid ${theme.border}`,
-            borderRight: `1px solid ${theme.border}`,
-            borderLeft: `1px solid ${theme.border}`,
-            marginBottom: '2rem',
-          },
-        ]}
+        style={styles.list}
         data={landmarkFiles}
         keyExtractor={(item) => item}
         renderItem={({ item }) => (
-          <DropdownSelect onPress={() => handleSelectLandmarkFile(item)}>
+          <TouchableOpacity
+            style={[
+                styles.listItem,
+                { backgroundColor: item === selectedLandmarkFile ? theme.actionButton : 'transparent' },
+            ]}
+            onPress={() => handleSelectLandmarkFile(item)}
+            onMouseEnter={(e) => {
+                if (e?.target?.style) e.target.style.backgroundColor = item === selectedLandmarkFile ? theme.actionButtonHover : theme.listItemBackgroundHover;
+            }}
+            onMouseLeave={(e) => {
+                if (e?.target?.style) e.target.style.backgroundColor = item === selectedLandmarkFile ? theme.actionButton : 'transparent';
+            }}
+            >
             <Text
               style={[
-                styles.listItemText,
-                { color: item === selectedLandmarkFile ? theme.actionButton : theme.text },
-              ]}
+                styles.listItemText, 
+                { color: item === selectedLandmarkFile ? theme.actionButtonText : theme.text }
+            ]}
             >
               {item}
             </Text>
-          </DropdownSelect>
+          </TouchableOpacity>
         )}
       />
 
@@ -276,59 +275,44 @@ export default function FileList({
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'flex-start',
-              marginBottom: '1rem',
               paddingBottom: '0.2rem',
             }}
           >
-            <BsPersonRaisedHand
-              size={50}
-              color={theme.actionButton}
-              style={{ marginRight: '1rem' }}
-            />
             <Text
               style={{
                 fontSize: 24,
                 fontWeight: 'bold',
                 color: theme.text,
-                marginBottom: 0,
+                margin: 0,
               }}
             >
-              Sketches
+              SVG Image Files
             </Text>
           </View>
 
           {/* SVG Files List */}
           <FlatList
-            style={[
-              styles.list,
-              {
-                borderTop: `1px solid ${theme.border}`,
-                borderRight: `1px solid ${theme.border}`,
-                borderLeft: `1px solid ${theme.border}`,
-                marginBottom: 20,
-              },
-            ]}
+            style={styles.list}
             data={svgFiles}
             keyExtractor={(item) => item}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={[
                   styles.listItem,
-                  item === selectedSvgFile && styles.selectedListItem,
-                  { borderBottom: `1px solid ${theme.border}` },
+                  { backgroundColor: item === selectedSvgFile ? theme.actionButton : 'transparent' },
                 ]}
                 onPress={() => handleSelectSvgFile(item)}
                 onMouseEnter={(e) => {
-                  if (e?.target?.style) e.target.style.backgroundColor = theme.border;
+                  if (e?.target?.style) e.target.style.backgroundColor = item === selectedSvgFile ? theme.actionButtonHover : theme.listItemBackgroundHover;
                 }}
                 onMouseLeave={(e) => {
-                  if (e?.target?.style) e.target.style.backgroundColor = 'transparent';
+                  if (e?.target?.style) e.target.style.backgroundColor = item === selectedSvgFile ? theme.actionButton : 'transparent';
                 }}
               >
                 <Text
                   style={[
                     styles.listItemText,
-                    { color: item === selectedSvgFile ? theme.actionButton : theme.text },
+                    { color: item === selectedSvgFile ? theme.actionButtonText : theme.text },
                   ]}
                 >
                   {item}
@@ -343,37 +327,47 @@ export default function FileList({
 }
 
 const styles = StyleSheet.create({
-  listWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-    gap: '1rem',
-  },
-  listHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'flex-start',
-    marginBottom: '1rem',
-    paddingBottom: '0.2rem',
-  },
-  list: {
-    width: 320,
-    maxHeight: '25vh',
-    overflowY: 'auto',
-    maxWidth: 320,
-    flexShrink: 0,
-    backgroundColor: 'rgba(0,0,0,0.25)',
-  },
-  listItem: {
-    paddingVertical: '1rem',
-    paddingHorizontal: '1.5rem',
-    cursor: 'pointer',
-  },
-  listItemText: {
-    fontSize: 18,
-  },
-  selectedListItem: {
-    backgroundColor: '#e6f0ff',
-  },
+    listWrapper: {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            justifyContent: 'flex-start',
+            gap: '1rem',
+            direction: 'ltr',
+    },
+
+    listHeader: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        justifyContent: 'flex-start',
+        paddingBottom: '0.2rem',
+    },
+
+    list: {
+        width: 320,
+        maxHeight: '25vh',
+        overflowY: 'auto',
+        maxWidth: 320,
+        flexShrink: 0,
+        backgroundColor: 'rgba(0,0,0,0.25)',
+
+        direction: 'rtl',
+        scrollbarGutter: 'stable',
+    },
+
+    listItem: {
+        paddingVertical: '1rem',
+        paddingHorizontal: '1.5rem',
+        cursor: 'pointer',
+        direction: 'ltr',
+    },
+
+    listItemText: {
+        fontSize: 18,
+      direction: 'ltr',
+    },
+
+    selectedListItem: {
+        backgroundColor: '#e6f0ff',
+    },
 });
