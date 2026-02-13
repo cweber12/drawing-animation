@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigation } from 'expo-router';
-
+import { GiSkeletonInside } from "react-icons/gi";
 import { ANCHOR_MAP } from '../constants/descriptors/anchorDescriptors';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
 import { Colors } from '../constants/Colors';
@@ -80,6 +80,8 @@ const ViewSavedPoses = () => {
 
   const [controlIconHovered, setControlIconHovered] = useState(false);
 
+  const [debugAnchors, setDebugAnchors] = useState(false);
+
   // Ref for animation interval
   const animationRef = useRef(null);
 
@@ -140,10 +142,10 @@ const ViewSavedPoses = () => {
       <ThemedView style={styles.mainContainer}>
         
         <View 
-        style={{ 
-          flexDirection: 'column',  
-          minWidth: 240, position: 'absolute', top: 16, right: 16, zIndex: 10
-          }}>
+          style={{ 
+            flexDirection: 'column',  
+            minWidth: 240, position: 'absolute', top: 16, right: 16, zIndex: 10
+            }}>
             <View 
               style={{ 
                 flexDirection: 'row', 
@@ -180,6 +182,36 @@ const ViewSavedPoses = () => {
             </View>
           {showScaleControls && <ScaleControls />}
           {showShiftControls && <ShiftControls />}
+          <TouchableOpacity
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginTop: 12,
+              height: 48,
+              paddingHorizontal: 32,
+              backgroundColor: theme.listItemBackground,
+              borderRadius: 4,
+              cursor: 'pointer',
+            }}
+            onPress={() => setDebugAnchors((prev) => !prev)}
+          >
+            <Text 
+            style={{ 
+              color: theme.text, 
+              fontFamily: 'Segoe UI', 
+              fontSize: 18, 
+              fontWeight: 'bold'
+              }}>
+              {debugAnchors ? 'Hide Anchors' : 'Show Anchors'}
+            </Text> 
+            <GiSkeletonInside 
+              size={32} 
+              style={{ marginLeft: 6}}
+              color={debugAnchors ? theme.actionButton : theme.text}
+             />
+          </TouchableOpacity>
         </View>
 
         <FileList
@@ -237,6 +269,7 @@ const ViewSavedPoses = () => {
               svgs={selectedSvgString}
               mapping={ANCHOR_MAP}
               armOrientation="horizontal"
+              debugAnchorsFlag={debugAnchors}
             />
           )}
 

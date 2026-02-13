@@ -21,7 +21,8 @@ const SvgCanvas = ({
   replay, // whether in replay mode
   svgs = {}, // original SVG strings
   armOrientation, // extended horizintal (large screen) or vertical (mobile)
-  style
+  style, 
+  debugAnchorsFlag,
 }) => {
 
   /*============================================================================
@@ -90,6 +91,7 @@ const SvgCanvas = ({
     armOrientation, // horizontal or vertical arm orientation
     torsoDimsRef, // ref to torso dimensions utility for dynamic scaling
     earDistRef, // ref to ear distance utility for head scaling
+    debugAnchorsFlag,
   });
 
 

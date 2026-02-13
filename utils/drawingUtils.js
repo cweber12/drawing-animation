@@ -61,14 +61,14 @@ export function drawHeadSvg(
 
     // Midpoint between ears
     const midX = (leftEar.x + rightEar.x) / 2;
-    const midY = ((leftEar.y + rightEar.y) / 2);  
-    const scale = (avgTorsoHeight * 0.5 / Math.max(1, torsoSvgH) + 
-                    (avgTorsoWidth * 0.5 / Math.max(1, torsoSvgW))) / 2;
+    const midY = ((leftEar.y + rightEar.y) / 2); 
+    const scaleX = avgTorsoWidth * 0.5 / Math.max(1, torsoSvgW);  
+    const scaleY = avgTorsoHeight * 0.5 / Math.max(1, torsoSvgH);
     ctx.save();
     ctx.translate(midX, midY);
     ctx.scale(
-        scale * headScaleFactors.x, 
-        scale * headScaleFactors.y
+        scaleX * headScaleFactors.x, 
+        scaleY * headScaleFactors.y
     );
     ctx.drawImage(img, -svgW / 2, -svgH / 1.2, svgW, svgH);
     ctx.restore();

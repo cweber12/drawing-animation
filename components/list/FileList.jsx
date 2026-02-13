@@ -305,26 +305,25 @@ const styles = StyleSheet.create({
     },
 
     list: {
-        width: 300,
+        width: 320,
         maxHeight: '25vh',
         overflowY: 'auto',
-        maxWidth: 300,
+        maxWidth: 320,
         flexShrink: 0,
-
         direction: 'rtl',
         scrollbarGutter: 'stable',
+
     },
 
     listItem: {
         paddingVertical: '1rem',
         paddingHorizontal: '1.5rem',
         cursor: 'pointer',
-        direction: 'ltr',
+        
     },
 
     listItemText: {
-        fontSize: 18,
-      direction: 'ltr',
+    fontSize: 18,
     },
 
 });

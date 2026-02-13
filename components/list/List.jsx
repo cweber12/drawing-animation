@@ -37,10 +37,10 @@ export default function List({
 
 const styles = StyleSheet.create({
   list: {
-    width: 300,
+    width: 320,
     maxHeight: '25vh',
     overflowY: 'auto',
-    maxWidth: 300,
+    maxWidth: 320,
     flexShrink: 0,
     direction: 'rtl',
     scrollbarGutter: 'stable',
