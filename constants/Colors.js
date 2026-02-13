@@ -6,7 +6,7 @@ export const Colors = {
         text: "#FEFBE2",
         title: "#A4D100",
         background: "#222222",
-        navBackground: "rgba(0,0,0,0.75)",
+        navBackground: "rgb(0,0,0)",
         controlsBackground: "rgba(0,0,0,0.5)",
         
         listItemBackground: "rgba(0,0,0,0.5)",

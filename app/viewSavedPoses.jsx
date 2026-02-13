@@ -22,8 +22,6 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
 import { Colors } from '../constants/Colors';
 import { scaleLandmarkFrames } from '../utils/poseUtils';
 
-import { ShiftFactorsProvider } from '../context/ShiftFactorsContext';
-import { ScaleFactorsProvider } from '../context/ScaleFactorsContext';
 import SvgCanvas from '../components/canvas/SvgCanvas';
 import ThemedView from '../components/view/ThemedView';
 import PoseCanvas from '../components/canvas/PoseCanvas';
@@ -137,14 +135,12 @@ const ViewSavedPoses = () => {
                                 RENDER
   ============================================================================*/
   return (
-    <ScaleFactorsProvider>
-    <ShiftFactorsProvider>
       <ThemedView style={styles.mainContainer}>
         
         <View 
           style={{ 
             flexDirection: 'column',  
-            minWidth: 240, position: 'absolute', top: 16, right: 16, zIndex: 10
+            minWidth: 240, position: 'absolute', top: 24, right: 24, zIndex: 10
             }}>
             <View 
               style={{ 
@@ -152,14 +148,14 @@ const ViewSavedPoses = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: 8, 
-                backgroundColor: theme.navBackground,
+                backgroundColor: theme.listItemBackgroundPressed,
                 }}>
               <Text 
-              style={{ 
-                color: theme.text, 
-                fontFamily: 'Segoe UI', 
-                fontSize: 16 
-                }}>
+                style={{ 
+                  color: theme.text, 
+                  fontFamily: 'Segoe UI', 
+                  fontSize: 16 
+                  }}>
                 {showShiftControls ? 'Shift Anchors' : 'Scale Parts'}
               </Text>
               <TouchableOpacity
@@ -283,8 +279,6 @@ const ViewSavedPoses = () => {
           )}
         </div>
       </ThemedView>
-    </ShiftFactorsProvider>
-    </ScaleFactorsProvider>
   );
 };
 
@@ -295,6 +289,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: '2rem',
+    padding: 24,
   },
 });

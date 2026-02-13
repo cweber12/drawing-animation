@@ -45,7 +45,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               false, //BR
               false  //BL
             );
-          } else if (part === 'head') {
+          } else if (part === 'head' || part === 'headBack') {
             svgToSend = addSvgClipPath(
               svgString,
               svgW,
@@ -56,7 +56,8 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               false, //BR
               false  //BL
             ); 
-          } else if (part === 'leftLowerLeg' || part === 'rightLowerLeg') {
+          } else if (part === 'leftLowerLeg' || part === 'rightLowerLeg' || 
+            part === 'leftLowerLegBack' || part === 'rightLowerLegBack') {
             svgToSend = addSvgClipPath(
               svgString,
               svgW,
@@ -67,21 +68,21 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               true, //BR
               true  //BL
             ); 
-          } else if (part === 'leftUpperLeg') {
+          } else if (part === 'leftUpperLeg' || part === 'leftUpperLegBack') {
             svgToSend = addSvgClipPath(
               svgString,
               svgW, svgH,
               svgW / 4, 
               false, true, true, true  
             ); 
-          } else if (part === 'rightUpperLeg') {
+          } else if (part === 'rightUpperLeg' || part === 'rightUpperLegBack') {
               svgToSend = addSvgClipPath(
                 svgString,
                 svgW, svgH,
                 svgW / 2, 
                 true, false, true, true  
               ); 
-          } else if (part === 'leftUpperArm' ) {
+          } else if (part === 'leftUpperArm' || part === 'leftUpperArmBack') {
             // round shoulder and elbow corners
              svgToSend = addSvgClipPath(
               svgString,
@@ -90,7 +91,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               false, false, false, false  
             );
 
-          } else if (part === 'rightUpperArm' ) {
+          } else if (part === 'rightUpperArm' || part === 'rightUpperArmBack') {
             // round shoulder and elbow corners
              svgToSend = addSvgClipPath(
               svgString,
@@ -99,7 +100,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               false, false, false, false  
             );
 
-          } else if (part === 'leftLowerArm' ) {
+          } else if (part === 'leftLowerArm' || part === 'leftLowerArmBack') {
             // round elbow and wrist corners
              svgToSend = addSvgClipPath(
               svgString,
@@ -107,7 +108,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               svgW / 2, 
               true, true, false, true  
             );
-          } else if (part === 'rightLowerArm' ) {
+          } else if (part === 'rightLowerArm' || part === 'rightLowerArmBack') {
             // round elbow and wrist corners
              svgToSend = addSvgClipPath(
               svgString,
@@ -116,7 +117,8 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               false, true, true, false  
             );
 
-          } else if (part === 'leftFoot' || part === 'rightFoot') {
+          } else if (part === 'leftFoot' || part === 'rightFoot' || 
+            part === 'leftFootBack' || part === 'rightFootBack') {
             svgToSend = addSvgClipPath(
               svgString,
               svgW, svgH,
@@ -125,7 +127,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
             ); 
           }
 
-          if (part === 'leftUpperArm') {
+          if (part === 'leftUpperArm' || part === 'leftUpperArmBack') {
             // left edge strong -> right edge softer
             svgToSend = addSvgOpacityGradient(svgToSend, {
               direction: 'leftToRight',
@@ -139,7 +141,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               ],
               idSuffix: '_lua'
             });
-          } else if (part === 'rightUpperArm') {
+          } else if (part === 'rightUpperArm' || part === 'rightUpperArmBack') {
             // mirror for right arm
             svgToSend = addSvgOpacityGradient(svgToSend, {
               direction: 'rightToLeft',
@@ -153,7 +155,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               ],
               idSuffix: '_rua'
             });
-          } else if (part === 'leftLowerArm') {
+          } else if (part === 'leftLowerArm' || part === 'leftLowerArmBack') {
             svgToSend = addSvgOpacityGradient(svgToSend, {
               direction: 'leftToRight',
               stops: [
@@ -162,7 +164,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               ],
               idSuffix: '_lla'
             });
-          } else if (part === 'rightLowerArm') {
+          } else if (part === 'rightLowerArm' || part === 'rightLowerArmBack') {
             svgToSend = addSvgOpacityGradient(svgToSend, {
               direction: 'rightToLeft',
               stops: [
@@ -171,7 +173,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               ],
               idSuffix: '_rla'
             });
-          } else if (part === 'leftUpperLeg') {
+          } else if (part === 'leftUpperLeg' || part === 'leftUpperLegBack') {
             svgToSend = addSvgOpacityGradient(svgToSend, {
               direction: 'leftToRight',
               stops: [
@@ -180,7 +182,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               ],
               idSuffix: '_lul'
             });
-          } else if (part === 'rightUpperLeg') {
+          } else if (part === 'rightUpperLeg' || part === 'rightUpperLegBack') {
             svgToSend = addSvgOpacityGradient(svgToSend, {
               direction: 'rightToLeft',
               stops: [
@@ -189,7 +191,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               ],
               idSuffix: '_rul'
             });
-          } else if (part === 'torso') {
+          } else if (part === 'torso' || part === 'torsoBack') {
             svgToSend = addSvgOpacityGradient(svgToSend, {
               direction: 'topToBottom',
               stops: [

@@ -19,9 +19,7 @@ const PoseCanvas = ({
   landmarksRef, // optional ref provided for imperative drawing
   
   style 
-}) => {
-  console.log('RENDERING POSE CANVAS');
-  
+}) => {  
   /* Theme setup
   ----------------------------------------------------------------------------*/
   const colorScheme = useColorScheme();
@@ -70,7 +68,6 @@ const PoseCanvas = ({
 
     // If saved landmarks are provided (replay mode), play them back frame-by-frame.
     if (hasSaved) {
-      console.log('PoseCanvas: Playing back saved landmarks, count:', savedLandmarks.length);
       let raf = null;
       let frameIndex = 0;
       let lastTime = 0;

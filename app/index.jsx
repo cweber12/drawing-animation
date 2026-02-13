@@ -26,7 +26,7 @@ const Home = () => {
 
     
     return (
-        <>
+        <>     
             <ThemedView 
                 style={{
                     display: 'flex',

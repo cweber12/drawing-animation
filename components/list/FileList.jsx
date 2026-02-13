@@ -233,7 +233,7 @@ export default function FileList({
 
   return (
     <View style={[styles.listWrapper, { backgroundColor: theme.listItemBackground }]}>
-      <View style={styles.listHeader}>
+      <View style={[styles.listHeader, { backgroundColor: theme.listItemBackgroundPressed }]}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>
           LANDMARK FILES
         </Text>
@@ -257,8 +257,8 @@ export default function FileList({
 
       {selectedLandmarkFile && (
         <>
-          <View style={styles.listHeader} >
-            <Text style={[styles.headerTitle, { color: theme.text }]} >
+          <View style={[styles.listHeader, { backgroundColor: theme.listItemBackgroundPressed }]}>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>
               SVG IMAGE FILES
             </Text>
           </View>
@@ -289,13 +289,13 @@ const styles = StyleSheet.create({
             flexDirection: 'column',
             alignItems: 'flex-start',
             justifyContent: 'flex-start',
-            gap: 12,
     },
 
     listHeader: {
         flexDirection: 'row',
         alignItems: 'flex-end',
         justifyContent: 'flex-start',
+        width: '100%',
         padding: 12,
     },
 

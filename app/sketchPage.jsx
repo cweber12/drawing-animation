@@ -7,9 +7,11 @@ Main drawing interface for sketching, editing, and exporting SVG body parts.
 /* Import libraries
 -----------------------------------------------------------------------------*/
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, useWindowDimensions, useColorScheme, } from 'react-native';
+import { View, StyleSheet, useWindowDimensions, useColorScheme, TouchableOpacity, Text } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useRouter, useNavigation } from 'expo-router';
+
+import { FaArrowRotateRight, FaArrowRotateLeft } from "react-icons/fa6";
 
 /* Import constants
 -----------------------------------------------------------------------------*/
@@ -94,6 +96,8 @@ const SketchPage = () => {
     const [showSketchInfo, setShowSketchInfo] = useState(false);
     const [showExportOptions, setShowExportOptions] = useState(false);
 
+    const [showBackCanvases, setShowBackCanvases] = useState(false);
+
     /* SVG data state for upload/download
     --------------------------------------------------------------------------*/
     const [svgData, setSvgData] = useState(null);
@@ -119,6 +123,21 @@ const SketchPage = () => {
     const leftUpperLegRef = useRef(null);
     const leftLowerLegRef = useRef(null);
     const leftFootRef = useRef(null);
+
+    const headBackRef = useRef(null);
+    const torsoBackRef = useRef(null);
+    const rightUpperArmBackRef = useRef(null);
+    const rightLowerArmBackRef = useRef(null);
+    const rightHandBackRef = useRef(null);
+    const leftUpperArmBackRef = useRef(null);
+    const leftLowerArmBackRef = useRef(null);
+    const leftHandBackRef = useRef(null);
+    const rightUpperLegBackRef = useRef(null);
+    const rightLowerLegBackRef = useRef(null);
+    const rightFootBackRef = useRef(null);
+    const leftUpperLegBackRef = useRef(null);
+    const leftLowerLegBackRef = useRef(null);
+    const leftFootBackRef = useRef(null);
 
     
     /* =========================================================================
@@ -163,6 +182,13 @@ const SketchPage = () => {
         leftUpperArmRef.current?.clearCanvas();
         leftLowerArmRef.current?.clearCanvas();
         leftHandRef.current?.clearCanvas();
+        
+        rightUpperArmBackRef.current?.clearCanvas();
+        rightLowerArmBackRef.current?.clearCanvas();
+        rightHandBackRef.current?.clearCanvas();
+        leftUpperArmBackRef.current?.clearCanvas();
+        leftLowerArmBackRef.current?.clearCanvas();
+        leftHandBackRef.current?.clearCanvas();
     }, []);
 
      /* Clear all canvases (reset) 
@@ -182,6 +208,21 @@ const SketchPage = () => {
         leftUpperLegRef.current?.clearCanvas();
         leftLowerLegRef.current?.clearCanvas();
         leftFootRef.current?.clearCanvas();
+        
+        headBackRef.current?.clearCanvas();
+        torsoBackRef.current?.clearCanvas();
+        rightUpperArmBackRef.current?.clearCanvas();
+        rightLowerArmBackRef.current?.clearCanvas();
+        rightHandBackRef.current?.clearCanvas();
+        leftUpperArmBackRef.current?.clearCanvas();
+        leftLowerArmBackRef.current?.clearCanvas();
+        leftHandBackRef.current?.clearCanvas();
+        rightUpperLegBackRef.current?.clearCanvas();
+        rightLowerLegBackRef.current?.clearCanvas();
+        rightFootBackRef.current?.clearCanvas();
+        leftUpperLegBackRef.current?.clearCanvas();
+        leftLowerLegBackRef.current?.clearCanvas();
+        leftFootBackRef.current?.clearCanvas();
         bodySvgsRef.current = {};
     }, []);
 
@@ -191,22 +232,37 @@ const SketchPage = () => {
         try {
             const refs = {                            
                 rightUpperLeg: rightUpperLegRef,
+                rightUpperLegBack: rightUpperLegBackRef,
                 rightFoot: rightFootRef,
-                rightLowerLeg: rightLowerLegRef,          
+                rightFootBack: rightFootBackRef,
+                rightLowerLeg: rightLowerLegRef,
+                rightLowerLegBack: rightLowerLegBackRef,                          
                 
                 leftUpperLeg: leftUpperLegRef,
+                leftUpperLegBack: leftUpperLegBackRef,
                 leftFoot: leftFootRef,
-                leftLowerLeg: leftLowerLegRef,
-                               
+                leftFootBack: leftFootBackRef,
+                leftLowerLeg: leftLowerLegRef, 
+                leftLowerLegBack: leftLowerLegBackRef,                              
+                
                 torso: torsoRef,
+                torsoBack: torsoBackRef,
                 head: headRef,
+                headBack: headBackRef,
+                
                 rightUpperArm: rightUpperArmRef,
+                rightUpperArmBack: rightUpperArmBackRef,
                 rightHand: rightHandRef,
+                rightHandBack: rightHandBackRef,
                 rightLowerArm: rightLowerArmRef,
+                rightLowerArmBack: rightLowerArmBackRef,
+                
                 leftUpperArm: leftUpperArmRef,
+                leftUpperArmBack: leftUpperArmBackRef,
                 leftHand: leftHandRef,
-                leftLowerArm: leftLowerArmRef,
-                              
+                leftHandBack: leftHandBackRef,
+                leftLowerArm: leftLowerArmRef, 
+                leftLowerArmBack: leftLowerArmBackRef,
             };
 
             const svgs = {};
@@ -224,6 +280,7 @@ const SketchPage = () => {
                 // only serialize when there are paths
                 if (ref.current.exportSvg) {
                     svgs[key] = await ref.current.exportSvg();
+                    console.log(`Exported SVG for ${key}: `);
                 } else {
                     svgs[key] = null;
                 }
@@ -308,7 +365,12 @@ const SketchPage = () => {
             rightUpperArmRef, rightLowerArmRef, rightHandRef,
             leftUpperArmRef, leftLowerArmRef, leftHandRef,
             rightUpperLegRef, rightLowerLegRef, rightFootRef,
-            leftUpperLegRef, leftLowerLegRef, leftFootRef
+            leftUpperLegRef, leftLowerLegRef, leftFootRef,
+            headBackRef, torsoBackRef,
+            rightUpperArmBackRef, rightLowerArmBackRef, rightHandBackRef,
+            leftUpperArmBackRef, leftLowerArmBackRef, leftHandBackRef,
+            rightUpperLegBackRef, rightLowerLegBackRef, rightFootBackRef,
+            leftUpperLegBackRef, leftLowerLegBackRef, leftFootBackRef
         ];
         refs.forEach(ref => {
             if (ref.current && ref.current.eraseMode) {
@@ -408,18 +470,30 @@ const SketchPage = () => {
                  />
             )}
 
+            <TouchableOpacity
+                    style={{
+                        position: 'absolute',
+                        top: 12,
+                        left: 12,
+                        zIndex: 10,
+                        padding: 8,
+                        backgroundColor: theme.listItemBackground,
+                        borderRadius: 8,
+                    }}
+                    onPress={() => setShowBackCanvases(prev => !prev)}
+                >
+                    {showBackCanvases ? <FaArrowRotateLeft color={theme.svgStrokeColor} /> : <FaArrowRotateRight color={theme.svgStrokeColor} />}
+                    <Text style={{ color: theme.text, marginLeft: 4 }}>{showBackCanvases ? 'BACK' : 'FRONT'}</Text>
+                </TouchableOpacity>
 
-
-            <ThemedView style={styles.container}>              
+            <ThemedView style={[styles.container, { zIndex: !showBackCanvases ? 1 : -1 }]}>              
                 <Head 
                     canvasProps={canvasProps}
                     canvasId="head"
                     headRef={headRef} 
                     headSize={sizes.HEAD_SIZE}
-                /> 
-                
-                
-                    
+                />                 
+                                   
                     <View style={styles.column}>
                         <View style={styles.row}>
 
@@ -498,13 +572,102 @@ const SketchPage = () => {
                                 armsDown={armsDown}
                     
                             />
-                        </View>
-                        
+                        </View>                        
                     </View>
 
-                    
+            </ThemedView>
 
-            </ThemedView>            
+            <ThemedView style={[styles.container, { zIndex: showBackCanvases ? 1 : -1}]}>
+                              
+                <Head 
+                    canvasProps={canvasProps}
+                    canvasId="headBack"
+                    headRef={headBackRef} 
+                    headSize={sizes.HEAD_SIZE}
+                />                 
+                                   
+                    <View style={styles.column}>
+                        <View style={styles.row}>
+
+                            <RightArm
+                                canvasProps={canvasProps}
+                                upperArmId="rightUpperArmBack"
+                                lowerArmId="rightLowerArmBack"
+                                handId="rightHandBack"
+                                upperArmRef={rightUpperArmBackRef}
+                                lowerArmRef={rightLowerArmBackRef}
+                                handRef={rightHandBackRef}
+                                armWidth={sizes.ARM_WIDTH}
+                                armLength={sizes.ARM_LENGTH}
+                                handWidth={sizes.HAND_WIDTH}
+                                handLength={sizes.HAND_LENGTH}
+                                armsDown={armsDown}
+
+                            />
+                            
+                            <View style={styles.column}>
+                                <Torso
+                                    canvasProps={canvasProps}
+                                    torsoId="torsoBack"
+                                    torsoRef={torsoBackRef}
+                                    torsoWidth={sizes.TORSO_WIDTH}
+                                    torsoHeight={sizes.TORSO_HEIGHT}
+
+                                />
+                           
+                                <Legs
+                                    canvasProps={canvasProps}
+                                    leftUpperLegId="leftUpperLegBack"
+                                    rightUpperLegId="rightUpperLegBack"
+                                    rightLowerLegId="rightLowerLegBack"
+                                    leftLowerLegId="leftLowerLegBack"
+                                    rightUpperLegRef={rightUpperLegBackRef}
+                                    rightLowerLegRef={rightLowerLegBackRef}
+                                    leftUpperLegRef={leftUpperLegBackRef}
+                                    leftLowerLegRef={leftLowerLegBackRef}
+                                    legWidth={sizes.LEG_WIDTH}
+                                    legLength={sizes.LEG_LENGTH}
+                                    thighLength={sizes.THIGH_LENGTH}
+                                    calfLength={sizes.CALF_LENGTH}
+    
+                                />
+                                <View style={styles.row}>
+                                <RightFoot
+                                    canvasProps={canvasProps}
+                                    rightFootId="rightFootBack"
+                                    rightFootRef={rightFootBackRef}
+                                    footWidth={sizes.FOOT_WIDTH}
+                                    footLength={sizes.FOOT_LENGTH}
+                                />
+                                <LeftFoot
+                                    canvasProps={canvasProps}
+                                    leftFootId="leftFootBack"
+                                    leftFootRef={leftFootBackRef}
+                                    footWidth={sizes.FOOT_WIDTH}
+                                    footLength={sizes.FOOT_LENGTH}
+                                />
+                                </View>
+                            </View>
+
+                            <LeftArm
+                                canvasProps={canvasProps}
+                                upperArmId="leftUpperArmBack"
+                                lowerArmId="leftLowerArmBack"
+                                handId="leftHandBack"
+                                upperArmRef={leftUpperArmBackRef}
+                                lowerArmRef={leftLowerArmBackRef}
+                                handRef={leftHandBackRef}
+                                armWidth={sizes.ARM_WIDTH}
+                                armLength={sizes.ARM_LENGTH}
+                                handWidth={sizes.HAND_WIDTH}
+                                handLength={sizes.HAND_LENGTH}
+                                armsDown={armsDown}
+                    
+                            />
+                        </View>                        
+                    </View>
+
+            </ThemedView>      
         </View>        
     );
 };

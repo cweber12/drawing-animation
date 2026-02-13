@@ -9,6 +9,8 @@ import DetectPoseButtons from '../components/button_group/detectPoseButtons';
 import ViewSavedButtons from '../components/button_group/ViewSavedButtons';
 import { FaHouseDamage } from "react-icons/fa";
 import HeaderButton from '../components/button/HeaderButton'
+import { ShiftFactorsProvider } from '../context/ShiftFactorsContext'
+import { ScaleFactorsProvider } from '../context/ScaleFactorsContext'
 
 /* Home Button in Header
 ------------------------------------------------------------------------------*/
@@ -47,10 +49,12 @@ const RootLayout = () => {
     return (
         <>
             <StatusBar style="auto"/>
+            <ShiftFactorsProvider>
+            <ScaleFactorsProvider>
             <Stack screenOptions={{ 
                 headerTitleAlign: 'center',
                 headerStyle: { 
-                    backgroundColor: theme.background,
+                    backgroundColor: theme.navBackground,
                     borderBottomWidth: 0,
                     elevation: 0, // remove shadow on Android
                     shadowOpacity: 0, // remove shadow on iOS
@@ -126,6 +130,8 @@ const RootLayout = () => {
 
                 />
             </Stack>
+            </ScaleFactorsProvider>
+            </ShiftFactorsProvider>
         </>
     )
 }
