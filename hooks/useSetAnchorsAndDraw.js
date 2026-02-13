@@ -41,12 +41,8 @@ export function useSetAnchorsAndDraw({
     
     const debugPipeline = false;     
     const torsoDims = torsoDimsRef?.current;
-    const avgTorsoWidth = Math.abs(torsoDims?.avgTorsoWidth); 
-    const avgTorsoHeight = Math.abs(torsoDims?.avgTorsoHeight);
-    // Apply to shift factor to prevent joints from separating during flips
-    const sideSign = 
-      torsoDims?.currentRightShoulderX < torsoDims?.currentLeftShoulderX ? 1 : -1; 
-
+    const avgTorsoWidth = torsoDims?.avgTorsoWidth; 
+    const avgTorsoHeight = torsoDims?.avgTorsoHeight;
 
     const canvas = canvasRef?.current; 
     if (!canvas) return;
@@ -137,20 +133,20 @@ export function useSetAnchorsAndDraw({
           
           try {
             tlAdjusted = {
-              x: tl.x + sideSign * shiftFactorsRef.current.torsoShift.x / avgTorsoWidth + 1e-5,
-              y: tl.y + shiftFactorsRef.current.torsoShift.y / avgTorsoHeight + 1e-5,
+              x: tl.x + shiftFactorsRef.current.torsoShift.x / Math.max(avgTorsoWidth, 1),
+              y: tl.y + shiftFactorsRef.current.torsoShift.y / Math.max(avgTorsoHeight, 1),
             };
             trAdjusted = {
-              x: tr.x - sideSign * shiftFactorsRef.current.torsoShift.x / avgTorsoWidth + 1e-5,
-              y: tr.y + shiftFactorsRef.current.torsoShift.y / avgTorsoHeight + 1e-5,
+              x: tr.x - shiftFactorsRef.current.torsoShift.x / Math.max(avgTorsoWidth, 1),
+              y: tr.y + shiftFactorsRef.current.torsoShift.y / Math.max(avgTorsoHeight, 1),
             };
             blAdjusted = {
-              x: bl.x + sideSign * shiftFactorsRef.current.torsoShift.x / avgTorsoWidth + 1e-5,
-              y: bl.y - shiftFactorsRef.current.torsoShift.y / avgTorsoHeight + 1e-5,
+              x: bl.x + shiftFactorsRef.current.torsoShift.x / Math.max(avgTorsoWidth, 1),
+              y: bl.y - shiftFactorsRef.current.torsoShift.y / Math.max(avgTorsoHeight, 1),
             };
             brAdjusted = {
-              x: br.x - sideSign * shiftFactorsRef.current.torsoShift.x / avgTorsoWidth + 1e-5,
-              y: br.y - shiftFactorsRef.current.torsoShift.y / avgTorsoHeight + 1e-5,
+              x: br.x - shiftFactorsRef.current.torsoShift.x / Math.max(avgTorsoWidth, 1),
+              y: br.y - shiftFactorsRef.current.torsoShift.y / Math.max(avgTorsoHeight, 1),
             };
           } catch (e) {
             console.warn('Error adjusting torso anchors:', e);
@@ -190,12 +186,12 @@ export function useSetAnchorsAndDraw({
         let leftEarAdjusted = leftEar;
         let rightEarAdjusted = rightEar;
         leftEarAdjusted = {
-          x: leftEar.x + sideSign * shiftFactorsRef.current.headShift.x / avgTorsoWidth + 1e-5,
+          x: leftEar.x + shiftFactorsRef.current.headShift.x / avgTorsoWidth + 1e-5,
           y: leftEar.y + shiftFactorsRef.current.headShift.y / avgTorsoHeight + 1e-5,
         };
 
         rightEarAdjusted = {
-          x: rightEar.x + sideSign * shiftFactorsRef.current.headShift.x / avgTorsoWidth + 1e-5,
+          x: rightEar.x + shiftFactorsRef.current.headShift.x / avgTorsoWidth + 1e-5,
           y: rightEar.y + shiftFactorsRef.current.headShift.y / avgTorsoHeight + 1e-5,
         };
 
@@ -238,43 +234,43 @@ export function useSetAnchorsAndDraw({
         
         if (part === 'rightUpperArm') {
           fromAdjusted = {
-            x: from.x + sideSign * ((shiftFactorsRef.current.shoulderShift.x + 
-              shiftFactorsRef.current.torsoShift.x) / avgTorsoWidth + 1e-5),
+            x: from.x + ((shiftFactorsRef.current.shoulderShift.x + 
+              shiftFactorsRef.current.torsoShift.x) * (avgTorsoWidth * 0.1)),
             y: from.y + ((shiftFactorsRef.current.shoulderShift.y + 
-              shiftFactorsRef.current.torsoShift.y) / avgTorsoHeight + 1e-5), 
+              shiftFactorsRef.current.torsoShift.y) * (avgTorsoHeight * 0.1)), 
           }; 
           toAdjusted = {
-            x: to.x + sideSign * (shiftFactorsRef.current.elbowShift.x / avgTorsoWidth + 1e-5),
-            y: to.y + (shiftFactorsRef.current.elbowShift.y / avgTorsoHeight + 1e-5),
+            x: to.x + (shiftFactorsRef.current.elbowShift.x * (avgTorsoWidth * 0.1)),
+            y: to.y + (shiftFactorsRef.current.elbowShift.y * (avgTorsoHeight * 0.1)),
           }; 
         } else if (part === 'leftUpperArm') {
           fromAdjusted = {
-            x: from.x - sideSign * ((shiftFactorsRef.current.shoulderShift.x + 
-              shiftFactorsRef.current.torsoShift.x) / avgTorsoWidth + 1e-5),
+            x: from.x - ((shiftFactorsRef.current.shoulderShift.x + 
+              shiftFactorsRef.current.torsoShift.x) * (avgTorsoWidth * 0.1)),
             y: from.y + ((shiftFactorsRef.current.shoulderShift.y + 
-              shiftFactorsRef.current.torsoShift.y) / avgTorsoHeight + 1e-5),
+              shiftFactorsRef.current.torsoShift.y) * (avgTorsoHeight * 0.1)),
           }; 
           toAdjusted = {
-            x: to.x - sideSign * (shiftFactorsRef.current.elbowShift.x / avgTorsoWidth + 1e-5),
-            y: to.y + (shiftFactorsRef.current.elbowShift.y / avgTorsoHeight + 1e-5),
+            x: to.x - (shiftFactorsRef.current.elbowShift.x * (avgTorsoWidth * 0.1)),
+            y: to.y + (shiftFactorsRef.current.elbowShift.y * (avgTorsoHeight * 0.1)),
           }; 
         } else if (part === 'rightLowerArm') {
           fromAdjusted = {
-            x: from.x + sideSign * (shiftFactorsRef.current.elbowShift.x / avgTorsoWidth + 1e-5),
-            y: from.y + (shiftFactorsRef.current.elbowShift.y / avgTorsoHeight + 1e-5),
+            x: from.x + (shiftFactorsRef.current.elbowShift.x * (avgTorsoWidth * 0.1)),
+            y: from.y + (shiftFactorsRef.current.elbowShift.y * (avgTorsoHeight * 0.1)),
           }; 
           toAdjusted = {
-            x: to.x + sideSign * (shiftFactorsRef.current.wristShift.x / avgTorsoWidth + 1e-5),
-            y: to.y + (shiftFactorsRef.current.wristShift.y / avgTorsoHeight + 1e-5),
+            x: to.x + (shiftFactorsRef.current.wristShift.x * (avgTorsoWidth * 0.1)),
+            y: to.y + (shiftFactorsRef.current.wristShift.y * (avgTorsoHeight * 0.1)),
           }; 
         } else if (part === 'leftLowerArm') {
           fromAdjusted = {
-            x: from.x - sideSign * (shiftFactorsRef.current.elbowShift.x / avgTorsoWidth + 1e-5),
-            y: from.y + (shiftFactorsRef.current.elbowShift.y / avgTorsoHeight + 1e-5),
+            x: from.x - (shiftFactorsRef.current.elbowShift.x * (avgTorsoWidth * 0.1)),
+            y: from.y + (shiftFactorsRef.current.elbowShift.y * (avgTorsoHeight * 0.1)),
           }; 
           toAdjusted = {
-            x: to.x - sideSign * (shiftFactorsRef.current.wristShift.x / avgTorsoWidth + 1e-5), 
-            y: to.y + (shiftFactorsRef.current.wristShift.y / avgTorsoHeight + 1e-5), 
+            x: to.x - (shiftFactorsRef.current.wristShift.x * (avgTorsoWidth * 0.1)), 
+            y: to.y + (shiftFactorsRef.current.wristShift.y * (avgTorsoHeight * 0.1)), 
           }; 
         }
 
@@ -314,21 +310,21 @@ export function useSetAnchorsAndDraw({
         let toAdjusted = to;
         if (part === 'rightHand') {
           fromAdjusted = {
-            x: from.x + sideSign * (shiftFactorsRef.current.wristShift.x / avgTorsoWidth + 1e-5),
-            y: from.y + (shiftFactorsRef.current.wristShift.y / avgTorsoHeight + 1e-5),
+            x: from.x + (shiftFactorsRef.current.wristShift.x * (avgTorsoWidth * 0.1)),
+            y: from.y + (shiftFactorsRef.current.wristShift.y * (avgTorsoHeight * 0.1)),
           };
           toAdjusted = {
-            x: to.x + sideSign * (shiftFactorsRef.current.elbowShift.x / avgTorsoWidth + 1e-5),
-            y: to.y + (shiftFactorsRef.current.elbowShift.y / avgTorsoHeight + 1e-5),
+            x: to.x + (shiftFactorsRef.current.elbowShift.x * (avgTorsoWidth * 0.1)),
+            y: to.y + (shiftFactorsRef.current.elbowShift.y * (avgTorsoHeight * 0.1)),
           };
         } else {
           fromAdjusted = {
-            x: from.x - sideSign * (shiftFactorsRef.current.wristShift.x / avgTorsoWidth + 1e-5),
-            y: from.y + (shiftFactorsRef.current.wristShift.y / avgTorsoHeight + 1e-5),
+            x: from.x - (shiftFactorsRef.current.wristShift.x * (avgTorsoWidth * 0.1)),
+            y: from.y + (shiftFactorsRef.current.wristShift.y * (avgTorsoHeight * 0.1)),
           };
           toAdjusted = {
-            x: to.x - sideSign * (shiftFactorsRef.current.elbowShift.x / avgTorsoWidth + 1e-5),
-            y: to.y + (shiftFactorsRef.current.elbowShift.y / avgTorsoHeight + 1e-5),
+            x: to.x - (shiftFactorsRef.current.elbowShift.x * (avgTorsoWidth * 0.1)),
+            y: to.y + (shiftFactorsRef.current.elbowShift.y * (avgTorsoHeight * 0.1)),
           };
         }
 
@@ -371,42 +367,42 @@ export function useSetAnchorsAndDraw({
         if (part === 'rightUpperLeg') {
           fromAdjusted = {
             x: from.x + ((shiftFactorsRef.current.torsoShift.x + 
-              shiftFactorsRef.current.hipShift.x) / avgTorsoWidth + 1e-5),
+              shiftFactorsRef.current.hipShift.x) * (avgTorsoWidth * 0.1)),
             y: from.y + ((-shiftFactorsRef.current.torsoShift.y + 
-              shiftFactorsRef.current.hipShift.y) / avgTorsoHeight + 1e-5),
+              shiftFactorsRef.current.hipShift.y) * (avgTorsoHeight * 0.1)),
           };
           toAdjusted = {
-            x: to.x + sideSign * (shiftFactorsRef.current.kneeShift.x / avgTorsoWidth + 1e-5),
-            y: to.y + (shiftFactorsRef.current.kneeShift.y / avgTorsoHeight + 1e-5),
+            x: to.x + (shiftFactorsRef.current.kneeShift.x * (avgTorsoWidth * 0.1)),
+            y: to.y + (shiftFactorsRef.current.kneeShift.y * (avgTorsoHeight * 0.1)),
           };
         } else if (part === 'leftUpperLeg') {
           fromAdjusted = {
-            x: from.x - sideSign * ((shiftFactorsRef.current.torsoShift.x + 
-              shiftFactorsRef.current.hipShift.x) / avgTorsoWidth + 1e-5),
+            x: from.x - ((shiftFactorsRef.current.torsoShift.x + 
+              shiftFactorsRef.current.hipShift.x) * (avgTorsoWidth * 0.1)),
             y: from.y + ((-shiftFactorsRef.current.torsoShift.y + 
-              shiftFactorsRef.current.hipShift.y) / avgTorsoHeight + 1e-5),
+              shiftFactorsRef.current.hipShift.y) * (avgTorsoHeight * 0.1)),
           };
           toAdjusted = {
-            x: to.x - sideSign * (shiftFactorsRef.current.kneeShift.x / avgTorsoWidth + 1e-5),
-            y: to.y + (shiftFactorsRef.current.kneeShift.y / avgTorsoHeight + 1e-5),
+            x: to.x - (shiftFactorsRef.current.kneeShift.x * (avgTorsoWidth * 0.1)),
+            y: to.y + (shiftFactorsRef.current.kneeShift.y * (avgTorsoHeight * 0.1)),
           };
         } else if (part === 'rightLowerLeg') {
           fromAdjusted = {
-            x: from.x + sideSign * (shiftFactorsRef.current.kneeShift.x / avgTorsoWidth + 1e-5),
-            y: from.y + (shiftFactorsRef.current.kneeShift.y / avgTorsoHeight + 1e-5),
+            x: from.x + (shiftFactorsRef.current.kneeShift.x * (avgTorsoWidth * 0.1)),
+            y: from.y + (shiftFactorsRef.current.kneeShift.y * (avgTorsoHeight * 0.1)),
           };
           toAdjusted = {
-            x: to.x + sideSign * (shiftFactorsRef.current.ankleShift.x / avgTorsoWidth + 1e-5),
-            y: to.y + (shiftFactorsRef.current.ankleShift.y / avgTorsoHeight + 1e-5), // add tiny value to prevent exact overlap with original anchor
+            x: to.x + (shiftFactorsRef.current.ankleShift.x * (avgTorsoWidth * 0.1)),
+            y: to.y + (shiftFactorsRef.current.ankleShift.y * (avgTorsoHeight * 0.1)), // add tiny value to prevent exact overlap with original anchor
           };
         } else if (part === 'leftLowerLeg') {
           fromAdjusted = {
-            x: from.x - sideSign * (shiftFactorsRef.current.kneeShift.x / avgTorsoWidth + 1e-5),
-            y: from.y + (shiftFactorsRef.current.kneeShift.y / avgTorsoHeight + 1e-5),
+            x: from.x - (shiftFactorsRef.current.kneeShift.x * (avgTorsoWidth * 0.1)),
+            y: from.y + (shiftFactorsRef.current.kneeShift.y * (avgTorsoHeight * 0.1)),
           };
           toAdjusted = {
-            x: to.x - sideSign * (shiftFactorsRef.current.ankleShift.x / avgTorsoWidth + 1e-5),
-            y: to.y + (shiftFactorsRef.current.ankleShift.y / avgTorsoHeight + 1e-5),
+            x: to.x - (shiftFactorsRef.current.ankleShift.x * (avgTorsoWidth * 0.1)),
+            y: to.y + (shiftFactorsRef.current.ankleShift.y * (avgTorsoHeight * 0.1)),
           };
         }
 
@@ -441,21 +437,21 @@ export function useSetAnchorsAndDraw({
         let fromAdjusted, toAdjusted;
         if (part === 'rightFoot') {
           fromAdjusted = {
-            x: from.x + sideSign * (shiftFactorsRef.current.ankleShift.x / avgTorsoWidth + 1e-5),
-            y: from.y + (shiftFactorsRef.current.ankleShift.y / avgTorsoHeight + 1e-5),
+            x: from.x + (shiftFactorsRef.current.ankleShift.x * (avgTorsoWidth * 0.1)),
+            y: from.y + (shiftFactorsRef.current.ankleShift.y * (avgTorsoHeight * 0.1)),
           };
           toAdjusted = {
-            x: to.x + sideSign * (shiftFactorsRef.current.footShift.x / avgTorsoWidth + 1e-5),
-            y: to.y + (shiftFactorsRef.current.footShift.y / avgTorsoHeight + 1e-5),
+            x: to.x + (shiftFactorsRef.current.footShift.x * (avgTorsoWidth * 0.1)),
+            y: to.y + (shiftFactorsRef.current.footShift.y * (avgTorsoHeight * 0.1)),
           };
         } else {
           fromAdjusted = {
-            x: from.x - sideSign * (shiftFactorsRef.current.ankleShift.x / avgTorsoWidth + 1e-5),
-            y: from.y + (shiftFactorsRef.current.ankleShift.y / avgTorsoHeight + 1e-5),
+            x: from.x - (shiftFactorsRef.current.ankleShift.x * (avgTorsoWidth * 0.1)),
+            y: from.y + (shiftFactorsRef.current.ankleShift.y * (avgTorsoHeight * 0.1)),
           };
           toAdjusted = {
-            x: to.x - sideSign * (shiftFactorsRef.current.footShift.x / avgTorsoWidth + 1e-5),
-            y: to.y + (shiftFactorsRef.current.footShift.y / avgTorsoHeight + 1e-5), 
+            x: to.x - (shiftFactorsRef.current.footShift.x * (avgTorsoWidth * 0.1)),
+            y: to.y + (shiftFactorsRef.current.footShift.y * (avgTorsoHeight * 0.1)), 
           };
         }
 

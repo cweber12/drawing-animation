@@ -85,9 +85,9 @@ export default function ShiftControls() {
                 className="range"
                 style={{ '--slider-color': theme.actionButton }}
                 type="range"
-                min={-5000}
-                max={5000}
-                step={5}
+                min={-10}
+                max={10}
+                step={0.1}
                 value={current.x}
                 onChange={(e) => setAxis('x', e.target.value)}
             />
@@ -99,9 +99,9 @@ export default function ShiftControls() {
                     className="range"
                     style={{ '--slider-color': theme.actionButton }}
                     type="range"
-                    min={-5000}
-                    max={5000}
-                    step={5}
+                    min={-10}
+                    max={10}
+                    step={0.1}
                     value={current.y}
                     onChange={(e) => setAxis('y', e.target.value)}
                 />
