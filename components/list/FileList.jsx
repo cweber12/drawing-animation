@@ -3,7 +3,6 @@ import {
   Text,
   View,
   StyleSheet,
-  FlatList,
 } from 'react-native';
 import React, { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
@@ -24,6 +23,8 @@ import {
   listDevicePoseFiles,
   readDeviceFileText,
 } from '../../utils/storageUtils';
+import { set } from 'lodash';
+import List from './List';
 
 export default function FileList({
   // file list state
@@ -64,6 +65,7 @@ export default function FileList({
 }) {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
+  const [listItemHover, setListItemHover] = React.useState(null);
 
   /* LOAD FILES FROM DEVICE
   ----------------------------------------------------------------------------*/
@@ -230,94 +232,49 @@ export default function FileList({
   }, [showDeviceFiles]);
 
   return (
-    <View style={styles.listWrapper}>
+    <View style={[styles.listWrapper, { backgroundColor: theme.listItemBackground }]}>
       <View style={styles.listHeader}>
-        <Text style={{ fontSize: 24, margin: 0, fontWeight: 'bold', color: theme.text }}>
-          Landmark Files
+        <Text style={[styles.headerTitle, { color: theme.text }]}>
+          LANDMARK FILES
         </Text>
       </View>
 
       {/* Landmark Files List */}
-      <FlatList
-        style={styles.list}
-        data={landmarkFiles}
+      <List
+        items={landmarkFiles}
+        selectedItem={selectedLandmarkFile}
+        onSelect={handleSelectLandmarkFile}
         keyExtractor={(item) => item}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-                styles.listItem,
-                { backgroundColor: item === selectedLandmarkFile ? theme.actionButton : 'transparent' },
-            ]}
-            onPress={() => handleSelectLandmarkFile(item)}
-            onMouseEnter={(e) => {
-                if (e?.target?.style) e.target.style.backgroundColor = item === selectedLandmarkFile ? theme.actionButtonHover : theme.listItemBackgroundHover;
-            }}
-            onMouseLeave={(e) => {
-                if (e?.target?.style) e.target.style.backgroundColor = item === selectedLandmarkFile ? theme.actionButton : 'transparent';
-            }}
-            >
-            <Text
-              style={[
-                styles.listItemText, 
-                { color: item === selectedLandmarkFile ? theme.actionButtonText : theme.text }
-            ]}
-            >
-              {item}
-            </Text>
-          </TouchableOpacity>
+        itemStyle={{}}
+        selectedItemStyle={{ backgroundColor: theme.actionButton }}
+        listStyle={{}}
+        renderItemContent={(item) => (
+          <Text style={[styles.listItemText, { color: item === selectedLandmarkFile ? theme.actionButtonText : theme.text }]}>
+            {item}
+          </Text>
         )}
       />
 
       {selectedLandmarkFile && (
         <>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-              paddingBottom: '0.2rem',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 24,
-                fontWeight: 'bold',
-                color: theme.text,
-                margin: 0,
-              }}
-            >
-              SVG Image Files
+          <View style={styles.listHeader} >
+            <Text style={[styles.headerTitle, { color: theme.text }]} >
+              SVG IMAGE FILES
             </Text>
           </View>
 
           {/* SVG Files List */}
-          <FlatList
-            style={styles.list}
-            data={svgFiles}
+          <List
+            items={svgFiles}
+            selectedItem={selectedSvgFile}
+            onSelect={handleSelectSvgFile}
             keyExtractor={(item) => item}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.listItem,
-                  { backgroundColor: item === selectedSvgFile ? theme.actionButton : 'transparent' },
-                ]}
-                onPress={() => handleSelectSvgFile(item)}
-                onMouseEnter={(e) => {
-                  if (e?.target?.style) e.target.style.backgroundColor = item === selectedSvgFile ? theme.actionButtonHover : theme.listItemBackgroundHover;
-                }}
-                onMouseLeave={(e) => {
-                  if (e?.target?.style) e.target.style.backgroundColor = item === selectedSvgFile ? theme.actionButton : 'transparent';
-                }}
-              >
-                <Text
-                  style={[
-                    styles.listItemText,
-                    { color: item === selectedSvgFile ? theme.actionButtonText : theme.text },
-                  ]}
-                >
-                  {item}
-                </Text>
-              </TouchableOpacity>
+            itemStyle={{}}
+            selectedItemStyle={{ backgroundColor: theme.actionButton }}
+            renderItemContent={(item) => (
+              <Text style={[styles.listItemText, { color: item === selectedSvgFile ? theme.actionButtonText : theme.text }]}>
+                {item}
+              </Text>
             )}
           />
         </>
@@ -332,24 +289,27 @@ const styles = StyleSheet.create({
             flexDirection: 'column',
             alignItems: 'flex-start',
             justifyContent: 'flex-start',
-            gap: '1rem',
-            direction: 'ltr',
+            gap: 12,
     },
 
     listHeader: {
         flexDirection: 'row',
         alignItems: 'flex-end',
         justifyContent: 'flex-start',
-        paddingBottom: '0.2rem',
+        padding: 12,
+    },
+
+    headerTitle: {
+        fontSize: 18, 
+        fontWeight: 'bold',
     },
 
     list: {
-        width: 320,
+        width: 300,
         maxHeight: '25vh',
         overflowY: 'auto',
-        maxWidth: 320,
+        maxWidth: 300,
         flexShrink: 0,
-        backgroundColor: 'rgba(0,0,0,0.25)',
 
         direction: 'rtl',
         scrollbarGutter: 'stable',
@@ -367,7 +327,4 @@ const styles = StyleSheet.create({
       direction: 'ltr',
     },
 
-    selectedListItem: {
-        backgroundColor: '#e6f0ff',
-    },
 });
