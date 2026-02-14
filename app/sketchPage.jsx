@@ -97,6 +97,7 @@ const SketchPage = () => {
     const [showExportOptions, setShowExportOptions] = useState(false);
 
     const [showBackCanvases, setShowBackCanvases] = useState(false);
+    const [backCopied, setBackCopied] = useState(false);
 
     /* SVG data state for upload/download
     --------------------------------------------------------------------------*/
@@ -190,6 +191,75 @@ const SketchPage = () => {
         leftLowerArmBackRef.current?.clearCanvas();
         leftHandBackRef.current?.clearCanvas();
     }, []);
+
+    const copyFrontToBack = useCallback(async () => {
+        try {
+            const pairs = [
+                [headRef, headBackRef],
+                [torsoRef, torsoBackRef],
+
+                [rightUpperArmRef, rightUpperArmBackRef],
+                [rightLowerArmRef, rightLowerArmBackRef],
+                [rightHandRef, rightHandBackRef],
+
+                [leftUpperArmRef, leftUpperArmBackRef],
+                [leftLowerArmRef, leftLowerArmBackRef],
+                [leftHandRef, leftHandBackRef],
+
+                [rightUpperLegRef, rightUpperLegBackRef],
+                [rightLowerLegRef, rightLowerLegBackRef],
+                [rightFootRef, rightFootBackRef],
+
+                [leftUpperLegRef, leftUpperLegBackRef],
+                [leftLowerLegRef, leftLowerLegBackRef],
+                [leftFootRef, leftFootBackRef],
+            ];
+
+            for (const [frontRef, backRef] of pairs) {
+                try {
+                    if (!frontRef?.current || !backRef?.current) continue;
+
+                    // Reset back canvas first
+                    if (typeof backRef.current.resetCanvas === 'function') {
+                        await backRef.current.resetCanvas();
+                    }
+
+                    // Prefer exportPaths/loadPaths for fidelity
+                    if (typeof frontRef.current.exportPaths === 'function' && typeof backRef.current.loadPaths === 'function') {
+                        const paths = await frontRef.current.exportPaths();
+                        if (paths && paths.length > 0) {
+                            await backRef.current.loadPaths(paths);
+                        }
+                        continue;
+                    }
+
+                    // Fallback: exportSvg -> (if back supports import from svg)
+                    if (typeof frontRef.current.exportSvg === 'function' && typeof backRef.current.importSvg === 'function') {
+                        const svg = await frontRef.current.exportSvg();
+                        if (svg) await backRef.current.importSvg(svg);
+                    }
+                } catch (e) {
+                    console.warn('copyFrontToBack: failed for a pair', e);
+                    continue;
+                }
+            }
+
+            setBackCopied(true);
+        } catch (e) {
+            console.error('copyFrontToBack error:', e);
+        }
+    }, []);
+
+    const handleToggleBackCanvases = useCallback(() => {
+        setShowBackCanvases(prev => {
+            const next = !prev;
+            if (next && !backCopied) {
+                // copy asynchronously, don't block UI
+                copyFrontToBack();
+            }
+            return next;
+        });
+    }, [backCopied, copyFrontToBack]);
 
      /* Clear all canvases (reset) 
     --------------------------------------------------------------------------*/
@@ -471,16 +541,8 @@ const SketchPage = () => {
             )}
 
             <TouchableOpacity
-                    style={{
-                        position: 'absolute',
-                        top: 12,
-                        left: 12,
-                        zIndex: 10,
-                        padding: 8,
-                        backgroundColor: theme.listItemBackground,
-                        borderRadius: 8,
-                    }}
-                    onPress={() => setShowBackCanvases(prev => !prev)}
+                    style={[styles.flipButton, { backgroundColor: theme.listItemBackground }]}
+                    onPress={handleToggleBackCanvases}
                 >
                     {showBackCanvases ? <FaArrowRotateLeft color={theme.svgStrokeColor} /> : <FaArrowRotateRight color={theme.svgStrokeColor} />}
                     <Text style={{ color: theme.text, marginLeft: 4 }}>{showBackCanvases ? 'BACK' : 'FRONT'}</Text>
@@ -716,5 +778,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 2, 
+    },
+
+    flipButton: {
+        position: 'absolute',
+        top: 12,
+        left: 12,
+        zIndex: 10,
+        padding: 8,
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        borderRadius: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 });

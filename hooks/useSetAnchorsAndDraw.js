@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ANCHOR_MAP } from '../constants/descriptors/anchorDescriptors';
 import { getSvgSize } from '../utils/svgUtils';
 import {
@@ -13,6 +13,16 @@ import {
 import { useShiftFactors } from '../context/ShiftFactorsContext';
 import { useScaleFactors } from '../context/ScaleFactorsContext';
 import { debugAnchors } from '../test/debugAnchors';
+import { set } from 'lodash';
+
+import { 
+  setTorsoAnchors, 
+  setHeadAnchors,
+  setArmAnchors,
+  setHandAnchors,
+  setLegAnchors,
+  setFootAnchors, 
+} from '../utils/setAnchors';
 
 export function useSetAnchorsAndDraw({
   canvasRef,
@@ -29,7 +39,9 @@ export function useSetAnchorsAndDraw({
   earDistRef,
   debugAnchorsFlag = false,
 }) {
-  // Context APIs may expose `factorsRef` (legacy) or specific named refs.
+  
+  /* Scale/Shift Factor Contexts
+  ----------------------------------------------------------------------------*/
   const _shiftCtx = useShiftFactors();
   const shiftFactorsRef = _shiftCtx.shiftFactorsRef || _shiftCtx.factorsRef;
 
@@ -39,8 +51,17 @@ export function useSetAnchorsAndDraw({
   useEffect(() => {
     
     const debugPipeline = true;    
-    if (debugPipeline) console.log('useSetAnchorsAndDraw: start', { width, height, hasLandmarks: !!displayLandmarks, landmarkCount: displayLandmarks?.length });
+    if (debugPipeline) console.log('useSetAnchorsAndDraw: start', { 
+      width, height, 
+      hasLandmarks: !!displayLandmarks, 
+      landmarkCount: displayLandmarks?.length 
+    });
+    
+    /* Context Values and Refs
+    --------------------------------------------------------------------------*/
+    // Dimensions for calculating shifts and scales
     const torsoDims = torsoDimsRef?.current;
+    const earDist = earDistRef?.current;
     const avgTorsoWidth = Number.isFinite(torsoDims?.avgTorsoWidth)
       ? torsoDims.avgTorsoWidth
       : 1; 
@@ -48,21 +69,45 @@ export function useSetAnchorsAndDraw({
       ? torsoDims.avgTorsoHeight
       : 1;
 
+    // Canvas used for drawing SVGs  
     const canvas = canvasRef?.current; 
     if (!canvas) {
       if (debugPipeline) console.warn('useSetAnchorsAndDraw: no canvasRef');
       return;
     }
-    const images = imagesRef?.current;
-    if (!images) {
-      if (debugPipeline) console.warn('useSetAnchorsAndDraw: no images (cached svgs not ready)');
-      return;
-    }
-    
+
     // Clear previous frame
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, width, height);
 
+    // Cached SVG images
+    const images = imagesRef?.current;
+    if (!images) {
+      if (debugPipeline) console.warn('useSetAnchorsAndDraw: svgs not ready');
+      return;
+    }
+
+    /* Rotation Detection : Front vs Back Facing
+    --------------------------------------------------------------------------*/
+    const faceEps = 0.1; 
+    const facingFront = avgTorsoWidth > faceEps;
+    const facingBack = avgTorsoWidth < -faceEps;
+
+    // fallback so startup frames still render
+    const renderFront = facingFront || (!facingFront && !facingBack);
+    const renderBack = facingBack;
+
+    /* Deferred Torso Drawing Setup
+    ----------------------------------------------------------------------------
+    Front Facing: Draw torso immediately when processing torso anchors
+    Back Facing: Defer drawing torso until after processing other parts, so 
+                 arms/legs/head are drawn behind torso.
+    --------------------------------------------------------------------------*/
+    const shouldDeferTorso = renderBack;
+    let deferredTorso = null; // { img, anchors }
+
+    /* Validate and Scale Landmarks
+    --------------------------------------------------------------------------*/
     if (!displayLandmarks || displayLandmarks.length === 0) return;
 
     let scaledLandmarks = null;
@@ -80,15 +125,20 @@ export function useSetAnchorsAndDraw({
       );
     }
 
-    /* LOOP THROUGH ANCHORS TO SET AND DRAW
-    --------------------------------------------------------------------------*/
+    /* =========================================================================
+                            MAIN LOOP: SET ANCHORS & DRAW PARTS
+    ==========================================================================*/
     for (const [part, img] of Object.entries(images)) {
       
       try {
+
+        /* Fetch/validate anchor indices & corresponding landmarks for this part
+        ----------------------------------------------------------------------*/
         const map = ANCHOR_MAP[part];
         if (!map || !img) continue;
         if (debugPipeline) console.log('LOADED:', part);
-        const anchorIndices = Object.values(map).filter(idx => typeof idx === 'number');
+        const anchorIndices = 
+          Object.values(map).filter(idx => typeof idx === 'number');
         const anchors = anchorIndices.map(idx => scaledLandmarks[idx]);
         const hasInvalidAnchor = anchors.some(lm =>
           !lm ||
@@ -106,143 +156,125 @@ export function useSetAnchorsAndDraw({
           continue;
         }            
 
-        const { w: svgW, h: svgH } = getSvgSize(img);
         if (debugPipeline) console.log(`Part: ${part}, Anchors:`, anchors);
-        
-        const faceEps = 0.5; // tune if needed
-        const facingFront = avgTorsoWidth > faceEps;
-        const facingBack = avgTorsoWidth < -faceEps;
-
-        // fallback so startup frames still render
-        const renderFront = facingFront || (!facingFront && !facingBack);
-        const renderBack = facingBack;
-
+       
+        /* Determine part type & direction (front/back) 
+        ----------------------------------------------------------------------*/
+        // Head 
         const isFrontHead = part === 'head';
         const isBackHead = part === 'headBack';
+        // Torso
         const isFrontTorso = part === 'torso';
         const isBackTorso = part === 'torsoBack';
+        // Arms
         const isFrontArm = part === 'leftUpperArm' || part === 'rightUpperArm' || 
           part === 'leftLowerArm' || part === 'rightLowerArm';
-        const isBackArm = part === 'leftUpperArmBack' || part === 'rightUpperArmBack' 
-          || part === 'leftLowerArmBack' || part === 'rightLowerArmBack';
+        const isBackArm = part === 'leftUpperArmBack' || 
+          part === 'rightUpperArmBack' || part === 'leftLowerArmBack' || 
+          part === 'rightLowerArmBack';
+        // Hands
         const isFrontHand = part === 'leftHand' || part === 'rightHand';
         const isBackHand = part === 'leftHandBack' || part === 'rightHandBack';
+        // Legs
         const isFrontLeg = part === 'leftUpperLeg' || part === 'rightUpperLeg' || 
           part === 'leftLowerLeg' || part === 'rightLowerLeg';
-        const isBackLeg = part === 'leftUpperLegBack' || part === 'rightUpperLegBack' || 
-          part === 'leftLowerLegBack' || part === 'rightLowerLegBack';
+        const isBackLeg = part === 'leftUpperLegBack' || 
+          part === 'rightUpperLegBack' || part === 'leftLowerLegBack' || 
+          part === 'rightLowerLegBack';
+        // Feet
         const isFrontFoot = part === 'leftFoot' || part === 'rightFoot';
         const isBackFoot = part === 'leftFootBack' || part === 'rightFootBack';
 
 
-        /*========================================================================
-                                          TORSO 
-        ========================================================================*/
+        /*======================================================================
+                      CONDITIONALLY SET ANCHORS / DRAW 
+        ======================================================================*/
+        
+        /* TORSO 
+        ----------------------------------------------------------------------*/
         if (
           ((isFrontTorso && renderFront) ||
           (isBackTorso && renderBack)) &&
           map.topLeft !== undefined && map.topRight !== undefined &&
           map.bottomLeft !== undefined && map.bottomRight !== undefined
         ) {
-            try {
-              const tl = scaledLandmarks[map.topLeft];
-              const tr = scaledLandmarks[map.topRight];
-              const bl = scaledLandmarks[map.bottomLeft];
-              const br = scaledLandmarks[map.bottomRight];
-            
-              if (!tl || !tr || !bl || !br) continue;
-              if (tl.score < 0.3 || tr.score < 0.3 || bl.score < 0.3 || br.score < 0.3) continue;
-              if (debugPipeline) console.log('VALID ANCHORS: ', part);
-              const shoulderWidth = tr.x - tl.x;
-              const hipWidth = br.x - bl.x;
-              
-              torsoDims.updateAvgTorsoHeight(
-                Math.hypot(
-                  (tl.x + tr.x) / 2 - (bl.x + br.x) / 2,
-                  (tl.y + tr.y) / 2 - (bl.y + br.y) / 2
-                )
-              );
-            
-              torsoDims.updateAvgTorsoWidth(shoulderWidth);
-              torsoDims.updateAvgHipWidth(hipWidth);
-              
-              let tlAdjusted = tl;
-              let trAdjusted = tr;
-              let blAdjusted = bl;
-              let brAdjusted = br; 
-              
-              try {
-                tlAdjusted = {
-                  x: tl.x + shiftFactorsRef.current.torsoShift.x * (avgTorsoWidth * 0.1),
-                  y: tl.y + shiftFactorsRef.current.torsoShift.y * (avgTorsoHeight * 0.1),
-                };
-                trAdjusted = {
-                  x: tr.x - shiftFactorsRef.current.torsoShift.x * (avgTorsoWidth * 0.1),
-                  y: tr.y + shiftFactorsRef.current.torsoShift.y * (avgTorsoHeight * 0.1),
-                };
-                blAdjusted = {
-                  x: bl.x + shiftFactorsRef.current.torsoShift.x * (avgTorsoWidth * 0.1),
-                  y: bl.y - shiftFactorsRef.current.torsoShift.y * (avgTorsoHeight * 0.1),
-                };
-                brAdjusted = {
-                  x: br.x - shiftFactorsRef.current.torsoShift.x * (avgTorsoWidth * 0.1),
-                  y: br.y - shiftFactorsRef.current.torsoShift.y * (avgTorsoHeight * 0.1),
-                };
-              } catch (e) {
-                console.warn('Error adjusting torso anchors:', e);
-                continue;
-              }
+          
+          try {
 
-              const success = drawTorsoSvg(ctx, img, tlAdjusted, trAdjusted, blAdjusted, brAdjusted);     
+            /* Set Anchors
+            ------------------------------------------------------------------*/
+            const anchors = setTorsoAnchors(
+              part, 
+              scaledLandmarks,
+              avgTorsoWidth, avgTorsoHeight, torsoDims, 
+              map, 
+              shiftFactorsRef, 
+              debugPipeline
+            );
+            
+            if (!anchors) {
+              if (debugPipeline) console.warn('setTorsoAnchors returned no anchors');
+              continue;
+            }
+
+            // Returned anchors (adjusted)  
+            const { tl, tr, bl, br } = anchors;
+          
+            /* Defer drawing torso if back-facing 
+            --------------------------------------------------------------------
+            Store image and anchors to draw after other parts
+            ------------------------------------------------------------------*/
+            if (shouldDeferTorso) {
+              deferredTorso = { img, anchors: { tl, tr, bl, br } };
+              continue;
+            } else {
+              
+              /* Draw 
+              ----------------------------------------------------------------*/
+              const success = drawTorsoSvg(ctx, img, tl, tr, bl, br);     
               if (success) { 
                 if (debugPipeline) console.log('DREW: ', part);
                 continue;
               }
-            } catch (e) {
-              console.warn('Error drawing torso:', e);
-              continue;
             }
+          } catch (e) {
+            console.warn('Error drawing torso:', e);
+            continue;
+          }
         }
 
-        /*========================================================================
-                                          HEAD 
-        ========================================================================*/
+        /* HEAD
+        ----------------------------------------------------------------------*/
         if (
           ((isFrontHead && renderFront) ||
           (isBackHead && renderBack)) &&
           map.leftAnchor !== undefined &&
           map.rightAnchor !== undefined
         ) {
-          if (debugPipeline) console.log('SET ANCHORS: ', part);
-          const earDist = earDistRef?.current;
-          const leftEar = scaledLandmarks[map.leftAnchor];
-          const rightEar = scaledLandmarks[map.rightAnchor];
-          
-          if (!leftEar || !rightEar || leftEar.score < 0.3 ||
-            rightEar.score < 0.3) { continue };
-          
-          earDist.updateAvgEarDistance(
-            Math.hypot(
-              rightEar.x - leftEar.x,
-              rightEar.y - leftEar.y
-            )
-          ); 
-          
-          let leftEarAdjusted = leftEar;
-          let rightEarAdjusted = rightEar;
-          leftEarAdjusted = {
-            x: leftEar.x + shiftFactorsRef.current.headShift.x * (avgTorsoWidth * 0.1),
-            y: leftEar.y + shiftFactorsRef.current.headShift.y * (avgTorsoHeight * 0.1),
-          };
+          if (debugPipeline) console.log('SETTING ANCHORS: ', part);
 
-          rightEarAdjusted = {
-            x: rightEar.x + shiftFactorsRef.current.headShift.x * (avgTorsoWidth * 0.1),
-            y: rightEar.y + shiftFactorsRef.current.headShift.y * (avgTorsoHeight * 0.1),
-          };
+          /* Set Anchors
+          --------------------------------------------------------------------*/
+          const anchors = setHeadAnchors(
+            scaledLandmarks,
+            map,
+            avgTorsoWidth,
+            avgTorsoHeight,
+            earDist, 
+            shiftFactorsRef,
+          );
+          
+          if (!anchors) {
+            if (debugPipeline) console.warn('setHeadAnchors returned no anchors');
+            continue;
+          }
+          const { leftAnchor, rightAnchor } = anchors;
 
+          /* Draw
+          --------------------------------------------------------------------*/
           const success = drawHeadSvg(
             ctx, img, 
-            leftEarAdjusted, rightEarAdjusted, 
+            leftAnchor, rightAnchor, 
             torsoDims, earDist, 
             scaleFactorsRef.current.headScale
           ); 
@@ -254,9 +286,8 @@ export function useSetAnchorsAndDraw({
           continue; 
         }
 
-        /*========================================================================
-                                          ARMS 
-        ========================================================================*/
+        /* ARMS
+        ----------------------------------------------------------------------*/
         if (
           ((isFrontArm && renderFront) ||
           (isBackArm && renderBack)) &&
@@ -264,70 +295,31 @@ export function useSetAnchorsAndDraw({
         ) {
 
           if (debugPipeline) console.log('SET ANCHORS: ', part);
-          
-          const from = scaledLandmarks[map.start];
-          const to = scaledLandmarks[map.end];
-          if (!from || !to) continue;
-          
-          if (debugPipeline) console.log('VALID ANCHORS: ', part);
+          /* Set Anchors
+          --------------------------------------------------------------------*/
+          const anchors = setArmAnchors(
+            part,
+            scaledLandmarks,
+            map,
+            avgTorsoWidth,
+            avgTorsoHeight,
+            shiftFactorsRef,
+            debugPipeline
+          );
 
-          /* Apply shifts to anchors 
-          ------------------------------------------------------------------------
-          - Fetch current shift factors from context and apply to anchor points 
-          - 
-          ----------------------------------------------------------------------*/
-          let fromAdjusted = from; 
-          let toAdjusted = to; 
-
-          
-          if (part === 'rightUpperArm' || part === 'rightUpperArmBack') {
-            fromAdjusted = {
-              x: from.x + ((shiftFactorsRef.current.shoulderShift.x + 
-                shiftFactorsRef.current.torsoShift.x) * (avgTorsoWidth * 0.1)),
-              y: from.y + ((shiftFactorsRef.current.shoulderShift.y + 
-                shiftFactorsRef.current.torsoShift.y) * (avgTorsoHeight * 0.1)), 
-            }; 
-            toAdjusted = {
-              x: to.x + (shiftFactorsRef.current.elbowShift.x * (avgTorsoWidth * 0.1)),
-              y: to.y + (shiftFactorsRef.current.elbowShift.y * (avgTorsoHeight * 0.1)),
-            }; 
-          } else if (part === 'leftUpperArm' || part === 'leftUpperArmBack') {
-            fromAdjusted = {
-              x: from.x - ((shiftFactorsRef.current.shoulderShift.x + 
-                shiftFactorsRef.current.torsoShift.x) * (avgTorsoWidth * 0.1)),
-              y: from.y + ((shiftFactorsRef.current.shoulderShift.y + 
-                shiftFactorsRef.current.torsoShift.y) * (avgTorsoHeight * 0.1)),
-            }; 
-            toAdjusted = {
-              x: to.x - (shiftFactorsRef.current.elbowShift.x * (avgTorsoWidth * 0.1)),
-              y: to.y + (shiftFactorsRef.current.elbowShift.y * (avgTorsoHeight * 0.1)),
-            }; 
-          } else if (part === 'rightLowerArm' || part === 'rightLowerArmBack') {
-            fromAdjusted = {
-              x: from.x + (shiftFactorsRef.current.elbowShift.x * (avgTorsoWidth * 0.1)),
-              y: from.y + (shiftFactorsRef.current.elbowShift.y * (avgTorsoHeight * 0.1)),
-            }; 
-            toAdjusted = {
-              x: to.x + (shiftFactorsRef.current.wristShift.x * (avgTorsoWidth * 0.1)),
-              y: to.y + (shiftFactorsRef.current.wristShift.y * (avgTorsoHeight * 0.1)),
-            }; 
-          } else if (part === 'leftLowerArm' || part === 'leftLowerArmBack') {
-            fromAdjusted = {
-              x: from.x - (shiftFactorsRef.current.elbowShift.x * (avgTorsoWidth * 0.1)),
-              y: from.y + (shiftFactorsRef.current.elbowShift.y * (avgTorsoHeight * 0.1)),
-            }; 
-            toAdjusted = {
-              x: to.x - (shiftFactorsRef.current.wristShift.x * (avgTorsoWidth * 0.1)), 
-              y: to.y + (shiftFactorsRef.current.wristShift.y * (avgTorsoHeight * 0.1)), 
-            }; 
+          if (!anchors) {
+            if (debugPipeline) console.warn('setArmAnchors returned no anchors');
+            continue;
           }
+
+          const { from, to } = anchors;
 
           /* Draw
           ----------------------------------------------------------------------*/
           const success = 
             drawHorizontalSegmentSvg(
               ctx, img, 
-              fromAdjusted, toAdjusted, 
+              from, to, 
               part, 
               torsoDims,
               scaleFactorsRef.current.armScale, 
@@ -341,48 +333,42 @@ export function useSetAnchorsAndDraw({
           continue; 
         }
 
-        /*========================================================================
-                                          HANDS 
-        ========================================================================*/
+        /* HANDS
+        ----------------------------------------------------------------------*/
         if (
-          ((isFrontHand && renderFront) || (isBackHand && renderBack)) &&
-       
+          ((isFrontHand && renderFront) || (isBackHand && renderBack)) &&    
           map.start !== undefined && map.end !== undefined
         ) {
           const { w: svgW, h: svgH } = getSvgSize(img);
           const armsDown = svgH > svgW;
-          const from = scaledLandmarks[map.start];
-          const to = scaledLandmarks[map.end];
-          if (!from || !to) continue;
-          if (!to || !from || to.score < 0.3 || from.score < 0.3) continue;
+          if (debugPipeline) console.log('SETTING ANCHORS: ', part);
+          
+          /* Set Anchors
+          --------------------------------------------------------------------*/
+          const anchors = setHandAnchors(
+            part,
+            scaledLandmarks,
+            map,
+            avgTorsoWidth,
+            avgTorsoHeight,
+            shiftFactorsRef,
+            img,
+            debugPipeline
+          );
 
-          if (debugPipeline) console.log('VALID ANCHORS: ', part);
-
-          let fromAdjusted = from;
-          let toAdjusted = to;
-          if (part === 'rightHand' || part === 'rightHandBack') {
-            fromAdjusted = {
-              x: from.x + (shiftFactorsRef.current.wristShift.x * (avgTorsoWidth * 0.1)),
-              y: from.y + (shiftFactorsRef.current.wristShift.y * (avgTorsoHeight * 0.1)),
-            };
-            toAdjusted = {
-              x: to.x + (shiftFactorsRef.current.elbowShift.x * (avgTorsoWidth * 0.1)),
-              y: to.y + (shiftFactorsRef.current.elbowShift.y * (avgTorsoHeight * 0.1)),
-            };
-          } else {
-            fromAdjusted = {
-              x: from.x - (shiftFactorsRef.current.wristShift.x * (avgTorsoWidth * 0.1)),
-              y: from.y + (shiftFactorsRef.current.wristShift.y * (avgTorsoHeight * 0.1)),
-            };
-            toAdjusted = {
-              x: to.x - (shiftFactorsRef.current.elbowShift.x * (avgTorsoWidth * 0.1)),
-              y: to.y + (shiftFactorsRef.current.elbowShift.y * (avgTorsoHeight * 0.1)),
-            };
+          if (!anchors) {
+            if (debugPipeline) console.warn(
+              'setHandAnchors returned no anchors');
+            continue;
           }
 
+          const { from, to } = anchors;
+
+          /* Draw
+          --------------------------------------------------------------------*/
           const success = drawHandSvg(
             ctx, img, 
-            fromAdjusted, toAdjusted, 
+            from, to, 
             armsDown, part, 
             torsoDims, 
             scaleFactorsRef.current.handScale
@@ -399,81 +385,46 @@ export function useSetAnchorsAndDraw({
           
         }
 
-        /*========================================================================
-                                          LEGS
-        ========================================================================*/
+        /* LEGS
+        ----------------------------------------------------------------------*/
         if (
           ((isFrontLeg && renderFront) || (isBackLeg && renderBack)) && 
           (map.start !== undefined && map.end !== undefined)
         ) {
-          if (debugPipeline) console.log('SET ANCHORS: ', part);
+          if (debugPipeline) console.log('SETTING ANCHORS: ', part);
           
-          const from = scaledLandmarks[map.start];
-          const to = scaledLandmarks[map.end];
-          
-          if (!from || !to) continue;
-          if (debugPipeline) console.log('VALID ANCHORS: ', part);
+          /* Set Anchors
+          --------------------------------------------------------------------*/
+          const anchors = setLegAnchors(
+            part,
+            scaledLandmarks,
+            map,
+            avgTorsoWidth,
+            avgTorsoHeight,
+            shiftFactorsRef,
+          );
 
-          /* Apply shifts to anchors
-          ----------------------------------------------------------------------*/
-          let fromAdjusted = from; 
-          let toAdjusted = to; 
-          
-          if (part === 'rightUpperLeg') {
-            fromAdjusted = {
-              x: from.x + ((shiftFactorsRef.current.torsoShift.x + 
-                shiftFactorsRef.current.hipShift.x) * (avgTorsoWidth * 0.1)),
-              y: from.y + ((-shiftFactorsRef.current.torsoShift.y + 
-                shiftFactorsRef.current.hipShift.y) * (avgTorsoHeight * 0.1)),
-            };
-            toAdjusted = {
-              x: to.x + (shiftFactorsRef.current.kneeShift.x * (avgTorsoWidth * 0.1)),
-              y: to.y + (shiftFactorsRef.current.kneeShift.y * (avgTorsoHeight * 0.1)),
-            };
-          } else if (part === 'leftUpperLeg') {
-            fromAdjusted = {
-              x: from.x - ((shiftFactorsRef.current.torsoShift.x + 
-                shiftFactorsRef.current.hipShift.x) * (avgTorsoWidth * 0.1)),
-              y: from.y + ((-shiftFactorsRef.current.torsoShift.y + 
-                shiftFactorsRef.current.hipShift.y) * (avgTorsoHeight * 0.1)),
-            };
-            toAdjusted = {
-              x: to.x - (shiftFactorsRef.current.kneeShift.x * (avgTorsoWidth * 0.1)),
-              y: to.y + (shiftFactorsRef.current.kneeShift.y * (avgTorsoHeight * 0.1)),
-            };
-          } else if (part === 'rightLowerLeg') {
-            fromAdjusted = {
-              x: from.x + (shiftFactorsRef.current.kneeShift.x * (avgTorsoWidth * 0.1)),
-              y: from.y + (shiftFactorsRef.current.kneeShift.y * (avgTorsoHeight * 0.1)),
-            };
-            toAdjusted = {
-              x: to.x + (shiftFactorsRef.current.ankleShift.x * (avgTorsoWidth * 0.1)),
-              y: to.y + (shiftFactorsRef.current.ankleShift.y * (avgTorsoHeight * 0.1)), // add tiny value to prevent exact overlap with original anchor
-            };
-          } else if (part === 'leftLowerLeg') {
-            fromAdjusted = {
-              x: from.x - (shiftFactorsRef.current.kneeShift.x * (avgTorsoWidth * 0.1)),
-              y: from.y + (shiftFactorsRef.current.kneeShift.y * (avgTorsoHeight * 0.1)),
-            };
-            toAdjusted = {
-              x: to.x - (shiftFactorsRef.current.ankleShift.x * (avgTorsoWidth * 0.1)),
-              y: to.y + (shiftFactorsRef.current.ankleShift.y * (avgTorsoHeight * 0.1)),
-            };
+          if (!anchors) {
+            if (debugPipeline) console.warn('setLegAnchors returned no anchors');
+            continue;
           }
+          const { from, to } = anchors;
 
           /* Draw
           ----------------------------------------------------------------------*/
           const success = 
             drawLegSvg(
               ctx, img, 
-              fromAdjusted, toAdjusted, 
+              from, to, 
               part, 
               torsoDims, 
               scaleFactorsRef.current.legScale,
             ); 
           if (success) { 
             if (debugPipeline) console.log('DREW: ', part);
-            if (debugAnchorsFlag) { debugAnchors(fromAdjusted, toAdjusted, ctx, part, avgTorsoHeight); }
+            if (debugAnchorsFlag) { 
+              debugAnchors(from, to, ctx, part, avgTorsoHeight); 
+            }
             
           } else {
             console.warn('Failed to draw leg:', part);
@@ -481,56 +432,61 @@ export function useSetAnchorsAndDraw({
           continue;
         }
 
-        /*========================================================================
-                                          FEET
-        ========================================================================*/
+        /* FEET 
+        ======================================================================*/
         if (((isFrontFoot && renderFront) || (isBackFoot && renderBack)) &&
-          map.start !== undefined && map.end !== undefined) {
-          if (debugPipeline) console.log('SET ANCHORS: ', part);
-          const torsoDims = torsoDimsRef?.current;
-          if (map.start === undefined || map.end === undefined) continue;
-          const from = scaledLandmarks[map.start];
-          const to = scaledLandmarks[map.end];
-          if (!from || !to || from.score < 0.3) continue;
-
-          let fromAdjusted, toAdjusted;
-          if (part === 'rightFoot') {
-            fromAdjusted = {
-              x: from.x + (shiftFactorsRef.current.ankleShift.x * (avgTorsoWidth * 0.1)),
-              y: from.y + (shiftFactorsRef.current.ankleShift.y * (avgTorsoHeight * 0.1)),
-            };
-            toAdjusted = {
-              x: to.x + (shiftFactorsRef.current.footShift.x * (avgTorsoWidth * 0.1)),
-              y: to.y + (shiftFactorsRef.current.footShift.y * (avgTorsoHeight * 0.1)),
-            };
-          } else {
-            fromAdjusted = {
-              x: from.x - (shiftFactorsRef.current.ankleShift.x * (avgTorsoWidth * 0.1)),
-              y: from.y + (shiftFactorsRef.current.ankleShift.y * (avgTorsoHeight * 0.1)),
-            };
-            toAdjusted = {
-              x: to.x - (shiftFactorsRef.current.footShift.x * (avgTorsoWidth * 0.1)),
-              y: to.y + (shiftFactorsRef.current.footShift.y * (avgTorsoHeight * 0.1)), 
-            };
-          }
-
+          map.start !== undefined && map.end !== undefined
+        ) {
+          if (debugPipeline) console.log('SETTING ANCHORS: ', part);
           
+          /* Set Anchors
+          --------------------------------------------------------------------*/
+          const anchors = setFootAnchors(
+            part,
+            scaledLandmarks,
+            map,
+            avgTorsoWidth,
+            avgTorsoHeight,
+            shiftFactorsRef
+          );
+
+          if (!anchors) {
+            if (debugPipeline) console.warn('setFootAnchors returned no anchors');
+            continue;
+          }
+          const { from, to } = anchors;
+
+          /* Draw
+          --------------------------------------------------------------------*/
           const success = drawFootSvg(
             ctx, img, 
-            fromAdjusted, toAdjusted, 
+            from, to, 
             part, 
             torsoDims,
             scaleFactorsRef.current.footScale
           );
           if (success) { 
             if (debugPipeline) console.log('DREW: ', part);
-            if (debugAnchorsFlag) { debugAnchors(fromAdjusted, toAdjusted, ctx, part, avgTorsoHeight); }
+            if (debugAnchorsFlag) { 
+              debugAnchors(from, to, ctx, part, avgTorsoHeight); 
+            }
             continue;
           }
         }
       } catch (e) {
         console.warn(`Error processing part ${part}:`, e);
         continue;
+      }
+    }
+
+    // After processing all parts, draw deferred torso if any (this ensures arms/back parts render beneath/above as desired)
+    if (deferredTorso) {
+      try {
+        const { img, anchors } = deferredTorso;
+        const res = drawTorsoSvg(ctx, img, anchors.tl, anchors.tr, anchors.bl, anchors.br);
+        if (res && debugPipeline) console.log('DREW deferred torso after parts');
+      } catch (e) {
+        console.warn('Error drawing deferred torso:', e);
       }
     }
 

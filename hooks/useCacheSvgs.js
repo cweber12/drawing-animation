@@ -79,7 +79,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               svgToSend = addSvgClipPath(
                 svgString,
                 svgW, svgH,
-                svgW / 2, 
+                svgW / 4, 
                 true, false, true, true  
               ); 
           } else if (part === 'leftUpperArm' || part === 'leftUpperArmBack') {
@@ -105,7 +105,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
              svgToSend = addSvgClipPath(
               svgString,
               svgW,svgH,
-              svgW / 2, 
+              svgW / 4, 
               true, true, false, true  
             );
           } else if (part === 'rightLowerArm' || part === 'rightLowerArmBack') {
@@ -113,7 +113,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
              svgToSend = addSvgClipPath(
               svgString,
               svgW,svgH,
-              svgW / 2, 
+              svgW / 4, 
               false, true, true, false  
             );
 
@@ -127,80 +127,47 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
             ); 
           }
 
-          if (part === 'leftUpperArm' || part === 'leftUpperArmBack') {
+          if (part === 'leftUpperArm' || part === 'leftUpperArmBack' ||
+              part === 'leftLowerArm' || part === 'leftLowerArmBack' ||
+              part === 'rightUpperArm' || part === 'rightUpperArmBack' ||
+              part === 'rightLowerArm' || part === 'rightLowerArmBack'       
+          ) {
             // left edge strong -> right edge softer
             svgToSend = addSvgOpacityGradient(svgToSend, {
               direction: 'leftToRight',
               stops: [
                 { offset: 0.0, opacity: 0.0 },
                 { offset: 0.1, opacity: 0.25 },
-                { offset: 0.25, opacity: 1.0 },
-                { offset: 0.75, opacity: 1.0 },
+                { offset: 0.15, opacity: 1.0 },
+                { offset: 0.85, opacity: 1.0 },
                 { offset: 0.9, opacity: 0.25 },
                 { offset: 1.0, opacity: 0.0 },
               ],
               idSuffix: '_lua'
             });
-          } else if (part === 'rightUpperArm' || part === 'rightUpperArmBack') {
-            // mirror for right arm
-            svgToSend = addSvgOpacityGradient(svgToSend, {
-              direction: 'rightToLeft',
-              stops: [
-                { offset: 0.0, opacity: 0.0 },
-                { offset: 0.1, opacity: 0.45 },
-                { offset: 0.25, opacity: 1.0 },
-                { offset: 0.75, opacity: 1.0 },
-                { offset: 0.9, opacity: 0.45 },
-                { offset: 1.0, opacity: 0.0 },
-              ],
-              idSuffix: '_rua'
-            });
-          } else if (part === 'leftLowerArm' || part === 'leftLowerArmBack') {
-            svgToSend = addSvgOpacityGradient(svgToSend, {
-              direction: 'leftToRight',
-              stops: [
-                { offset: 0.0, opacity: 0.9 },
-                { offset: 1.0, opacity: 0.7 },
-              ],
-              idSuffix: '_lla'
-            });
-          } else if (part === 'rightLowerArm' || part === 'rightLowerArmBack') {
-            svgToSend = addSvgOpacityGradient(svgToSend, {
-              direction: 'rightToLeft',
-              stops: [
-                { offset: 0.0, opacity: 0.9 },
-                { offset: 1.0, opacity: 0.7 },
-              ],
-              idSuffix: '_rla'
-            });
-          } else if (part === 'leftUpperLeg' || part === 'leftUpperLegBack') {
-            svgToSend = addSvgOpacityGradient(svgToSend, {
-              direction: 'leftToRight',
-              stops: [
-                { offset: 0.0, opacity: 0.9 },
-                { offset: 1.0, opacity: 0.7 },
-              ],
-              idSuffix: '_lul'
-            });
-          } else if (part === 'rightUpperLeg' || part === 'rightUpperLegBack') {
-            svgToSend = addSvgOpacityGradient(svgToSend, {
-              direction: 'rightToLeft',
-              stops: [
-                { offset: 0.0, opacity: 0.9 },
-                { offset: 1.0, opacity: 0.7 },
-              ],
-              idSuffix: '_rul'
-            });
-          } else if (part === 'torso' || part === 'torsoBack') {
+          
+          } else if  (
+              part === 'leftUpperLeg' || part === 'leftUpperLegBack' ||
+              part === 'rightUpperLeg' || part === 'rightUpperLegBack' ||
+              part === 'leftLowerLeg' || part === 'leftLowerLegBack' ||
+              part === 'rightLowerLeg' || part === 'rightLowerLegBack'
+          ) {
+            // left edge strong -> right edge softer
             svgToSend = addSvgOpacityGradient(svgToSend, {
               direction: 'topToBottom',
               stops: [
-                { offset: 0.0, opacity: 0.9 },
-                { offset: 1.0, opacity: 0.7 },
+                { offset: 0.0, opacity: 0.0 },
+                { offset: 0.1, opacity: 0.25 },
+                { offset: 0.15, opacity: 1.0 },
+                { offset: 0.85, opacity: 1.0 },
+                { offset: 0.9, opacity: 0.25 },
+                { offset: 1.0, opacity: 0.0 },
               ],
-              idSuffix: '_torso'
+              idSuffix: '_lua'
             });
+          
           }
+
           console.log(`Caching SVG for ${part} with dimensions ${svgW}x${svgH}`);
           console.log(`SVG string with clip path: ${svgToSend}`);
           const img = await svgStringToImage(svgToSend);

@@ -59,7 +59,6 @@ export function drawHeadSvg(
 ) {
     try {
         const { w: svgW, h: svgH } = getSvgSize(img);
-        const avgEarDistance = earDist?.avgEarDistance;
         const avgTorsoHeight = Math.abs(torsoDims?.avgTorsoHeight);
         const avgTorsoWidth = Math.abs(torsoDims?.avgTorsoWidth);
         const torsoSvgW = torsoDims?.torsoSvgWidth;
@@ -101,7 +100,8 @@ export function drawHorizontalSegmentSvg(
         const avgTorsoWidth = Math.abs(torsoDims?.avgTorsoWidth);
         const torsoSvgW = torsoDims?.torsoSvgWidth;
         const torsoSvgH = torsoDims?.torsoSvgHeight;
-        const isLeft = part === 'leftUpperArm' || part === 'leftLowerArm';
+        const isLeft = part === 'leftUpperArm' || part === 'leftLowerArm' || 
+        part === 'leftUpperArmBack' || part === 'leftLowerArmBack';
 
         const dx = to.x - from.x;
         const dy = to.y - from.y;
@@ -189,7 +189,7 @@ export function drawHandSvg(
         const avgTorsoHeight = Math.abs(torsoDims?.avgTorsoHeight);
         const torsoSvgW = torsoDims?.torsoSvgWidth;
         const torsoSvgH = torsoDims?.torsoSvgHeight;
-        const isRight = part === 'rightHand';
+        const isRight = part === 'rightHand' || part === 'rightHandBack';
  
         const dx = elbow.x - wrist.x;
         const dy = elbow.y - wrist.y;
@@ -273,7 +273,9 @@ export function drawLegSvg(
         ctx.save();
         ctx.translate(fx, fy);
         
-        if (part === 'rightUpperLeg' || part === 'rightLowerLeg') {
+        if (part === 'rightUpperLeg' || part === 'rightLowerLeg' ||
+            part === 'rightUpperLegBack' || part === 'rightLowerLegBack'
+        ) {
             ctx.rotate(angle - Math.PI / 2); // vertical authoring
             ctx.scale(
                 scaleX * legScaleFactors.x, 
