@@ -1,5 +1,6 @@
 // storageUtils.js
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants/Sizes';
+// do not import hooks in this utility module
 // Keep a persistent handle to the selected directory
 let directoryHandle = null;
 
@@ -87,6 +88,9 @@ Description : Prompts user to select folder (if not already selected) and saves
 Props : 
 - landmarks : array of landmark data
 ------------------------------------------------------------------------------*/
+// NOTE: Hooks (like `useLandmarks`) cannot be called from non-component
+// modules. Export a function that accepts the landmarks (or processedRef)
+// from the calling component instead.
 export async function downloadLandmarksToDevice(landmarks) {
   console.log("downloadLandmarksToDevice called with landmarks:", landmarks);
   const videoDimensions = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };

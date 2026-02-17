@@ -11,6 +11,8 @@ import { FaHouseDamage } from "react-icons/fa";
 import HeaderButton from '../components/button/HeaderButton'
 import { ShiftFactorsProvider } from '../context/ShiftFactorsContext'
 import { ScaleFactorsProvider } from '../context/ScaleFactorsContext'
+import { LandmarksProvider } from '../context/LandmarksContext';
+
 
 /* Home Button in Header
 ------------------------------------------------------------------------------*/
@@ -48,9 +50,10 @@ const RootLayout = () => {
     const [headerTitle, setHeaderTitle] = useState('');
     return (
         <>
+        <ShiftFactorsProvider>
+        <ScaleFactorsProvider>
+        <LandmarksProvider>
             <StatusBar style="auto"/>
-            <ShiftFactorsProvider>
-            <ScaleFactorsProvider>
             <Stack screenOptions={{ 
                 headerTitleAlign: 'center',
                 headerStyle: { 
@@ -130,8 +133,9 @@ const RootLayout = () => {
 
                 />
             </Stack>
-            </ScaleFactorsProvider>
-            </ShiftFactorsProvider>
+        </LandmarksProvider>
+        </ScaleFactorsProvider>
+        </ShiftFactorsProvider>
         </>
     )
 }

@@ -4,16 +4,18 @@ import React from 'react'
 import DropdownSelect from '../../button/DropdownSelect';
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { IoDownloadOutline } from "react-icons/io5";
+import { downloadLandmarksToDevice, uploadToS3 } from '../../../utils/storage/storageUtils';
+import { useLandmarks } from '../../../context/LandmarksContext';
 
 const ExportLandmarkDropdown = ({
         style,
-        onDownloadLandmarksToDevice,
-        onUploadToS3, 
 
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
 
+    const { processedRef } = useLandmarks();
+    
     return (
         <View 
             style={[
@@ -21,7 +23,7 @@ const ExportLandmarkDropdown = ({
                 styles.exportOptionsContainer, 
             ]}>
             <DropdownSelect
-                onPress={() => {onDownloadLandmarksToDevice && onDownloadLandmarksToDevice();}} >
+                onPress={() => downloadLandmarksToDevice(processedRef.current)}>
                 <IoDownloadOutline
                     size={24}
                     color={theme.actionButton} 
@@ -32,7 +34,11 @@ const ExportLandmarkDropdown = ({
             </DropdownSelect>
             
             <DropdownSelect
-                onPress={() => {  onUploadToS3 && onUploadToS3();}}>
+                onPress={() => { uploadToS3({ 
+                    landmarks: processedRef.current, 
+                    svgs: null, 
+                    dataType: 'landmarks' 
+                })}}>
                 <IoCloudUploadOutline
                     size={24}
                     color={theme.actionButton}

@@ -168,8 +168,6 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
           
           }
 
-          console.log(`Caching SVG for ${part} with dimensions ${svgW}x${svgH}`);
-          console.log(`SVG string with clip path: ${svgToSend}`);
           const img = await svgStringToImage(svgToSend);
           if (img) next[part] = img;
         } catch (e) {

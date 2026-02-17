@@ -7,31 +7,27 @@ modes:
 - 'live': Live animation mode where SVGs are animated in real-time based on detected poses.
 - 'replay': Pose recording mode where detected poses are recorded and can be replayed as an animation.
 --------------------------------------------------------------------------------------------------*/
-/* Import Libraries
+/* Imports
 ------------------------------------------------------------------------------*/
+// Libraries and React
 import React, { useEffect,  useRef, useState,  useCallback} from 'react';
 import Webcam from 'react-webcam';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
-
-/* Import Constants
-------------------------------------------------------------------------------*/
+// Constants
 import { 
   CANVAS_WIDTH, 
   CANVAS_HEIGHT, 
-  getWebcamDimensions } from '../constants/Sizes';
-
-/* Import Utils and Hooks
-------------------------------------------------------------------------------*/
-import { FootCalculator } from '../utils/FootCalculator';
-import { downloadLandmarksToDevice } from '../utils/storageUtils';
-import { uploadToS3 } from '../utils/s3Utils';
+  getWebcamDimensions 
+} from '../constants/Sizes';
+// Utils and Hooks
+import { downloadLandmarksToDevice } from '../utils/storage/storageUtils';
+import { uploadToS3 } from '../utils/storage/s3Utils';
 import { usePoseDetection } from '../hooks/usePoseDetection';
-
-/* Import components
-------------------------------------------------------------------------------*/
+import { useLandmarks } from '../context/LandmarksContext';
+// Components
 import ThemedPoseView from '../components/view/PoseView';
 import SvgCanvas from '../components/canvas/SvgCanvas';
 import PoseCanvas from '../components/canvas/PoseCanvas';
@@ -41,54 +37,38 @@ import PoseInfo from '../components/dropdown/info/PoseInfo';
 const DetectPose = () => {
   
   /* ===========================================================================
-                            NAVIGATION & PARAMS
+                            LOCAL VARIABLES AND REFS
   ============================================================================*/
+  // Navigation and URL Params
   const navigation = useNavigation(); 
   const params = useLocalSearchParams();
 
-  /* ===========================================================================
-                                CONSTANTS
-  ============================================================================*/
-  /* Get webcam dimensions from constants/Sizes.js
-  ----------------------------------------------------------------------------*/
+  const {processedRef, processedVersion} = useLandmarks();
+
   const { width: webcamWidth, height: webcamHeight } = getWebcamDimensions();
 
-  /* Parse SVGs from URL Params
-  ----------------------------------------------------------------------------*/
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};
   const armOrientation = params.armOrientation;
   const videoUri = params.videoUri || null;
   const viewMode = params.viewMode || 'replay'; 
 
-
-  
-  /* ===========================================================================
-                                REFS
-  ============================================================================*/
-  /* Refs for webcam and video elements
-  ----------------------------------------------------------------------------*/
   const webcamRef = useRef(null);
   const videoRef = useRef(null);
   const landmarksRef = useRef({ data: [], __token: 0 });
 
-  /* Ref to track if it's the first start of detection
-  ----------------------------------------------------------------------------*/
   const firstStartRef = useRef(true);
   
   /* ===========================================================================
-                               STATES
+                               STATE
   ============================================================================*/
   
-  /* State Variables for Pose Detection
-  ----------------------------------------------------------------------------*/
+  // TensorFlow.js and Pose Detection State
   const [isTfReady, setIsTfReady] = useState(false); 
   const [loading, setLoading] = useState(true); 
   const [landmarks, setLandmarks] = useState([]); 
   const [isDetecting, setIsDetecting] = useState(false); 
-  const [savedLandmarks, setSavedLandmarks] = useState([]); 
 
-  /* State Variables to Toggle Webcam and Pose Animation
-  ----------------------------------------------------------------------------*/
+  // Saved landmarks for replay mode
   const [showWebcam, setShowWebcam] = useState(false); 
   const [showPoseAnimation, setShowPoseAnimation] = useState(false);
   const [showPoseInfo, setShowPoseInfo] = useState(false); 
@@ -122,25 +102,21 @@ const DetectPose = () => {
   /* Download saved landmarks to device
   ----------------------------------------------------------------------------*/
   const handleDownloadLandmarksToDevice = useCallback(() => {
-    downloadLandmarksToDevice(savedLandmarks);
-  }, [savedLandmarks]);
+    downloadLandmarksToDevice();
+  }, []);
 
   /* Upload saved landmarks to S3
   ----------------------------------------------------------------------------*/
   const handleUploadToS3 = useCallback(() => {
-    uploadToS3({
-      landmarks: savedLandmarks,
-      svgs: null,
-      fileType: "json",
-    });
-  }, [savedLandmarks]);
+    uploadToS3();
+  }, []);
 
   /* ===========================================================================
                                    HOOKS
   ============================================================================*/
- 
+  
   /* Load TensorFlow.js and Pose Detection Model
-  ------------------------------------------------------------------------------------------------*/
+  ----------------------------------------------------------------------------*/
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -176,7 +152,6 @@ const DetectPose = () => {
       onToggleWebcam: toggleWebcam, 
       onDetectionStarted: () => {
         firstStartRef.current = false; 
-        setSavedLandmarks([]); 
         setShowPoseAnimation(false); 
         setIsDetecting(true); 
       },
@@ -190,7 +165,6 @@ const DetectPose = () => {
       onToggleExportOptions: toggleExportOptions,
       viewMode,
       showPoseAnimation,
-      savedLandmarks,
       isDetecting,
     });
   }, [
@@ -199,20 +173,18 @@ const DetectPose = () => {
     toggleExportOptions,
     setIsDetecting,
     setShowPoseAnimation,
-    setSavedLandmarks,
     setShowPoseInfo,
     viewMode,
     showPoseAnimation,
-    savedLandmarks,
     isDetecting,
     
   ]);
 
   /* Manage pose animation display based on isDetecting state
-  ------------------------------------------------------------------------------------------------*/
+  ----------------------------------------------------------------------------*/
   useEffect(() => {
     if (isDetecting) {
-      setSavedLandmarks([]); 
+ 
       setShowPoseAnimation(false); 
       firstStartRef.current = false; 
     } else if (!firstStartRef.current) {
@@ -221,7 +193,7 @@ const DetectPose = () => {
   }, [isDetecting, viewMode]);
 
   /* Custom hook to run pose detection
-  ------------------------------------------------------------------------------------------------*/
+  ----------------------------------------------------------------------------*/
   usePoseDetection({
     isTfReady,
     isDetecting,
@@ -232,8 +204,6 @@ const DetectPose = () => {
     naturalVideoWidth,
     naturalVideoHeight,
     setLandmarks,
-    setSavedLandmarks,
-    savedLandmarks,
     setLoading,
     viewMode,
     landmarksRef,
@@ -290,8 +260,8 @@ const DetectPose = () => {
                   : webcamHeight
               }
               landmarks={landmarks}
-              savedLandmarks={savedLandmarks}
               landmarksRef={landmarksRef}
+              viewMode={viewMode}
               style={{
                 position: 'absolute',
                 left: 0,
@@ -299,6 +269,7 @@ const DetectPose = () => {
                 zIndex: 3,
                 width: viewMode === 'replay' ? CANVAS_WIDTH : webcamWidth,
                 height: viewMode === 'replay' ? CANVAS_HEIGHT : webcamHeight,
+                background: 'rgba(0,0,0,0.1)',
               }}
             />
           
@@ -309,7 +280,6 @@ const DetectPose = () => {
               webcamWidth={webcamWidth}
               webcamHeight={webcamHeight}
               landmarks={landmarks}
-              savedLandmarks={savedLandmarks}
               replay={showPoseAnimation}
               svgs={svgs}
               armOrientation={armOrientation}
@@ -321,6 +291,7 @@ const DetectPose = () => {
                 zIndex: 1,
                 width: CANVAS_WIDTH,
                 height: CANVAS_HEIGHT,
+                background: 'rgba(0,0,0,0.3)', 
               }}
             />
 

@@ -1,8 +1,18 @@
+// hooks/usePoseDetection.js
 import { useEffect, useState, useRef } from 'react';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import { smoothAndInterpolateLandmarks } from '../utils/poseUtils';
 import { addFeetFromHipKneeVectors } from '../utils/calcFootVectors';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
+import { useLandmarks } from '../context/LandmarksContext';
+
+/*==============================================================================
+                          USE POSE DETECTION HOOK
+================================================================================
+Custom React hook to manage pose detection using TensorFlow.js MoveNet model.
+Handles loading the model, running detection on video/webcam input, and managing
+landmark state and context updates. 
+------------------------------------------------------------------------------*/
 
 export function usePoseDetection({
   isTfReady,
@@ -14,37 +24,60 @@ export function usePoseDetection({
   naturalVideoWidth,
   naturalVideoHeight,
   setLandmarks,
-  setSavedLandmarks,
-  savedLandmarks,
   setLoading,
   viewMode,
   landmarksRef, // optional ref to update for imperative drawing
 }) {
 
-  // Throttle / sampling refs and settings
-  const lastSetTimeRef = useRef(0);
-  const saveFrameCounterRef = useRef(0);
-  const tokenRef = useRef(0);
+  /* Throttle and cache management refs for pose detection and landmark updates
+  ----------------------------------------------------------------------------*/
+  const lastSetTimeRef = useRef(0); // For throttling landmark updates to UI
+  const saveFrameCounterRef = useRef(0); // Count frames for save interval
+  const tokenRef = useRef(0); // Token to force landmarksRef updates for canvas drawing
+  
   // Target UI draw FPS 
-  const MIN_INTERVAL = 1000 / 30; // 30 FPS
-  // Save every Nth detected frame to reduce memory/clone cost
+  const MIN_INTERVAL = 1000 / 30; // 30 FPS 
   const SAVE_EVERY_N = 2;
 
   const [cachedLandmarks, setCachedLandmarks] = useState([]);
 
+  const { 
+    setProcessed, 
+    notifyProcessed,
+    setDimensions
+  } = useLandmarks();
+
+  /* DETECTION STOP
+  ------------------------------------------------------------------------------
+  1. Smooth and interpolate cached landmarks for better replay animation
+  2. Add estimated foot landmarks 
+  3. Update context
+  4. Clear cache
+  ----------------------------------------------------------------------------*/
   useEffect(() => {
     if (!isDetecting && cachedLandmarks?.length) {
-      const processed = smoothAndInterpolateLandmarks(cachedLandmarks, 5, 1);
-      const estimatedLandmarks = addFeetFromHipKneeVectors( processed );
-      setSavedLandmarks(estimatedLandmarks);
+      const smoothedLandmarks = smoothAndInterpolateLandmarks(cachedLandmarks, 5, 1);
+      const estimatedLandmarks = addFeetFromHipKneeVectors(smoothedLandmarks);
+      console.log('usePoseDetection: setting original landmarks, ', cachedLandmarks);
+      setProcessed(estimatedLandmarks);
+      setDimensions(naturalVideoWidth, naturalVideoHeight);
+      notifyProcessed();   
+      console.log('usePoseDetection: setting processed landmarks, ', estimatedLandmarks);
+      setCachedLandmarks([]);          
     }
   }, [isDetecting]);
 
+  /* POSE DETECTION EFFECT
+  ------------------------------------------------------------------------------
+  Runs pose detection on the provided media input when TensorFlow is ready. 
+  ----------------------------------------------------------------------------*/
   useEffect(() => {
     let detector;
     let cancelled = false;
 
     const runPoseDetection = async () => {
+      /* Load the MoveNet model 
+      ------------------------------------------------------------------------*/
       detector = await poseDetection.createDetector(
         poseDetection.SupportedModels.MoveNet,
         { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING }
@@ -53,19 +86,30 @@ export function usePoseDetection({
       console.log('Pose Detector loaded, model:', detector);
       setLoading(false);
 
+      /* Detection loop using requestAnimationFrame
+      ------------------------------------------------------------------------*/
       const detect = async () => {
         if (cancelled) return;
         const video = videoUri ? videoRef.current : webcamRef.current?.video;
+        // If video not ready, try again on next frame
         if (!video || video.readyState !== 4) {
           requestAnimationFrame(detect);
           return;
         }
         try {
+          /* Run pose detection on the current video frame
+          --------------------------------------------------------------------*/
           if (isDetecting) {
-            const poses = await detector.estimatePoses(video, { flipHorizontal: true });
+            const poses = await detector.estimatePoses(
+              video, { flipHorizontal: true }
+            );
             let currentLandmarks = poses?.[0]?.keypoints ?? [];
-
-            if (videoUri && videoLoaded && naturalVideoWidth && naturalVideoHeight) {
+            
+            /* Scale landmarks to video dimensions
+            ------------------------------------------------------------------*/
+            if (videoUri && videoLoaded && naturalVideoWidth && 
+              naturalVideoHeight
+            ) {
               const videoAspect = naturalVideoWidth / naturalVideoHeight;
               const canvasAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
               let scale, offsetX = 0, offsetY = 0;
@@ -97,12 +141,11 @@ export function usePoseDetection({
               }
             }
 
-            // Sample and cheaply clone frames for savedLandmarks to reduce GC pressure
-            // Support both legacy 'pose' mode and the current 'replay' viewMode
+            /* Cache landmarks for replay animation, saving every N frames 
+            ------------------------------------------------------------------*/
             if (viewMode === 'replay') {
               saveFrameCounterRef.current += 1;
               if (saveFrameCounterRef.current % SAVE_EVERY_N === 0) {
-                // Use structuredClone when available (faster than JSON), otherwise shallow-clone each keypoint
                 const copy = typeof structuredClone === 'function'
                   ? structuredClone(currentLandmarks)
                   : currentLandmarks.map(kp => (kp ? { ...kp } : kp));

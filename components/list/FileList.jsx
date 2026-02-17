@@ -3,69 +3,62 @@ import {
   Text,
   View,
   StyleSheet,
+  ActivityIndicator, 
 } from 'react-native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
-import { GiSkeleton } from 'react-icons/gi';
-import { BsPersonRaisedHand } from 'react-icons/bs';
 
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants/Sizes';
 import { Colors } from '../../constants/Colors';
-import DropdownSelect from '../button/DropdownSelect';
 
 import {
   fetchFiles,
   downloadLandmarkFile,
   downloadSvgFile,
-} from '../../utils/s3Utils';
+} from '../../utils/storage/s3Utils';
 import {
   selectPoseFolder,
   listDevicePoseFiles,
   readDeviceFileText,
-} from '../../utils/storageUtils';
-import { set } from 'lodash';
+} from '../../utils/storage/deviceFetch';
+import { useLandmarks } from '../../context/LandmarksContext';
 import List from './List';
 
 export default function FileList({
-  // file list state
-  files,
-  setFiles,
-  landmarkFiles,
-  setLandmarkFiles,
-  svgFiles,
-  setSvgFiles,
-
   // selected items
   selectedLandmarkFile,
   setSelectedLandmarkFile,
   selectedSvgFile,
   setSelectedSvgFile,
-  selectedSvgString,
   setSelectedSvgString,
-
-  // frame/video state
-  frames,
-  setFrames,
-  currentFrame,
-  setCurrentFrame,
-  videoDimensions,
-  setVideoDimensions,
-  setHeight,
-  setWidth,
-  window,
 
   // source mode / loading
   showDeviceFiles,
   setShowDeviceFiles,
-  loading,
-  setLoading,
 
   // cleanup
   animationRef,
+  // optional: mirror loaded frames/video dims into parent state
+  frames,
+  setFrames,
+  videoDimensions,
+  setVideoDimensions,
+  setWidth,
+  setHeight,
 }) {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
-  const [listItemHover, setListItemHover] = React.useState(null);
+
+  const debugLandmarkFetch = false; 
+  const debugSvgFetch = false;
+  
+  const { setDimensions } = useLandmarks();
+
+  const [loading, setLoading] = React.useState(false);
+  const [svgFiles, setSvgFiles] = useState([]);
+  const [landmarkFiles, setLandmarkFiles] = useState([]);
+
+  
 
   /* LOAD FILES FROM DEVICE
   ----------------------------------------------------------------------------*/
@@ -78,12 +71,8 @@ export default function FileList({
       setShowDeviceFiles(true);
 
       // reset selections/state
-      setSelectedLandmarkFile(null);
       setSelectedSvgFile(null);
-      setFrames([]);
-      setCurrentFrame(0);
       setSelectedSvgString(null);
-      setLandmarkFiles([]);
       setSvgFiles([]);
 
       // load from selected folder
@@ -92,7 +81,6 @@ export default function FileList({
       setSvgFiles(result?.svgFiles ?? []);
     } catch (e) {
       console.error(e);
-      setLandmarkFiles([]);
       setSvgFiles([]);
     } finally {
       setLoading(false);
@@ -109,13 +97,14 @@ export default function FileList({
     try {
       // S3
       if (!showDeviceFiles) {
-        await downloadSvgFile(
-          fileKey,
-          setLoading,
-          setSelectedSvgFile,
-          setSelectedSvgString,
-          selectedSvgString
-        );
+        if (debugSvgFetch) {
+          console.log('Loading SVG file from S3 with key:', fileKey);
+        }
+        const svgObj = await downloadSvgFile(fileKey);
+        setSelectedSvgString(svgObj);
+        if (debugSvgFetch) {
+          console.log('SVG file loaded successfully from S3');
+        }
         return;
       }
 
@@ -143,23 +132,34 @@ export default function FileList({
   async function handleSelectLandmarkFile(fileKey) {
     setLoading(true);
     setSelectedLandmarkFile(fileKey);
-    setFrames([]);
-    setCurrentFrame(0);
 
     try {
       if (!showDeviceFiles) {
         // S3
-        await downloadLandmarkFile(
-          fileKey,
-          setLoading,
-          setSelectedLandmarkFile,
-          setFrames,
-          setCurrentFrame,
-          setVideoDimensions,
-          setHeight,
-          setWidth,
-          window
-        );
+        setLoading(true);
+        console.log('Loading landmark file from S3:', fileKey);
+        try {
+          const { landmarks, videoDimensions } = await downloadLandmarkFile(fileKey);
+          // mirror into parent/page state; context scaling will be applied by the page
+          if (typeof setFrames === 'function') setFrames(landmarks);
+          if (typeof setVideoDimensions === 'function') setVideoDimensions(videoDimensions);
+          if (typeof setWidth === 'function' && videoDimensions?.width) setWidth(videoDimensions.width);
+          if (typeof setHeight === 'function' && videoDimensions?.height) setHeight(videoDimensions.height);
+          // store video dimensions in context for consumers that use it
+          setDimensions(videoDimensions);
+          if (debugLandmarkFetch) {
+            console.log('Landmark file loaded successfully from S3');
+          }
+        } catch (e) {
+          console.error('S3 landmark load failed:', e);
+          // clear page state
+          if (typeof setFrames === 'function') setFrames([]);
+          if (typeof setVideoDimensions === 'function') setVideoDimensions({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
+          setDimensions({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
+          
+        } finally {
+          setLoading(false);
+        }
         return;
       }
 
@@ -177,30 +177,21 @@ export default function FileList({
 
       if (Array.isArray(parsed)) {
         loadedLandmarks = parsed;
+        if (typeof setFrames === 'function') setFrames(loadedLandmarks);
       } else if (parsed && typeof parsed === 'object') {
         loadedLandmarks = parsed.landmarks || [];
+        if (typeof setFrames === 'function') setFrames(loadedLandmarks);
         if (parsed.videoDimensions) {
           loadedDimensions = parsed.videoDimensions;
+          setDimensions(loadedDimensions);
+          if (typeof setVideoDimensions === 'function') setVideoDimensions(loadedDimensions);
+          if (typeof setWidth === 'function' && loadedDimensions.width) setWidth(loadedDimensions.width);
+          if (typeof setHeight === 'function' && loadedDimensions.height) setHeight(loadedDimensions.height);
         }
       }
 
-      if (Array.isArray(loadedLandmarks[0])) {
-        setFrames(loadedLandmarks);
-      } else if (loadedLandmarks && typeof loadedLandmarks === 'object') {
-        setFrames([loadedLandmarks]);
-      } else {
-        setFrames([]);
-      }
-
-      setVideoDimensions(loadedDimensions);
-
-      const targetHeight = window.height * 0.7;
-      setHeight(targetHeight);
-      setWidth((loadedDimensions.width / loadedDimensions.height) * targetHeight);
     } catch (e) {
       console.error('Device landmark load failed:', e);
-      setFrames([]);
-      setVideoDimensions({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
     } finally {
       setLoading(false);
     }
@@ -218,10 +209,8 @@ export default function FileList({
       setLoading,
       setLandmarkFiles,
       setSvgFiles,
-      setFiles,
       setSelectedLandmarkFile,
       setSelectedSvgFile,
-      setFrames,
       setSelectedSvgString
     );
 
@@ -238,7 +227,7 @@ export default function FileList({
           LANDMARK FILES
         </Text>
       </View>
-
+      {loading && <ActivityIndicator />}
       {/* Landmark Files List */}
       <List
         items={landmarkFiles}

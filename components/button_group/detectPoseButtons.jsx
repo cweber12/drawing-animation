@@ -1,12 +1,14 @@
 // components/button_group/detectPoseButtons.jsx
 
 import { StyleSheet, View } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { FaStopCircle } from 'react-icons/fa';
 import { BsRecordCircleFill } from "react-icons/bs";
 import { LuInfo } from "react-icons/lu";
 import { FaFileExport } from 'react-icons/fa';
 import HeaderButton from '../button/HeaderButton';
+import { useLandmarks } from '../../context/LandmarksContext';
+import { set } from 'lodash';
 
 /* Header buttons for the DetectPosePage
 --------------------------------------------------------------------------------
@@ -20,12 +22,23 @@ const DetectPoseButtons = ({
     onDetectionStopped,
     onShowPoseInfo, 
     viewMode, 
-    savedLandmarks, 
     isDetecting,
     onHoverTitle,
     onToggleExportOptions,
 }) => {
-
+    
+    /* Landmarks context for determining when to show export button
+    --------------------------------------------------------------------------*/
+    const { processedRef, processedVersion } = useLandmarks();
+    const [newLandmarks, setNewLandmarks] = React.useState([]);
+    const [newMedia, setNewMedia] = React.useState(null);
+    
+    useEffect(() => {
+        setNewLandmarks(processedRef?.current || []); 
+        console.log('DetectPoseButtons useEffect - processedVersion: ', processedVersion);
+        console.log('DetectPoseButtons useEffect - processedRef.current: ', processedRef?.current);
+    }, [processedVersion]);
+    
     return (
         <View style={styles.container}>
             {viewMode === 'replay' && (
@@ -40,7 +53,7 @@ const DetectPoseButtons = ({
                     </HeaderButton>
 
                     {/* EXPORT BUTTON ---------------------------------------*/}
-                    {savedLandmarks && savedLandmarks.length > 0 && (
+                    {newLandmarks && newLandmarks.length > 0 && (
                         <HeaderButton 
                             onPress={onToggleExportOptions}
                             onHoverTitle={onHoverTitle}
@@ -67,6 +80,8 @@ const DetectPoseButtons = ({
                      >
                         <FaStopCircle />
                     </HeaderButton>
+
+                    
                     )}
                 </>
             )}

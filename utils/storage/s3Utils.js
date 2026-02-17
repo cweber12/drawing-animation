@@ -1,5 +1,6 @@
 import { Alert } from 'react-native';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants/Sizes';
+import { useLandmarks } from '../../context/LandmarksContext';
 
 const API_BASE = 'https://kqaq8gwqvl.execute-api.us-east-2.amazonaws.com/prod';
 const BUCKET = 'pose-animations';
@@ -11,25 +12,21 @@ key.split("/").map(encodeURIComponent).join("/");
 export const uploadToS3 = async ({
     landmarks,
     svgs,
-    fileType,
+    dataType, // 'landmarks' or 'svgs'
 }) => {
-    console.log("uploading landmarks to s3: ", landmarks);
-    const videoDimensions = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
-    console.log("uploadToS3 - videoDimensions:", videoDimensions);
 
-    if (fileType === 'json' && (!landmarks || landmarks.length === 0)) {
-        Alert.alert('No landmarks to upload');
-        console.log("No landmarks to upload");
-        if (fileType === 'svg' && (!svgs || svgs.length === 0)) {
-        Alert.alert('No SVGs to upload');
-        console.log("No SVGs to upload");
+    const { setVideoDimensions } = useLandmarks();
+    const videoDimensions = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
+
+    if ((!landmarks || (Array.isArray(landmarks) && landmarks.length === 0)) && 
+    (!svgs || Object.keys(svgs).length === 0)) {
+        alert("No landmarks or SVGs to upload");
         return;
-        }
     }
 
     const bucket = BUCKET;
     const timestamp = Date.now();
-    const key = fileType === 'json' ? `landmarks/${timestamp}.json` : `svgs/${timestamp}.svg`;
+    const key = dataType === 'landmarks' ? `landmarks/${timestamp}.json` : `svgs/${timestamp}.svg`;
     const url = `${API_BASE}/${bucket}/${key}`;
     const landmarkPayload = JSON.stringify({ landmarks, videoDimensions });
     console.log("landmarkPayload:", landmarkPayload);
@@ -37,13 +34,13 @@ export const uploadToS3 = async ({
         const response = await fetch(url, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: fileType === 'json'
+            body: dataType === 'landmarks'
                 ? JSON.stringify({ landmarks, videoDimensions })
                 : JSON.stringify(svgs),
         });
 
         if (response.ok) {
-            Alert.alert('Success', `${fileType === 'json' ? 'Landmarks' : 'SVGs'} uploaded successfully!`);
+            Alert.alert('Success', `${dataType === 'landmarks' ? 'Landmarks' : 'SVGs'} uploaded successfully!`);
             console.log("Upload successful");
         } else {
             Alert.alert('Error', 'Upload failed');
@@ -63,14 +60,10 @@ export const fetchFiles = async (
     setFiles,
     setSelectedLandmarkFile,
     setSelectedSvgFile,
-    setFrames,
-    setSelectedSvgString,
 ) => {
     setLoading(true);
     setSelectedLandmarkFile(null);
     setSelectedSvgFile(null);
-    setFrames([]);
-    setSelectedSvgString(null);
     try {
         const url = `${API_BASE}/${BUCKET}`;
         console.log("Fetching file list from:", url);
@@ -97,19 +90,7 @@ export const fetchFiles = async (
 // Download and parse landmark file
 export const downloadLandmarkFile = async (
     fileKey,
-    setLoading,
-    setSelectedLandmarkFile,
-    setFrames,
-    setCurrentFrame,
-    setVideoDimensions,
-    setHeight,
-    setWidth,
-    window,
 ) => {
-    setLoading(true);
-    setSelectedLandmarkFile(fileKey);
-    setFrames([]);
-    setCurrentFrame(0);
     try {
         const downloadUrl = `${API_BASE}/${BUCKET}/${encodeS3KeyForPath(fileKey)}`;
         const response = await fetch(downloadUrl, { method: "GET" });
@@ -134,38 +115,21 @@ export const downloadLandmarkFile = async (
         }
         }
 
-        if (Array.isArray(loadedLandmarks[0])) {
-        setFrames(loadedLandmarks);
-        } else if (loadedLandmarks && typeof loadedLandmarks === 'object') {
-        setFrames([loadedLandmarks]);
-        } else {
-        setFrames([]);
-        }
-        setVideoDimensions(loadedDimensions);
-        console.log("Downloaded landmark file dimensions:", loadedDimensions);
-        setHeight(window.height * 0.7);
-        setWidth((loadedDimensions.width / loadedDimensions.height) * (window.height * 0.7));
-        console.log("Set width:", (loadedDimensions.width / loadedDimensions.height) * (window.height * 0.7));
-        console.log("Set height:", window.height * 0.7);
+        return { 
+            landmarks: loadedLandmarks, 
+            videoDimensions: loadedDimensions 
+        };
     } catch (err) {
-        setFrames([]);
-        setVideoDimensions({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
-    } finally {
-        setLoading(false);
-    }
+        console.error("Error downloading landmark file:", err);
+        return { 
+            landmarks: [], 
+            videoDimensions: { width: CANVAS_WIDTH, height: CANVAS_HEIGHT } 
+        };
+    } 
 };
 
 // Download SVG file as string
-export const downloadSvgFile = async (
-    fileKey,
-    setLoading,
-    setSelectedSvgFile,
-    setSelectedSvgString,
-    selectedSvgString,
-) => {
-    setLoading(true);
-    setSelectedSvgFile(fileKey);
-    setSelectedSvgString(null);
+export const downloadSvgFile = async ( fileKey ) => {
     try {
         const downloadUrl = `${API_BASE}/${BUCKET}/${encodeS3KeyForPath(fileKey)}`;
         console.log("Downloading SVG from:", downloadUrl);
@@ -173,7 +137,7 @@ export const downloadSvgFile = async (
         console.log("Download response:", response.status);
         if (!response.ok) throw new Error(`Failed: ${response.status}`);
         const text = await response.text();
-        let svgString = text;
+
         console.log('Raw downloaded SVG text:', text);
         let svgObj = {};
         try {
@@ -188,12 +152,9 @@ export const downloadSvgFile = async (
         // If not JSON, do not set selectedSvgString
         svgObj = {};
         }
-        setSelectedSvgString(svgObj);
-        console.log('Downloaded SVG string:', selectedSvgString); 
+        return svgObj;
     } catch (err) {
-        setSelectedSvgString(null);
         console.log("Error downloading SVG file:", err);
-    } finally {
-        setLoading(false);
-    }
+        return {};
+    } 
 };

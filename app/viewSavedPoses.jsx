@@ -32,6 +32,7 @@ import { MdSwitchLeft, MdSwitchRight } from "react-icons/md";
 
 // IMPORTANT: adjust this path if your FileList is in a different folder
 import FileList from '../components/list/FileList';
+import { useLandmarks } from '../context/LandmarksContext';
 
 const ViewSavedPoses = () => {
   const navigation = useNavigation();
@@ -53,21 +54,15 @@ const ViewSavedPoses = () => {
   const [height, setHeight] = useState(CANVAS_HEIGHT);
 
   // Loading and file selection state
-  const [loading, setLoading] = useState(false);
   const [selectedLandmarkFile, setSelectedLandmarkFile] = useState(null);
   const [selectedSvgFile, setSelectedSvgFile] = useState(null);
   const [currentFrame, setCurrentFrame] = useState(0);
 
-  // Lists of files
-  const [files, setFiles] = useState([]);
-
   // Frames and landmark data
   const [frames, setFrames] = useState([]);
   const [scaledFrames, setScaledFrames] = useState([]);
-  const [landmarkFiles, setLandmarkFiles] = useState([]);
 
   // SVG data
-  const [svgFiles, setSvgFiles] = useState([]);
   const [selectedSvgString, setSelectedSvgString] = useState(null);
 
   // Conditional rendering and file loading (S3 or device)
@@ -86,23 +81,6 @@ const ViewSavedPoses = () => {
   /*============================================================================
                                 EFFECTS
   ============================================================================*/
-
-  /* HANDLE ANIMATION PLAYBACK
-  ----------------------------------------------------------------------------*/
-  useEffect(() => {
-    if (!frames.length || frames.length === 1) return;
-
-    if (animationRef.current) clearInterval(animationRef.current);
-
-    setCurrentFrame(0);
-    animationRef.current = setInterval(() => {
-      setCurrentFrame((prev) => (prev + 1) % frames.length);
-    }, 60);
-
-    return () => {
-      if (animationRef.current) clearInterval(animationRef.current);
-    };
-  }, [frames]);
 
   /* UPDATE NAVIGATION PARAMS
   ----------------------------------------------------------------------------*/
@@ -130,6 +108,25 @@ const ViewSavedPoses = () => {
       setScaledFrames([]);
     }
   }, [frames, videoDimensions.width, videoDimensions.height, width, height]);
+
+  /* WRITE SCALED FRAMES TO CONTEXT
+  ----------------------------------------------------------------------------*/
+  const { setProcessed, notifyProcessed } = useLandmarks();
+
+  useEffect(() => {
+    if (!scaledFrames || scaledFrames.length === 0) {
+      // clear processed context if no frames
+      setProcessed([]);
+      notifyProcessed();
+      return;
+    }
+    try {
+      setProcessed(scaledFrames);
+      notifyProcessed();
+    } catch (e) {
+      console.error('Failed to set processed frames in context:', e);
+    }
+  }, [scaledFrames]);
 
   /*============================================================================
                                 RENDER
@@ -212,12 +209,6 @@ const ViewSavedPoses = () => {
 
         <FileList
           // file lists + selections
-          files={files}
-          setFiles={setFiles}
-          landmarkFiles={landmarkFiles}
-          setLandmarkFiles={setLandmarkFiles}
-          svgFiles={svgFiles}
-          setSvgFiles={setSvgFiles}
           selectedLandmarkFile={selectedLandmarkFile}
           setSelectedLandmarkFile={setSelectedLandmarkFile}
           selectedSvgFile={selectedSvgFile}
@@ -237,8 +228,6 @@ const ViewSavedPoses = () => {
           // source mode + loading + cleanup
           showDeviceFiles={showDeviceFiles}
           setShowDeviceFiles={setShowDeviceFiles}
-          loading={loading}
-          setLoading={setLoading}
           animationRef={animationRef}
         />
 
@@ -251,8 +240,6 @@ const ViewSavedPoses = () => {
             justifyContent: 'center',
           }}
         >
-          {loading && <ActivityIndicator />}
-
           {selectedLandmarkFile && selectedSvgString && (
             <SvgCanvas
               width={width}
@@ -260,11 +247,8 @@ const ViewSavedPoses = () => {
               webcamWidth={videoDimensions.width}
               webcamHeight={videoDimensions.height}
               landmarks={null}
-              savedLandmarks={scaledFrames}
               replay={frames.length > 1}
               svgs={selectedSvgString}
-              mapping={ANCHOR_MAP}
-              armOrientation="horizontal"
               debugAnchorsFlag={debugAnchors}
             />
           )}
@@ -273,8 +257,6 @@ const ViewSavedPoses = () => {
             <PoseCanvas
               width={width}
               height={height}
-              landmarks={scaledFrames?.[currentFrame] ?? null}
-              savedLandmarks={scaledFrames}
             />
           )}
         </div>

@@ -29,7 +29,8 @@ export function useSetAnchorsAndDraw({
   imagesRef,
   width,
   height,
-  displayLandmarks,
+  processedLandmarks,
+  processedVersion,
   replay,
   scaleWebcamX,
   scaleWebcamY,
@@ -53,8 +54,8 @@ export function useSetAnchorsAndDraw({
     const debugPipeline = true;    
     if (debugPipeline) console.log('useSetAnchorsAndDraw: start', { 
       width, height, 
-      hasLandmarks: !!displayLandmarks, 
-      landmarkCount: displayLandmarks?.length 
+      hasLandmarks: !!processedLandmarks, 
+      landmarkCount: processedLandmarks?.length 
     });
     
     /* Context Values and Refs
@@ -95,6 +96,7 @@ export function useSetAnchorsAndDraw({
 
     // fallback so startup frames still render
     const renderFront = facingFront || (!facingFront && !facingBack);
+      
     const renderBack = facingBack;
 
     /* Deferred Torso Drawing Setup
@@ -108,13 +110,13 @@ export function useSetAnchorsAndDraw({
 
     /* Validate and Scale Landmarks
     --------------------------------------------------------------------------*/
-    if (!displayLandmarks || displayLandmarks.length === 0) return;
+    if (!processedLandmarks || processedLandmarks.length === 0) return;
 
     let scaledLandmarks = null;
     if (replay) {
-      scaledLandmarks = displayLandmarks;
+      scaledLandmarks = processedLandmarks;
     } else {
-      scaledLandmarks = displayLandmarks.map(kp =>
+      scaledLandmarks = processedLandmarks.map(kp =>
         kp
           ? {
               ...kp,
@@ -128,8 +130,17 @@ export function useSetAnchorsAndDraw({
     /* =========================================================================
                             MAIN LOOP: SET ANCHORS & DRAW PARTS
     ==========================================================================*/
-    for (const [part, img] of Object.entries(images)) {
-      
+    const entries = Object.entries(images);
+      for (let i = 0; i < entries.length; i++) {
+      const [part, img] = entries[i];
+      const nextEntry = entries[i + 1];
+      const nextPart = nextEntry ? nextEntry[0] : null;
+      const nextImg = nextEntry ? nextEntry[1] : null;
+
+      const replaceBackWithFront = 
+        renderBack &&
+        !part.includes('Back') && 
+        !nextPart?.includes('Back');
       try {
 
         /* Fetch/validate anchor indices & corresponding landmarks for this part
@@ -157,6 +168,12 @@ export function useSetAnchorsAndDraw({
         }            
 
         if (debugPipeline) console.log(`Part: ${part}, Anchors:`, anchors);
+
+        // Render front SVG if back is missing
+        const replaceBackWithFront = 
+          renderBack &&
+          !part.includes('Back') && 
+          !nextPart?.includes('Back');
        
         /* Determine part type & direction (front/back) 
         ----------------------------------------------------------------------*/
@@ -167,19 +184,29 @@ export function useSetAnchorsAndDraw({
         const isFrontTorso = part === 'torso';
         const isBackTorso = part === 'torsoBack';
         // Arms
-        const isFrontArm = part === 'leftUpperArm' || part === 'rightUpperArm' || 
-          part === 'leftLowerArm' || part === 'rightLowerArm';
-        const isBackArm = part === 'leftUpperArmBack' || 
-          part === 'rightUpperArmBack' || part === 'leftLowerArmBack' || 
+        const isFrontArm = 
+          part === 'leftUpperArm' || 
+          part === 'rightUpperArm' || 
+          part === 'leftLowerArm' || 
+          part === 'rightLowerArm';
+        const isBackArm = 
+          part === 'leftUpperArmBack' || 
+          part === 'rightUpperArmBack' || 
+          part === 'leftLowerArmBack' || 
           part === 'rightLowerArmBack';
         // Hands
         const isFrontHand = part === 'leftHand' || part === 'rightHand';
         const isBackHand = part === 'leftHandBack' || part === 'rightHandBack';
         // Legs
-        const isFrontLeg = part === 'leftUpperLeg' || part === 'rightUpperLeg' || 
-          part === 'leftLowerLeg' || part === 'rightLowerLeg';
-        const isBackLeg = part === 'leftUpperLegBack' || 
-          part === 'rightUpperLegBack' || part === 'leftLowerLegBack' || 
+        const isFrontLeg = 
+          part === 'leftUpperLeg' || 
+          part === 'rightUpperLeg' || 
+          part === 'leftLowerLeg' || 
+          part === 'rightLowerLeg';
+        const isBackLeg = 
+          part === 'leftUpperLegBack' || 
+          part === 'rightUpperLegBack' || 
+          part === 'leftLowerLegBack' || 
           part === 'rightLowerLegBack';
         // Feet
         const isFrontFoot = part === 'leftFoot' || part === 'rightFoot';
@@ -193,7 +220,7 @@ export function useSetAnchorsAndDraw({
         /* TORSO 
         ----------------------------------------------------------------------*/
         if (
-          ((isFrontTorso && renderFront) ||
+          ((isFrontTorso && (renderFront || replaceBackWithFront)) ||
           (isBackTorso && renderBack)) &&
           map.topLeft !== undefined && map.topRight !== undefined &&
           map.bottomLeft !== undefined && map.bottomRight !== undefined
@@ -246,7 +273,7 @@ export function useSetAnchorsAndDraw({
         /* HEAD
         ----------------------------------------------------------------------*/
         if (
-          ((isFrontHead && renderFront) ||
+          ((isFrontHead && (renderFront || replaceBackWithFront)) ||
           (isBackHead && renderBack)) &&
           map.leftAnchor !== undefined &&
           map.rightAnchor !== undefined
@@ -289,7 +316,7 @@ export function useSetAnchorsAndDraw({
         /* ARMS
         ----------------------------------------------------------------------*/
         if (
-          ((isFrontArm && renderFront) ||
+          ((isFrontArm && (renderFront || replaceBackWithFront)) ||
           (isBackArm && renderBack)) &&
           map.start !== undefined && map.end !== undefined
         ) {
@@ -336,7 +363,7 @@ export function useSetAnchorsAndDraw({
         /* HANDS
         ----------------------------------------------------------------------*/
         if (
-          ((isFrontHand && renderFront) || (isBackHand && renderBack)) &&    
+          ((isFrontHand && (renderFront || replaceBackWithFront)) || (isBackHand && renderBack)) &&    
           map.start !== undefined && map.end !== undefined
         ) {
           const { w: svgW, h: svgH } = getSvgSize(img);
@@ -388,7 +415,7 @@ export function useSetAnchorsAndDraw({
         /* LEGS
         ----------------------------------------------------------------------*/
         if (
-          ((isFrontLeg && renderFront) || (isBackLeg && renderBack)) && 
+          ((isFrontLeg && (renderFront || replaceBackWithFront)) || (isBackLeg && renderBack)) && 
           (map.start !== undefined && map.end !== undefined)
         ) {
           if (debugPipeline) console.log('SETTING ANCHORS: ', part);
@@ -434,7 +461,7 @@ export function useSetAnchorsAndDraw({
 
         /* FEET 
         ======================================================================*/
-        if (((isFrontFoot && renderFront) || (isBackFoot && renderBack)) &&
+        if (((isFrontFoot && (renderFront || replaceBackWithFront)) || (isBackFoot && renderBack)) &&
           map.start !== undefined && map.end !== undefined
         ) {
           if (debugPipeline) console.log('SETTING ANCHORS: ', part);
@@ -491,7 +518,8 @@ export function useSetAnchorsAndDraw({
     }
 
   }, [
-    displayLandmarks,
+    processedLandmarks,
+    processedVersion,
     width, height,
     scaleWebcamX, scaleWebcamY,
     svgs,
