@@ -74,7 +74,6 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 8,
         padding: 0,
         gap: "0.2rem",
-        backgroundColor: 'rgba(0,0,0,0.25)',
         backdropFilter: 'blur(6px)', 
     },
 

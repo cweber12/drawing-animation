@@ -51,7 +51,7 @@ export function useSetAnchorsAndDraw({
   
   useEffect(() => {
     
-    const debugPipeline = true;    
+    const debugPipeline = false;    
     if (debugPipeline) console.log('useSetAnchorsAndDraw: start', { 
       width, height, 
       hasLandmarks: !!processedLandmarks, 

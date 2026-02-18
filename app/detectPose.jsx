@@ -43,8 +43,6 @@ const DetectPose = () => {
   const navigation = useNavigation(); 
   const params = useLocalSearchParams();
 
-  const {processedRef, processedVersion} = useLandmarks();
-
   const { width: webcamWidth, height: webcamHeight } = getWebcamDimensions();
 
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};

@@ -6,16 +6,15 @@
   box-sizing: border-box;
   position: absolute;
   font-family: 'Segoe UI';
-  top: 20;
-  right: 0;
+  top: 60;
+  left: 24;
   width: 320px;
   height: auto;
   padding: 12px;
   z-index: 10;
   pointer-events: auto;
-  background: rgba(0,0,0,0.15);
   backdrop-filter: blur(6px);
-  border-bottom-left-radius: 8px;
+  border-radius: 8px;
 }
 
 .sketch-controls > * {

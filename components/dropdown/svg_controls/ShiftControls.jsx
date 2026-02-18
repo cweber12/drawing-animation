@@ -10,7 +10,7 @@ import {
     StyleSheet,
 } from 'react-native';
 import './Controls.css';
-import { list } from '@aws-amplify/storage';
+import ListTile from './ListTile';
 
 const BODY_PARTS = [
     { id: 'torsoShift', label: 'Torso' },
@@ -37,43 +37,29 @@ export default function ShiftControls() {
     updateFactor(selected, next);
   }
 
+  const mainViewStyle = {
+    ...styles.mainWrapper,
+    backgroundColor: theme.listItemBackground,
+  };
+
+  const textStyle = {
+    ...styles.text,
+    color: theme.text,
+  };
+
   return (
     <View
-        style={{ 
-            ...styles.mainWrapper,
-            backgroundColor: theme.listItemBackground,
-            }}>
-        <View style={{maxHeight: 300, overflowY: 'auto'}}>
+        style={mainViewStyle}>
+        <View style={styles.list}>
             {BODY_PARTS.map((p) => {
                 const isSelected = selected === p.id;
                 return (
-                <TouchableOpacity
-                    key={p.id}
+                <ListTile
                     onPress={() => setSelected(p.id)}
-                    onMouseEnter={(e) => (
-                        e.currentTarget.style.backgroundColor = isSelected ? theme.actionButtonHover : theme.listItemBackgroundHover,
-                        e.currentTarget.style.color = isSelected ? theme.actionButtonText : theme.text
-                    )}
-                    onMouseLeave={(e) => (
-                        e.currentTarget.style.backgroundColor = isSelected ? theme.actionButton : 'transparent',
-                        e.currentTarget.style.color = isSelected ? theme.actionButtonText : theme.text
-                    )}
-                    style={[
-                        styles.button,
-                        {
-                            backgroundColor: isSelected ? theme.actionButton : 'transparent',
-                        },
-                    ]}
-                    activeOpacity={0.7}
+                    selected={isSelected}
                 >
-                    <Text
-                        style={[
-                            styles.buttonText, 
-                            {color: isSelected ? theme.actionButtonText : theme.text,}
-                        ]}>
-                    {p.label}
-                    </Text>
-                </TouchableOpacity>
+                    <Text style={[textStyle, { color: isSelected ? theme.listItemBackgroundPressed : theme.text }]}> {p.label} </Text>
+                </ListTile>
                 );
             })}
         </View>
@@ -118,6 +104,14 @@ const styles = StyleSheet.create({
         flexDirection: 'column', 
         gap: 12,
         minWidth: 240,
+        borderRadius: 8,
+    },
+
+    list: {
+        display: 'flex',
+        flexDirection: 'column',
+        padding: 12,
+        gap: 6,
     },
 
     button: {
@@ -131,13 +125,9 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
     },
 
-    buttonText: {
-        fontFamily: 'Segoe UI',
-        fontSize: 18,
-    },
-
     text: {
         fontFamily: 'Segoe UI',
+        fontSize: 18,
     },
 
     sliders: {

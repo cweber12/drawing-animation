@@ -11,7 +11,7 @@ const DropdownSelect = ({ children, onPress }) => {
         <TouchableOpacity 
             style={[
                 styles.optionButton, 
-                { backgroundColor: hovered ? theme.navBackground : 'transparent' }
+                { backgroundColor: hovered ? theme.listItemBackgroundHover : theme.listItemBackground }
             ]}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}

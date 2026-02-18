@@ -93,6 +93,11 @@ export default function FileList({
     setLoading(true);
     setSelectedSvgFile(fileKey);
     setSelectedSvgString(null);
+    if (fileKey === selectedSvgFile) {
+      setSelectedSvgFile(null);
+      setLoading(false);
+      return;
+    }
 
     try {
       // S3
@@ -197,6 +202,12 @@ export default function FileList({
     }
   }
 
+  useEffect(() => {
+    if (landmarkFiles.length > 0 && !selectedLandmarkFile) {
+      setSelectedLandmarkFile(landmarkFiles[0]);
+    }
+  }, [landmarkFiles, selectedLandmarkFile]);
+
   /* LOAD FILES WHEN SOURCE MODE CHANGES
   ----------------------------------------------------------------------------*/
   useEffect(() => {
@@ -221,8 +232,8 @@ export default function FileList({
   }, [showDeviceFiles]);
 
   return (
-    <View style={[styles.listWrapper, { backgroundColor: theme.listItemBackground }]}>
-      <View style={[styles.listHeader, { backgroundColor: theme.listItemBackgroundPressed }]}>
+    <View style={styles.listWrapper}>
+      <View style={styles.listHeader}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>
           LANDMARK FILES
         </Text>
@@ -234,9 +245,7 @@ export default function FileList({
         selectedItem={selectedLandmarkFile}
         onSelect={handleSelectLandmarkFile}
         keyExtractor={(item) => item}
-        itemStyle={{}}
         selectedItemStyle={{ backgroundColor: theme.actionButton }}
-        listStyle={{}}
         renderItemContent={(item) => (
           <Text style={[styles.listItemText, { color: item === selectedLandmarkFile ? theme.actionButtonText : theme.text }]}>
             {item}
@@ -246,7 +255,7 @@ export default function FileList({
 
       {selectedLandmarkFile && (
         <>
-          <View style={[styles.listHeader, { backgroundColor: theme.listItemBackgroundPressed }]}>
+          <View style={styles.listHeader}>
             <Text style={[styles.headerTitle, { color: theme.text }]}>
               SVG IMAGE FILES
             </Text>
@@ -258,7 +267,6 @@ export default function FileList({
             selectedItem={selectedSvgFile}
             onSelect={handleSelectSvgFile}
             keyExtractor={(item) => item}
-            itemStyle={{}}
             selectedItemStyle={{ backgroundColor: theme.actionButton }}
             renderItemContent={(item) => (
               <Text style={[styles.listItemText, { color: item === selectedSvgFile ? theme.actionButtonText : theme.text }]}>
@@ -276,14 +284,15 @@ const styles = StyleSheet.create({
     listWrapper: {
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'flex-start',
+            alignItems: 'flex-end',
             justifyContent: 'flex-start',
+            padding: 12,
     },
 
     listHeader: {
         flexDirection: 'row',
         alignItems: 'flex-end',
-        justifyContent: 'flex-start',
+        justifyContent: 'flex-end',
         width: '100%',
         padding: 12,
     },

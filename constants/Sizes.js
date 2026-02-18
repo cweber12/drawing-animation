@@ -22,7 +22,7 @@ export const isSmallScreen = width < 600;
 ==============================================================================*/
 // Canvas holding all svgs
 export const CANVAS_WIDTH = width * 0.9;
-export const CANVAS_HEIGHT = height * 0.88;
+export const CANVAS_HEIGHT = height * 0.75;
 
 // border radius for individual svgs
 export const CANVAS_BORDER_RADIUS = 50;

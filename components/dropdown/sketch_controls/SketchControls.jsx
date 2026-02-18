@@ -17,7 +17,7 @@ const SketchControls = ({
     const theme = Colors[colorScheme] ?? Colors.light;
 
 return (
-    <div className="sketch-controls">
+    <div className="sketch-controls" style={{ backgroundColor: theme.dropdownBackground }}>
         <div className="header"
             style={{ 
                 color: theme.text,

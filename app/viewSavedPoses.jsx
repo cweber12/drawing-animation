@@ -137,7 +137,7 @@ const ViewSavedPoses = () => {
         <View 
           style={{ 
             flexDirection: 'column',  
-            minWidth: 240, position: 'absolute', top: 24, right: 24, zIndex: 10
+            minWidth: 240, position: 'absolute', top: 24, right: 24, zIndex: 10,
             }}>
             <View 
               style={{ 
@@ -145,15 +145,15 @@ const ViewSavedPoses = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: 8, 
-                backgroundColor: theme.listItemBackgroundPressed,
                 }}>
               <Text 
                 style={{ 
                   color: theme.text, 
                   fontFamily: 'Segoe UI', 
-                  fontSize: 16 
+                  fontSize: 18, 
+                  fontWeight: 'bold'
                   }}>
-                {showShiftControls ? 'Shift Anchors' : 'Scale Parts'}
+                {showShiftControls ? 'SHIFT' : 'SCALE'}
               </Text>
               <TouchableOpacity
                 onPress={() => (
@@ -207,30 +207,6 @@ const ViewSavedPoses = () => {
           </TouchableOpacity>
         </View>
 
-        <FileList
-          // file lists + selections
-          selectedLandmarkFile={selectedLandmarkFile}
-          setSelectedLandmarkFile={setSelectedLandmarkFile}
-          selectedSvgFile={selectedSvgFile}
-          setSelectedSvgFile={setSelectedSvgFile}
-          selectedSvgString={selectedSvgString}
-          setSelectedSvgString={setSelectedSvgString}
-          // frames/canvas/video state
-          frames={frames}
-          setFrames={setFrames}
-          currentFrame={currentFrame}
-          setCurrentFrame={setCurrentFrame}
-          videoDimensions={videoDimensions}
-          setVideoDimensions={setVideoDimensions}
-          setHeight={setHeight}
-          setWidth={setWidth}
-          window={window}
-          // source mode + loading + cleanup
-          showDeviceFiles={showDeviceFiles}
-          setShowDeviceFiles={setShowDeviceFiles}
-          animationRef={animationRef}
-        />
-
         {/* Canvas Area */}
         <div
           style={{
@@ -260,6 +236,37 @@ const ViewSavedPoses = () => {
             />
           )}
         </div>
+
+        <View 
+        style={{ 
+          flexDirection: 'column', alignItems: 'center', 
+          justifyContent: 'center', gap: 12, 
+          position: 'absolute', top: 24, left: 24, zIndex: 10,
+          }}>
+        <FileList
+            // file lists + selections
+            selectedLandmarkFile={selectedLandmarkFile}
+            setSelectedLandmarkFile={setSelectedLandmarkFile}
+            selectedSvgFile={selectedSvgFile}
+            setSelectedSvgFile={setSelectedSvgFile}
+            selectedSvgString={selectedSvgString}
+            setSelectedSvgString={setSelectedSvgString}
+            // frames/canvas/video state
+            frames={frames}
+            setFrames={setFrames}
+            currentFrame={currentFrame}
+            setCurrentFrame={setCurrentFrame}
+            videoDimensions={videoDimensions}
+            setVideoDimensions={setVideoDimensions}
+            setHeight={setHeight}
+            setWidth={setWidth}
+            window={window}
+            // source mode + loading + cleanup
+            showDeviceFiles={showDeviceFiles}
+            setShowDeviceFiles={setShowDeviceFiles}
+            animationRef={animationRef}
+          />
+        </View>
       </ThemedView>
   );
 };
@@ -271,6 +278,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-start',
+    justifyContent: 'space-between',
     padding: 24,
   },
 });

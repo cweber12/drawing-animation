@@ -74,7 +74,7 @@ const RootLayout = () => {
                     name="detectPose"
                     options={({ route }) => ({
                         title: route.params?.viewMode === 'svg' ? 'Live Animation' : 'Create Animation',
-                        headerRight: () => (                         
+                        headerLeft: () => (                         
                                 <DetectPoseButtons
                                     viewMode={route.params?.viewMode}
                                     showPoseAnimation={route.params?.showPoseAnimation}
@@ -87,7 +87,7 @@ const RootLayout = () => {
                                     onHoverTitle={(title) => setHeaderTitle(title)}
                                     onToggleExportOptions={route.params?.onToggleExportOptions} />
                         ),
-                        headerLeft: () => (
+                        headerRight: () => (
                                 <HomeButton />                               
                         ),
                     })}
@@ -96,7 +96,7 @@ const RootLayout = () => {
                     name="sketchPage"
                     options={({ route }) => ({
                         title: headerTitle,
-                        headerRight: () => (   
+                        headerLeft: () => (   
                                 <SketchButtons
                                     eraseMode={route.params?.eraseMode}
                                     strokeColor={route.params?.strokeColor}
@@ -110,7 +110,7 @@ const RootLayout = () => {
                                     onToggleExportOptions={route.params?.onToggleExportOptions}
                                     onToggleSettings={route.params?.onToggleSettings} />
                         ),
-                        headerLeft: () => (
+                        headerRight: () => (
                                 <HomeButton />    
                         ),
                     })}
@@ -119,17 +119,17 @@ const RootLayout = () => {
                     name="viewSavedPoses" 
                     options={({ route }) => ({ 
                         title: '' ,
-                        headerLeft: () => (
-                        <>
-                        <HomeButton />
-                        <ViewSavedButtons
-                            showDeviceFiles={route.params?.showDeviceFiles}
-                            onSetShowDeviceFiles={route.params?.onSetShowDeviceFiles}
-                            onHoverTitle={(title) => setHeaderTitle(title)}
-                            title={route.params?.title || 'Saved Animations'} />
-                        </>
-                    ),
-                })}
+                        headerLeft: () => (                       
+                            <ViewSavedButtons
+                                showDeviceFiles={route.params?.showDeviceFiles}
+                                onSetShowDeviceFiles={route.params?.onSetShowDeviceFiles}
+                                onHoverTitle={(title) => setHeaderTitle(title)}
+                                title={route.params?.title || 'Saved Animations'} />     
+                        ),
+                        headerRight: () => (
+                                <HomeButton />
+                        )
+                    })}
 
                 />
             </Stack>

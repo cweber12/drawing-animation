@@ -1,4 +1,4 @@
-import { View, Pressable, Stylesheet } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { Link } from 'expo-router';
 import React from 'react';
 import { Colors } from '../../constants/Colors';
@@ -30,7 +30,7 @@ const LinkButton = ({ children, href, params }) => {
           cursor: 'pointer',
           transition: 'all 0.15s cubic-bezier(.4,0,.2,1)',
           backgroundColor: pressed ? theme.buttonPressed : (hovered ? theme.buttonHover : theme.button),
-          border: `5px solid ${theme.buttonText}`,
+          border: `1px solid ${theme.buttonPressed}`,
           color: theme.buttonText,
           width: pressed ? 330 : 340,
           height: pressed ? 64 : 68,
@@ -43,3 +43,4 @@ const LinkButton = ({ children, href, params }) => {
 };
 
 export default LinkButton;
+

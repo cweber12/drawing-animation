@@ -118,7 +118,7 @@ const SketchButtons = ({
         }}
         setHoveredProp={setHoveredAnimate}
         title="ANIMATE"
-        size={getIconSize() * 2}
+        size={getIconSize() * 1.5}
       >
         <GiRaiseZombie 
           style={{

@@ -1,4 +1,4 @@
-import { View, StyleSheet, Text, useColorScheme } from 'react-native';
+import { View, StyleSheet, Text, useColorScheme, TouchableOpacity } from 'react-native';
 import React from 'react';
 import { FaRotate } from "react-icons/fa6";
 import HeaderButton from '../button/HeaderButton';
@@ -14,31 +14,40 @@ const ViewSavedButtons = ({
 }) => {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
+  const [hovered, setHovered] = React.useState(false);
+  const buttonStyle = {
+    ...styles.button,
+    backgroundColor: hovered ? theme.blueHovered : theme.blue,
+  };
 
     return (
     <View style={styles.container}>
         {/* TOGGLE VIEW BUTTON -------------------------------------------------------*/}
-        {showDeviceFiles ? (
-            <Text style={[styles.text, {color: theme.text}]}>Load Examples</Text>
-        ) : (
-            <Text style={[styles.text, {color: theme.text}]}>Load from Device</Text>
-        )}
-        <HeaderButton
-        style={{ marginRight: 20 }}
-        onPress={onSetShowDeviceFiles}
-        onHoverTitle={onHoverTitle}
-        title={title.toUpperCase()}
+        
+        <TouchableOpacity
+            style={buttonStyle}
+            onPress={onSetShowDeviceFiles}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            onHoverTitle={onHoverTitle}
+            title={title.toUpperCase()}
         >
         {showDeviceFiles ? (
             <RiDownloadCloud2Line
-                size={32}
+                size={24}
             />
         ) : (
             <LuHardDriveUpload
-                size={32}
+                size={24}
             />
         )}
-        </HeaderButton>
+        
+        {showDeviceFiles ? (
+            <Text style={[styles.text, {color: theme.listItemBackgroundPressed}]}>Load from Cloud</Text>
+        ) : (
+            <Text style={[styles.text, {color: theme.listItemBackgroundPressed}]}>Load from Device</Text>
+        )}
+        </TouchableOpacity>
     </View>
   );
 }
@@ -48,8 +57,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    padding: 10,
-    marginLeft: 20,
+    marginLeft: 24,
+  },
+
+  button: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+
   },
 
   text: {

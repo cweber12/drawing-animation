@@ -12,7 +12,7 @@ const SketchInfo = () => {
     <View style={[
         styles.poseInfo,
         { 
-            backgroundColor: "#DDDDDD", 
+            backgroundColor: theme.dropdownBackground, 
             color: theme.text
         }
     ]}>
@@ -47,7 +47,6 @@ const styles = StyleSheet.create({
         maxWidth: "30vw",
         padding: 10,
         zIndex: 1000,
-        backgroundColor: 'rgba(0,0,0,0.25)',
         backdropFilter: 'blur(6px)',
         padding: '1rem',
         borderBottomLeftRadius: 10,

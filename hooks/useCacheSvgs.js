@@ -156,12 +156,12 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
             svgToSend = addSvgOpacityGradient(svgToSend, {
               direction: 'topToBottom',
               stops: [
-                { offset: 0.0, opacity: 0.0 },
-                { offset: 0.1, opacity: 0.25 },
+                { offset: 0.0, opacity: 0.25},
+                { offset: 0.1, opacity: 0.5 },
                 { offset: 0.15, opacity: 1.0 },
                 { offset: 0.85, opacity: 1.0 },
-                { offset: 0.9, opacity: 0.25 },
-                { offset: 1.0, opacity: 0.0 },
+                { offset: 0.9, opacity: 0.5 },
+                { offset: 1.0, opacity: 0.25 },
               ],
               idSuffix: '_lua'
             });
