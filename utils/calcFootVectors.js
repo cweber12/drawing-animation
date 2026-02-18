@@ -41,10 +41,26 @@ export function addFeetFromHipKneeVectors(landmarksArray, opts = {}) {
   let accumulatedHipWidth = 0;
 
   // Process each frame of landmarks
+  // Track global bounds across all frames so we can return a single cropped size
+  let xMax = -Infinity, yMax = -Infinity, xMin = Infinity, yMin = Infinity;
   for (let i = 0; i < landmarksArray.length; i++) {
     const lm = landmarksArray[i];
     if (!Array.isArray(lm)) continue;
 
+    // Per-frame temp bounds (used to compute this frame's points)
+    let frameXMax = -Infinity, frameYMax = -Infinity, frameXMin = Infinity, frameYMin = Infinity;
+    for (let j = 0; j < 17; j++) {
+      if (!lm[j] || typeof lm[j].x !== 'number' || typeof lm[j].y !== 'number') {
+        continue;
+      } else {
+        frameXMax = Math.max(frameXMax, lm[j].x);
+        frameYMax = Math.max(frameYMax, lm[j].y);
+        frameXMin = Math.min(frameXMin, lm[j].x);
+        frameYMin = Math.min(frameYMin, lm[j].y);
+      }
+
+    }
+    
     // Extract relevant landmarks
     const leftHip = lm[11];
     const rightHip = lm[12];
@@ -112,7 +128,14 @@ export function addFeetFromHipKneeVectors(landmarksArray, opts = {}) {
       y: rightAnkle.y + rightDir.y * rightFootLen,
       score,
     };
+    // Update global bounds with this frame's bounds and newly added foot points
+    xMax = Math.max(xMax, frameXMax, lm[17].x, lm[18].x);
+    yMax = Math.max(yMax, frameYMax, lm[17].y, lm[18].y);
+    xMin = Math.min(xMin, frameXMin, lm[17].x, lm[18].x);
+    yMin = Math.min(yMin, frameYMin, lm[17].y, lm[18].y);
   }
 
-  return landmarksArray;
+  const croppedWidth = (xMax - xMin) + (0.1 * (xMax - xMin)); 
+  const croppedHeight = (yMax - yMin) + (0.1 * (yMax - yMin)); 
+  return { landmarksArray, croppedWidth, croppedHeight };
 }

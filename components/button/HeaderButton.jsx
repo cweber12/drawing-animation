@@ -32,7 +32,7 @@ const HeaderButton = ({
     const [pressed, setPressed] = React.useState(false);
     const [iconSize, setIconSize] = React.useState(size ?? getIconSize());
 
-    const iconColor = hovered ? theme.buttonHover : theme.button;
+    const iconColor = hovered ? theme.icon : theme.iconHover;
     
 
     useEffect(() => {

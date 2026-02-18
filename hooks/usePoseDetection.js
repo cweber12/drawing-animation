@@ -57,10 +57,13 @@ export function usePoseDetection({
   useEffect(() => {
     if (!isDetecting && cachedLandmarks?.length) {
       const smoothedLandmarks = smoothAndInterpolateLandmarks(cachedLandmarks, 5, 1);
-      const estimatedLandmarks = addFeetFromHipKneeVectors(smoothedLandmarks);
+      const { 
+        landmarksArray: estimatedLandmarks, 
+        croppedWidth, 
+        croppedHeight } = addFeetFromHipKneeVectors(smoothedLandmarks);
       console.log('usePoseDetection: setting original landmarks, ', cachedLandmarks);
       setProcessed(estimatedLandmarks);
-      setDimensions(naturalVideoWidth, naturalVideoHeight);
+      setDimensions(croppedWidth, croppedHeight);
       notifyProcessed();   
       console.log('usePoseDetection: setting processed landmarks, ', estimatedLandmarks);
       setCachedLandmarks([]);          
