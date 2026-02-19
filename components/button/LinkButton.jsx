@@ -22,7 +22,8 @@ const LinkButton = ({ children, href, params }) => {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-evenly',
-          padding: 10,
+          paddingVertical: 12,
+          paddingHorizontal: 24,
           borderRadius: 10,
           marginBottom: 10,
           fontFamily: 'Segoe UI',
@@ -32,8 +33,7 @@ const LinkButton = ({ children, href, params }) => {
           backgroundColor: pressed ? theme.buttonPressed : (hovered ? theme.buttonHover : theme.button),
           border: `1px solid ${theme.buttonPressed}`,
           color: theme.buttonText,
-          width: pressed ? 330 : 340,
-          height: pressed ? 64 : 68,
+          height: pressed ? 54 : 58,
           fontSize: pressed ? 18 : 20,
           }}>
         {children} 

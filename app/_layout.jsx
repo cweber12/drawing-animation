@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useColorScheme,  useWindowDimensions } from 'react-native'
+import { useColorScheme,  useWindowDimensions, Image } from 'react-native'
 import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native-web'
@@ -24,11 +24,11 @@ const HomeButton = () => {
     const [hoveredHome, setHoveredHome] = useState(false);
 
     return (
-        <View style={{ marginLeft: "2rem" }}>
+        <View >
             <HeaderButton  onPress={() => router.replace('/')} >
                 <FaHouseDamage 
-                    size={28} 
-                    color={hoveredHome ? theme.actionButtonHovered : theme.actionButton} 
+                    size={32} 
+                    color={hoveredHome ? theme.greenHover : theme.green} 
                     onMouseEnter={() => setHoveredHome(true)} 
                     onMouseLeave={() => setHoveredHome(false)}
                 />
@@ -48,6 +48,11 @@ const RootLayout = () => {
     const { width } = useWindowDimensions();
     const isSmallScreen = width < 600;
     const [headerTitle, setHeaderTitle] = useState('');
+    const logoSource =
+        colorScheme === "dark"
+        ? require("../assets/icon-dark.png")
+        : require("../assets/icon-light.png");
+    const logoHeight = isSmallScreen ? 48 : 62; // Adjust logo size based on screen width
     return (
         <>
         <ShiftFactorsProvider>
@@ -61,11 +66,11 @@ const RootLayout = () => {
                     borderBottomWidth: 0,
                     elevation: 0, // remove shadow on Android
                     shadowOpacity: 0, // remove shadow on iOS
-                    height: isSmallScreen ? 60 : 80,
+                    height: isSmallScreen ? 52 : 68,
                 },
                 headerTintColor: theme.title,
                 headerTitleStyle: {
-                    fontSize: isSmallScreen ? 24 : 32, 
+                    fontSize: isSmallScreen ? 16 : 20, 
                     fontFamily: 'Segoe UI',
                 },
                 }}>
@@ -74,7 +79,18 @@ const RootLayout = () => {
                     name="detectPose"
                     options={({ route }) => ({
                         title: route.params?.viewMode === 'svg' ? 'Live Animation' : 'Create Animation',
-                        headerLeft: () => (                         
+                        headerLeft: () => ( 
+                            <>
+                                <Image
+                                    source={logoSource}
+                                    style={{ 
+                                        width: logoHeight * (2), 
+                                        height: logoHeight, 
+                                        marginLeft: 12,
+
+                                    }}
+                                    resizeMode="contain"
+                                />                        
                                 <DetectPoseButtons
                                     viewMode={route.params?.viewMode}
                                     showPoseAnimation={route.params?.showPoseAnimation}
@@ -86,6 +102,7 @@ const RootLayout = () => {
                                     isDetecting={route.params?.isDetecting}
                                     onHoverTitle={(title) => setHeaderTitle(title)}
                                     onToggleExportOptions={route.params?.onToggleExportOptions} />
+                        </> 
                         ),
                         headerRight: () => (
                                 <HomeButton />                               
@@ -96,39 +113,43 @@ const RootLayout = () => {
                     name="sketchPage"
                     options={({ route }) => ({
                         title: headerTitle,
-                        headerLeft: () => (   
-                                <SketchButtons
-                                    eraseMode={route.params?.eraseMode}
-                                    strokeColor={route.params?.strokeColor}
-                                    onClear={route.params?.onClear}
-                                    setEraseMode={route.params?.setEraseMode}
-                                    onShowSketchInfo={route.params?.onShowSketchInfo}
-                                    onHoverTitle={(title) => setHeaderTitle(title)}
-                                    onExportAll={route.params?.onExportAll}
-                                    onShowDetectPoseOptions={route.params?.onShowDetectPoseOptions}
-                                    svgData={route.params?.svgData}
-                                    onToggleExportOptions={route.params?.onToggleExportOptions}
-                                    onToggleSettings={route.params?.onToggleSettings} />
+                        headerLeft: () => (
+        
+                            <Image
+                                source={logoSource}
+                                style={{ 
+                                    width: logoHeight * (2), 
+                                    height: logoHeight, 
+                                    marginLeft: 12,
+
+                                }}
+                                resizeMode="contain"
+                            />
                         ),
-                        headerRight: () => (
-                                <HomeButton />    
+
+                          headerRight: () => (
+                                <HomeButton />                               
                         ),
+                        
+                     
                     })}
                 />
                 <Stack.Screen 
                     name="viewSavedPoses" 
                     options={({ route }) => ({ 
                         title: '' ,
-                        headerLeft: () => (                       
-                            <ViewSavedButtons
-                                showDeviceFiles={route.params?.showDeviceFiles}
-                                onSetShowDeviceFiles={route.params?.onSetShowDeviceFiles}
-                                onHoverTitle={(title) => setHeaderTitle(title)}
-                                title={route.params?.title || 'Saved Animations'} />     
-                        ),
-                        headerRight: () => (
-                                <HomeButton />
-                        )
+                        headerLeft: () => (   
+                            <>   
+                                <HomeButton />                 
+                                <ViewSavedButtons
+                                    showDeviceFiles={route.params?.showDeviceFiles}
+                                    onSetShowDeviceFiles={route.params?.onSetShowDeviceFiles}
+                                    onHoverTitle={(title) => setHeaderTitle(title)}
+                                    title={route.params?.title || 'Saved Animations'} />     
+                
+                            </>
+                            ),
+               
                     })}
 
                 />

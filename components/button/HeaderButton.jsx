@@ -19,9 +19,7 @@ const HeaderButton = ({
     children, 
     style, 
     onPress, 
-    onHoverTitle, 
     setHoveredProp,
-    title, 
     size, 
     disabled, 
     selected
@@ -32,7 +30,7 @@ const HeaderButton = ({
     const [pressed, setPressed] = React.useState(false);
     const [iconSize, setIconSize] = React.useState(size ?? getIconSize());
 
-    const iconColor = hovered ? theme.icon : theme.iconHover;
+    const iconColor = hovered ? theme.iconHover : theme.icon;
     
 
     useEffect(() => {
@@ -55,12 +53,10 @@ const HeaderButton = ({
             onMouseEnter={() => {
                 setHovered(true);
                 setHoveredProp && setHoveredProp(true);
-                onHoverTitle && onHoverTitle(title);
             }}
             onMouseLeave={() => {
             setHovered(false);
             setHoveredProp && setHoveredProp(false);
-            onHoverTitle && onHoverTitle('');
             }}
             onPressIn={() => setPressed(true)}
             onPressOut={() => setPressed(false)}
@@ -68,7 +64,7 @@ const HeaderButton = ({
             {React.cloneElement(
                 children, 
                 {
-                    color: disabled ? theme.text : iconColor, 
+                    color: disabled ? theme.actionButton : iconColor, 
                     size: iconSize,
                 }
                 )}

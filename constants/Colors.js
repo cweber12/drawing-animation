@@ -13,8 +13,8 @@ export const Colors = {
 
         text: "#FEFBE2",
         title: "#A4D100",
-        background: "#362F4F",
-        navBackground: "#000000",
+        background: "#1b1f07",
+        navBackground: "#362F4F",
         controlsBackground: "rgba(0,0,0,0.5)",
         dropdownBackground: "rgba(0,0,0,0.75)",
         
@@ -34,12 +34,12 @@ export const Colors = {
         actionButtonHover: "#779800",
         actionButtonPressed: "#457a00",
         
-        icon: "#008BFF",
-        iconHover: "#0060ae",
+        icon: "#ffffff",
+        iconHover: "#bbbbbb",
         stopButton: "#FF4500",
         homeButton: "#0A0A0A",
          
-        svgStrokeColor: "#ffffffff",
+        svgStrokeColor: "#eeeeee",
         canvasBackground: "rgba(0,0,0,0.5)",
         colorPickerDefault: "white",
         

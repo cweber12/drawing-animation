@@ -33,6 +33,7 @@ import SvgCanvas from '../components/canvas/SvgCanvas';
 import PoseCanvas from '../components/canvas/PoseCanvas';
 import ExportLandmarkDropdown from '../components/dropdown/select/ExportLandmarkDropdown';
 import PoseInfo from '../components/dropdown/info/PoseInfo';
+import DetectPoseButtons from '../components/button_group/detectPoseButtons';
 
 const DetectPose = () => {
   
@@ -227,7 +228,30 @@ const DetectPose = () => {
   Webcam: webcam feed (can be toggled on/off)
   ---------------------------------------------------------------------------*/
   return (
-     <ThemedPoseView>
+     <View 
+     style={{
+      flex: 1, 
+      backgroundColor: 'transparent', 
+      alignItems: 'center', justifyContent: 'center', 
+      position: 'relative',
+      }}>
+      <DetectPoseButtons 
+        viewMode={viewMode}
+        isDetecting={isDetecting}
+        onDetectionStarted={() => {
+          firstStartRef.current = false;
+          setShowPoseAnimation(false);
+          setIsDetecting(true);
+        }}
+        onDetectionStopped={() => {
+          setIsDetecting(false);
+          if (!firstStartRef.current) setShowPoseAnimation(true);
+        }}
+        onShowPoseInfo={() => setShowPoseInfo(prev => !prev)}
+        onToggleExportOptions={toggleExportOptions}
+      />
+
+
       <View 
       style={{ 
         position: 'relative', 
@@ -341,7 +365,7 @@ const DetectPose = () => {
             />
           )}
         </View>  
-    </ThemedPoseView>
+    </View>
   );
 };
 

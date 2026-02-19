@@ -7,10 +7,8 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, useWindowDimensions, useColorScheme, TouchableOpacity, Text } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useRouter, useNavigation } from 'expo-router';
-import { FaArrowRotateRight, FaArrowRotateLeft } from "react-icons/fa6";
 /* Import constants
 -----------------------------------------------------------------------------*/
-import { ANCHOR_MAP } from '../constants/descriptors/anchorDescriptors';
 import ThemedView from '../components/view/ThemedView';
 import { Colors } from '../constants/Colors';
 import { getSvgSizes } from '../constants/Sizes';
@@ -31,6 +29,7 @@ import DetectPoseDropdown from '../components/dropdown/select/DetectPoseDropdown
 -----------------------------------------------------------------------------*/
 import { uploadToS3 } from '../utils/storage/s3Utils';
 import { downloadSvgToDevice } from '../utils/storage/storageUtils';
+import SketchButtons from '../components/button_group/SketchButtons';
 
 /*==============================================================================
                                 SKETCH PAGE
@@ -502,7 +501,9 @@ const SketchPage = () => {
             onToggleSettings: toggleSettings,
             onShowDetectPoseOptions: toggleDetectPoseOptions,
             onShowSketchInfo: () => setShowSketchInfo(prev => !prev),
-            onToggleExportOptions: toggleExportOptions,
+                onToggleExportOptions: toggleExportOptions,
+                onToggleBackCanvases: handleToggleBackCanvases,
+            showBackCanvases: showBackCanvases,
 
         });
     }, [
@@ -517,6 +518,8 @@ const SketchPage = () => {
             toggleDetectPoseOptions,
             toggleExportOptions, 
             toggleSettings,
+            handleToggleBackCanvases,
+            showBackCanvases,
         ]
     );
     
@@ -527,56 +530,60 @@ const SketchPage = () => {
     return (       
         <View style={[styles.mainContainer, { minWidth: sizes.TOTAL_WIDTH }]}>
             
-            {showSketchControls && (
-                <SketchControls
-                    selectedColor={selectedColor}
-                    setSelectedColor={setSelectedColor}
-                    strokeWidth={strokeWidth}
-                    setStrokeWidth={setStrokeWidth}
-                    setShowSketchControls={setShowSketchControls}
+            <View 
+                style={{ 
+                    position: 'absolute', top: 0, left: 0, zIndex: 50, 
+                    flexDirection: 'column', alignItems: 'flex-start', gap: 12
+                }}>
+                <SketchButtons
+                    eraseMode={erase}
+                    onClear={clearAll}
+                    setEraseMode={setErase}
+                    onShowSketchInfo={() => setShowSketchInfo(prev => !prev)}
+                    onShowDetectPoseOptions={toggleDetectPoseOptions}
+                    onToggleExportOptions={toggleExportOptions}
+                    onToggleSettings={toggleSettings}
+                    onToggleBackCanvases={handleToggleBackCanvases}
+                    showBackCanvases={showBackCanvases}
                 />
-            )}
-            {showDetectPoseOptions && (
-                <DetectPoseDropdown
-                    style={styles.sketchControls}
-                    onPickVideo={handlePickVideo}
-                    setPoseView={() => {
-                        setViewMode('replay');
-                        goToDetectPose(null);
-                    }}
-                    setSvgView={() => {
-                        setViewMode('live');
-                        goToDetectPose(null);
-                    }}
-                />
-            )}
-            {showExportOptions && (
-                <ExportSvgDropdown
-                    style={styles.sketchControls}
-                    onDownloadSvgToDevice={handleDownloadSvg}
-                    onUploadToS3={handleUploadSvg}
-                />
-            )}
             
-            {showSketchInfo && (
-                 <SketchInfo 
-                    setShowSketchInfo={setShowSketchInfo}
-                 />
-            )}
 
-            <TouchableOpacity
-                    style={[styles.flipButton, { backgroundColor: theme.listItemBackground }]}
-                    onPress={handleToggleBackCanvases}
-            >
-                {showBackCanvases ? (
-                    <FaArrowRotateLeft color={theme.svgStrokeColor} /> 
-                ) : (
-                    <FaArrowRotateRight color={theme.svgStrokeColor} />
+                {showSketchControls && (
+                    <SketchControls
+                        selectedColor={selectedColor}
+                        setSelectedColor={setSelectedColor}
+                        strokeWidth={strokeWidth}
+                        setStrokeWidth={setStrokeWidth}
+                        setShowSketchControls={setShowSketchControls}
+                    />
                 )}
-                <Text style={{ color: theme.text, marginLeft: 4 }}>
-                    {showBackCanvases ? 'BACK' : 'FRONT'}
-                </Text>
-            </TouchableOpacity>
+                {showDetectPoseOptions && (
+                    <DetectPoseDropdown
+                        onPickVideo={handlePickVideo}
+                        setPoseView={() => {
+                            setViewMode('replay');
+                            goToDetectPose(null);
+                        }}
+                        setSvgView={() => {
+                            setViewMode('live');
+                            goToDetectPose(null);
+                        }}
+                    />
+                )}
+                {showExportOptions && (
+                    <ExportSvgDropdown
+                        onDownloadSvgToDevice={handleDownloadSvg}
+                        onUploadToS3={handleUploadSvg}
+                    />
+                )}
+                
+                {showSketchInfo && (
+                    <SketchInfo 
+                        setShowSketchInfo={setShowSketchInfo}
+                    />
+                )}
+
+            </View>
 
             <ThemedView style={[styles.container, { zIndex: !showBackCanvases ? 1 : -1 }]}>              
                 <Head 
@@ -767,16 +774,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         padding: 12,
         gap: 2, 
-    },
-
-    sketchControls: {
-        position: 'absolute',
-        top: "2rem",
-        right: 0,
-        borderTopLeftRadius: 8,
-        borderBottomLeftRadius: 8,
-        zIndex: 10,
-        width: 300,
     },
 
     row: {

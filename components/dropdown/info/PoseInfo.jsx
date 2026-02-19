@@ -41,9 +41,6 @@ export default SketchInfo
 
 const styles = StyleSheet.create({
     poseInfo: {
-        position: 'absolute',
-        top: 20,
-        right: 0,
         maxWidth: "30vw",
         padding: 10,
         zIndex: 1000,

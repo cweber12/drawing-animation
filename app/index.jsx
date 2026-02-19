@@ -54,10 +54,7 @@ const Home = () => {
                 }}
                 >
                     <LinkButton  href="/sketchPage" >
-                        <GiRaiseZombie 
-                        color={theme.actionButtonPressed}
-                        size={42}
-                        style={{ marginRight: 10 }}/>
+                        
                         <Text 
                         style={{ 
                             color: theme.buttonText, 
@@ -67,10 +64,7 @@ const Home = () => {
                     </LinkButton>
 
                     <LinkButton href="/viewSavedPoses" >
-                        <FaFolderOpen 
-                        color={theme.actionButtonPressed}
-                        size={32}
-                        style={{ marginRight: 10 }}/>
+                        
                         <Text 
                             style={{ 
                                 color: theme.buttonText, 

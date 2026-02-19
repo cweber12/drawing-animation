@@ -7,8 +7,9 @@ import {
   FaTrashAlt, 
   FaFileExport,
   FaEraser, 
-  FaPencilAlt, 
+  FaPencilAlt,
 } from 'react-icons/fa';
+import { GiShamblingZombie, GiLookAt } from "react-icons/gi";
 import HeaderButton from '../button/HeaderButton';
 import { getIconSize } from '../../constants/Sizes';
 import { Colors } from '../../constants/Colors';
@@ -30,24 +31,23 @@ const SketchButtons = ({
   onClear, 
   setEraseMode,
   onShowSketchInfo,
-  onHoverTitle,
   onShowDetectPoseOptions,
   onToggleExportOptions,
   onToggleSettings,
+  onToggleBackCanvases,
+  showBackCanvases,
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     const [showSettings, setShowSettings] = React.useState(false);
-    const [hoveredAnimate, setHoveredAnimate] = React.useState(false);
   
     return (
-    <View style={styles.container}>    
-
+    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+    <View style={[styles.container, {backgroundColor: theme.controlsBackground}]}>    
+    
       {/* INFO BUTTON -------------------------------------------------------*/}
       <HeaderButton
         onPress={onShowSketchInfo}
-        onHoverTitle={onHoverTitle}
-        title="INFO"
       >
         <LuInfo/>
       </HeaderButton>
@@ -55,8 +55,6 @@ const SketchButtons = ({
       {/* CLEAR BUTTON ------------------------------------------------------*/}
       <HeaderButton 
         onPress={onClear}
-        onHoverTitle={onHoverTitle}
-        title="CLEAR"
       >
         <FaTrashAlt/>
       </HeaderButton>
@@ -64,33 +62,23 @@ const SketchButtons = ({
       {/* EXPORT BUTTON -----------------------------------------------------*/}
       <HeaderButton
         onPress={onToggleExportOptions}
-        onHoverTitle={onHoverTitle}
-        title="SAVE"
       >
-        <FaFileExport/>
+        <FaFileExport/> 
       </HeaderButton>
 
       {/* ERASE BUTTON ------------------------------------------------------*/}
       <HeaderButton 
         onPress={() => setEraseMode(true)}
-        onHoverTitle={onHoverTitle}
         selected={eraseMode}
-        title={"ERASE"}
-        style={{opacity: eraseMode ? 1 : 0.5}}
         {...(eraseMode ? {disabled: true} : {})}
       >
-        <FaEraser /> 
+        <FaEraser />
       </HeaderButton>
 
       {/* SKETCH BUTTON -----------------------------------------------------*/}
       <HeaderButton
         onPress={() => setEraseMode(false)}
-        onHoverTitle={onHoverTitle}
         selected={!eraseMode}
-        title={"SKETCH"}
-        style={{
-          opacity: eraseMode ? 0.5 : 1, 
-        }}
         {...(!eraseMode ? {disabled: true} : {})}
       >
         <FaPencilAlt />
@@ -103,33 +91,48 @@ const SketchButtons = ({
             setShowSettings(!showSettings);
             onToggleSettings && onToggleSettings(!showSettings);
           }}
-          onHoverTitle={onHoverTitle}
-          title="BRUSH SIZE & COLOR"
           >
             <FaGear />
           </HeaderButton>
       </View>
+
+      
       
       {/* ANIMATE BUTTON ----------------------------------------------------*/}
       <HeaderButton
-        onPress={onShowDetectPoseOptions}
-        onHoverTitle={(title) => {
-          onHoverTitle && onHoverTitle(title);
-        }}
-        setHoveredProp={setHoveredAnimate}
-        title="ANIMATE"
+        onPress={onShowDetectPoseOptions} 
         size={getIconSize() * 1.5}
       >
-        <GiRaiseZombie 
-          style={{
-            backgroundColor: hoveredAnimate ? theme.iconHover : '', 
-            borderRadius: 9999, 
-            boxShadow: hoveredAnimate ? `0 0 10px ${theme.actionButton}` : 'none',
-            color: theme.button
-          }}
-        />
+        <GiRaiseZombie />
       </HeaderButton>
     </View>
+    <View 
+      style={{
+        flexDirection: 'row', 
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottomRightRadius: 8,
+        backgroundColor: theme.listItemBackgroundPressed, 
+        padding: 12,
+        }}>
+        <GiLookAt size={getIconSize() * 1.5} color={theme.text} />
+        <HeaderButton
+            onPress={onToggleBackCanvases}
+            size={getIconSize() * 1.5}
+            style={{ borderLeft: `2px solid ${theme.text}`}}
+          >
+            {GiShamblingZombie ? (
+              <GiShamblingZombie
+                size={getIconSize() * 1.5}
+                style={{ 
+                  transform: !showBackCanvases ? 'rotateY(180deg)' : 'none', 
+                  color: theme.actionButton,
+                }} />
+            ) : null}
+        </HeaderButton>
+      </View>
+      </View>
+
   );
 };
 
@@ -137,9 +140,10 @@ const styles = StyleSheet.create({
   container: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginRight: 24,
-    gap: 24,
+    alignItems: 'center', 
+    gap: 12,
+    padding: 12, 
+
   },
 
   buttonColumn: {

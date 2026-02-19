@@ -97,15 +97,12 @@ export default SketchInfo
 
 const styles = StyleSheet.create({
     sketchInfo: {
-        position: 'absolute',
-        top: 20,
-        right: 0,
         maxWidth: "30vw",
         padding: 10,
         zIndex: 1000,
         backdropFilter: 'blur(6px)',
         padding: '1rem',
-        borderBottomLeftRadius: 10,
+        borderRadius: 8,
     }, 
 
     header: {
