@@ -202,12 +202,6 @@ export default function FileList({
     }
   }
 
-  useEffect(() => {
-    if (landmarkFiles.length > 0 && !selectedLandmarkFile) {
-      setSelectedLandmarkFile(landmarkFiles[0]);
-    }
-  }, [landmarkFiles, selectedLandmarkFile]);
-
   /* LOAD FILES WHEN SOURCE MODE CHANGES
   ----------------------------------------------------------------------------*/
   useEffect(() => {
@@ -220,9 +214,9 @@ export default function FileList({
       setLoading,
       setLandmarkFiles,
       setSvgFiles,
+      () => {}, // placeholder for setFiles (not used here)
       setSelectedLandmarkFile,
       setSelectedSvgFile,
-      setSelectedSvgString
     );
 
     return () => {
@@ -230,6 +224,37 @@ export default function FileList({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showDeviceFiles]);
+
+  const initialLandmarkSelectionDone = React.useRef(false);
+  const initialSvgSelectionDone = React.useRef(false);
+
+  /* AUTO-SELECT FIRST ITEMS WHEN FILES LOAD
+  ----------------------------------------------------------------------------*/
+  useEffect(() => {
+    if (initialLandmarkSelectionDone.current && initialSvgSelectionDone.current) return;
+
+    const firstLandmark = landmarkFiles.length > 0 ? landmarkFiles[0] : null;
+    const firstSvg = svgFiles.length > 0 ? svgFiles[0] : null;
+
+    if (!firstLandmark && !firstSvg) return;
+
+    if (firstLandmark && !selectedLandmarkFile) {
+      handleSelectLandmarkFile(firstLandmark); // loads landmark + sets state
+      initialLandmarkSelectionDone.current = true;
+    }
+
+    if (firstSvg && !selectedSvgFile) {
+      handleSelectSvgFile(firstSvg); // loads svg + sets state
+      initialSvgSelectionDone.current = true;
+    }
+  }, [
+    landmarkFiles,
+    svgFiles,
+    selectedLandmarkFile,
+    selectedSvgFile,
+    handleSelectLandmarkFile,
+    handleSelectSvgFile,
+  ]);
 
   return (
     <View style={styles.listWrapper}>

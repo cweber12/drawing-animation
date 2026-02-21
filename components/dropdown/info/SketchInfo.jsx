@@ -18,7 +18,7 @@ const SketchInfo = ({ setShowSketchInfo }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light; 
 
-    const iconSize = 32;
+    const iconSize = 24;
   
     return (
     <View 
@@ -107,13 +107,13 @@ const styles = StyleSheet.create({
 
     header: {
         fontWeight: 'bold',
-        fontSize: 24,
+        fontSize: 20,
         margin: 0,
     },
 
     text: {
         margin: 0,
-        fontSize: 20,
+        fontSize: 16,
     },
 
     listItem: {

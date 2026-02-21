@@ -452,7 +452,7 @@ const SketchPage = () => {
         } 
         // Navigate to detectPose with SVGs and mode
         router.push({
-            pathname: '/detectPose',
+            pathname: '/detect',
             params: {
             svgs: svgsToSend,
             viewMode: viewMode,
@@ -533,15 +533,12 @@ const SketchPage = () => {
             <View 
                 style={{ 
                     position: 'absolute', top: 0, left: 0, zIndex: 50, 
-                    flexDirection: 'column', alignItems: 'flex-start', gap: 12
+                    flexDirection: 'row', alignItems: 'flex-start', gap: 12
                 }}>
                 <SketchButtons
                     eraseMode={erase}
                     onClear={clearAll}
                     setEraseMode={setErase}
-                    onShowSketchInfo={() => setShowSketchInfo(prev => !prev)}
-                    onShowDetectPoseOptions={toggleDetectPoseOptions}
-                    onToggleExportOptions={toggleExportOptions}
                     onToggleSettings={toggleSettings}
                     onToggleBackCanvases={handleToggleBackCanvases}
                     showBackCanvases={showBackCanvases}

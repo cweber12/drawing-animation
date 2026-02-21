@@ -6,14 +6,6 @@ import { useColorScheme } from 'react-native';
 import { getIconSize } from '../../constants/Sizes';
 
 /* A reusable button component for header buttons with hover and press effects
---------------------------------------------------------------------------------
-Props:
-- children: The icon component to display inside the button
-- style: Additional styles for the button
-- onPress: Function to call when the button is pressed
-- onHoverTitle: Function to call when the button is hovered, to set title
-- title: The title to set on hover
-- size: Optional size for the icon
 ------------------------------------------------------------------------------*/
 const HeaderButton = ({
     children, 
@@ -22,7 +14,9 @@ const HeaderButton = ({
     setHoveredProp,
     size, 
     disabled, 
-    selected
+    selected, 
+    color, 
+    hoveredColor, 
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
@@ -30,7 +24,10 @@ const HeaderButton = ({
     const [pressed, setPressed] = React.useState(false);
     const [iconSize, setIconSize] = React.useState(size ?? getIconSize());
 
-    const iconColor = hovered ? theme.iconHover : theme.icon;
+
+    const iconColor =  color ? 
+        (hovered ? (hoveredColor ?? theme.iconHover) : color)
+        : (hovered ? theme.iconHover : theme.icon);
     
 
     useEffect(() => {
@@ -66,6 +63,7 @@ const HeaderButton = ({
                 {
                     color: disabled ? theme.actionButton : iconColor, 
                     size: iconSize,
+
                 }
                 )}
         </TouchableOpacity>

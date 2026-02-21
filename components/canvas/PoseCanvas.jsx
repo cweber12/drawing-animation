@@ -47,7 +47,7 @@ const PoseCanvas = ({
     ctx.clearRect(0, 0, width, height);
     if (!landmarksToDraw || landmarksToDraw.length === 0) return;
 
-    ctx.strokeStyle = theme.listItemBackground;
+    ctx.strokeStyle = theme.landmarkConnectors;
     ctx.lineWidth = 2;
     CONNECTED_KEYPOINTS.forEach(([i, j]) => {
       const kp1 = landmarksToDraw[i];
@@ -66,6 +66,8 @@ const PoseCanvas = ({
       if (kp && kp.x != null && kp.y != null) {
         if (index === 0) {
           ctx.fillStyle = 'transparent';
+        } else if (index === 11 || index === 12 || index === 5 || index === 6) {
+          ctx.fillStyle = theme.landmarkPointsCenter;
         } else if (index % 2 === 1) {
           ctx.fillStyle = theme.landmarkPointsRight;
         } else if (index % 2 === 0 && index !== 0) {

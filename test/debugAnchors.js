@@ -55,6 +55,11 @@ export function debugAnchors(from, to, ctx, part) {
     ctx.arc(from.x, from.y, 4, 0, Math.PI * 2);
     ctx.fill();
 
+    ctx.fillStyle = 'rgba(128, 255, 0, 1)';
+    ctx.beginPath();
+    ctx.arc(to.x, to.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+
     ctx.restore();
 
     //drawAnchorLabel(ctx, part, from.x, from.y, { avgTorsoHeight: 16 });

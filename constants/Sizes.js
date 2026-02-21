@@ -8,7 +8,7 @@ export const SCREEN_HEIGHT = height;
 export function getIconSize() {
     if (width < 600) return 20;
     if (width < 800) return 24;
-    return 20;
+    return 28;
 }
 
 export function getWebcamDimensions() {

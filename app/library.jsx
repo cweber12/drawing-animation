@@ -16,8 +16,6 @@ import {
 } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigation } from 'expo-router';
-import { GiSkeletonInside } from "react-icons/gi";
-import { ANCHOR_MAP } from '../constants/descriptors/anchorDescriptors';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
 import { Colors } from '../constants/Colors';
 import { scaleLandmarkFrames } from '../utils/poseUtils';
@@ -33,6 +31,7 @@ import { MdSwitchLeft, MdSwitchRight } from "react-icons/md";
 // IMPORTANT: adjust this path if your FileList is in a different folder
 import FileList from '../components/list/FileList';
 import { useLandmarks } from '../context/LandmarksContext';
+import LibraryToolButtons from '../components/button_group/LibraryToolButtons';
 
 const ViewSavedPoses = () => {
   const navigation = useNavigation();
@@ -49,30 +48,18 @@ const ViewSavedPoses = () => {
     height: CANVAS_HEIGHT,
   });
 
-  // Canvas dimensions
   const [width, setWidth] = useState(CANVAS_WIDTH);
   const [height, setHeight] = useState(CANVAS_HEIGHT);
-
-  // Loading and file selection state
   const [selectedLandmarkFile, setSelectedLandmarkFile] = useState(null);
   const [selectedSvgFile, setSelectedSvgFile] = useState(null);
   const [currentFrame, setCurrentFrame] = useState(0);
-
-  // Frames and landmark data
   const [frames, setFrames] = useState([]);
   const [scaledFrames, setScaledFrames] = useState([]);
-
-  // SVG data
   const [selectedSvgString, setSelectedSvgString] = useState(null);
-
-  // Conditional rendering and file loading (S3 or device)
   const [showDeviceFiles, setShowDeviceFiles] = useState(false);
-
   const [showShiftControls, setShowShiftControls] = useState(true);
   const [showScaleControls, setShowScaleControls] = useState(false);
-
   const [controlIconHovered, setControlIconHovered] = useState(false);
-
   const [debugAnchors, setDebugAnchors] = useState(false);
 
   // Ref for animation interval
@@ -88,9 +75,12 @@ const ViewSavedPoses = () => {
     navigation.setParams({
       title: showDeviceFiles ? 'Device Animations' : 'S3 Animations',
       showDeviceFiles,
-      onSetShowDeviceFiles: () => setShowDeviceFiles((prev) => !prev),
+      onDeviceSelect: () => setShowDeviceFiles(true),
+      onCloudSelect: () => setShowDeviceFiles(false),
+      debugAnchors,
+      onToggleDebugAnchors: () => setDebugAnchors((prev) => !prev),
     });
-  }, [navigation, showDeviceFiles]);
+  }, [navigation, showDeviceFiles, setShowDeviceFiles, debugAnchors, setDebugAnchors]);
 
   /* PRECOMPUTE SCALED FRAMES
   ----------------------------------------------------------------------------*/
@@ -139,6 +129,12 @@ const ViewSavedPoses = () => {
             flexDirection: 'column',  
             minWidth: 240, position: 'absolute', top: 24, right: 24, zIndex: 10,
             }}>
+          
+            <LibraryToolButtons
+              debugAnchors={debugAnchors}
+              onToggleDebugAnchors={() => setDebugAnchors((prev) => !prev)}
+             />
+
             <View 
               style={{ 
                 flexDirection: 'row', 
@@ -175,36 +171,7 @@ const ViewSavedPoses = () => {
             </View>
           {showScaleControls && <ScaleControls />}
           {showShiftControls && <ShiftControls />}
-          <TouchableOpacity
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginTop: 12,
-              height: 48,
-              paddingHorizontal: 32,
-              backgroundColor: theme.listItemBackground,
-              borderRadius: 4,
-              cursor: 'pointer',
-            }}
-            onPress={() => setDebugAnchors((prev) => !prev)}
-          >
-            <Text 
-            style={{ 
-              color: theme.text, 
-              fontFamily: 'Segoe UI', 
-              fontSize: 18, 
-              fontWeight: 'bold'
-              }}>
-              {debugAnchors ? 'Hide Anchors' : 'Show Anchors'}
-            </Text> 
-            <GiSkeletonInside 
-              size={32} 
-              style={{ marginLeft: 6}}
-              color={debugAnchors ? theme.actionButton : theme.text}
-             />
-          </TouchableOpacity>
+        
         </View>
 
         {/* Canvas Area */}

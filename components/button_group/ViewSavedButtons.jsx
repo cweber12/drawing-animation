@@ -4,60 +4,60 @@ import { FaRotate } from "react-icons/fa6";
 import HeaderButton from '../button/HeaderButton';
 import { LuHardDriveUpload } from "react-icons/lu";
 import { RiDownloadCloud2Line } from "react-icons/ri";
+import { GiSkeletonInside } from "react-icons/gi";
+import { MdDevices } from "react-icons/md";
+import { IoMdCloudOutline } from "react-icons/io";
+
+
 import { Colors } from '../../constants/Colors';
 
 const ViewSavedButtons = ({
+    onDeviceSelect,
+    onCloudSelect,
     showDeviceFiles,
-    onSetShowDeviceFiles,
     onHoverTitle,
     title,
 }) => {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
-  const [hovered, setHovered] = React.useState(false);
-  const buttonStyle = {
-    ...styles.button,
-    backgroundColor: hovered ? theme.blueHovered : theme.blue,
-  };
 
     return (
-    <View style={styles.container}>
-        {/* TOGGLE VIEW BUTTON -------------------------------------------------------*/}
-        
-        <TouchableOpacity
-            style={buttonStyle}
-            onPress={onSetShowDeviceFiles}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-            onHoverTitle={onHoverTitle}
-            title={title.toUpperCase()}
-        >
-        {showDeviceFiles ? (
-            <RiDownloadCloud2Line
+      <View style={styles.container}>
+          {/* TOGGLE VIEW BUTTON -------------------------------------------------------*/}
+          
+          <HeaderButton
+              onPress={onCloudSelect}
+              onHoverTitle={onHoverTitle}
+              title={title.toUpperCase()}
+              disabled={!showDeviceFiles}
+
+          >
+            <IoMdCloudOutline
                 size={24}
             />
-        ) : (
-            <LuHardDriveUpload
+          </HeaderButton>
+
+          <HeaderButton
+              onPress={onDeviceSelect}
+              onHoverTitle={onHoverTitle}
+              title={title.toUpperCase()}
+              disabled={showDeviceFiles}
+          >
+            <MdDevices
                 size={24}
             />
-        )}
-        
-        {showDeviceFiles ? (
-            <Text style={[styles.text, {color: theme.listItemBackgroundPressed}]}>Load from Cloud</Text>
-        ) : (
-            <Text style={[styles.text, {color: theme.listItemBackgroundPressed}]}>Load from Device</Text>
-        )}
-        </TouchableOpacity>
-    </View>
+          </HeaderButton>
+      </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
     marginLeft: 24,
+    gap: 12,
   },
 
   button: {

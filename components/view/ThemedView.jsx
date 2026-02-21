@@ -6,10 +6,16 @@ const ThemedView = ({ style, ...props }) => {
   const theme = Colors[colorScheme] ?? Colors.light
   const  { width, height } = Dimensions.get('window');
   return (
+    
+    
     <View 
         style={[
           {
-            backgroundColor: theme.background, 
+            backgroundColor: theme.background,
+            width: width,
+            height: height,
+            maxWidth: width,
+            maxHeight: height, 
           }, 
           style
         ]}

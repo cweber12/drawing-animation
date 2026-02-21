@@ -261,6 +261,12 @@ export function useSetAnchorsAndDraw({
               const success = drawTorsoSvg(ctx, img, tl, tr, bl, br);     
               if (success) { 
                 if (debugPipeline) console.log('DREW: ', part);
+                if (debugAnchorsFlag) { 
+                  debugAnchors(tl, tr, ctx, null, avgTorsoHeight);
+                  debugAnchors(bl, br, ctx, null, avgTorsoHeight);
+                  debugAnchors(tl, bl, ctx, null, avgTorsoHeight);
+                  debugAnchors(tr, br, ctx, null, avgTorsoHeight);
+                }
                 continue;
               }
             }
@@ -307,6 +313,9 @@ export function useSetAnchorsAndDraw({
           ); 
           if (success) { 
             if (debugPipeline) console.log('DREW: ', part);
+            if (debugAnchorsFlag) { 
+              debugAnchors(leftAnchor, rightAnchor, ctx, part, avgTorsoHeight);
+            }
           } else {
             console.warn('Failed to draw head:', part);
           }
@@ -352,7 +361,7 @@ export function useSetAnchorsAndDraw({
               scaleFactorsRef.current.armScale, 
             );
           if (success) { 
-            if (debugAnchorsFlag) { debugAnchors(fromAdjusted, toAdjusted, ctx, part, avgTorsoHeight); }
+            if (debugAnchorsFlag) { debugAnchors(from, to, ctx, part, avgTorsoHeight); }
             if (debugPipeline) console.log('DREW: ', part);
           } else {
             console.warn('Failed to draw arm:', part);

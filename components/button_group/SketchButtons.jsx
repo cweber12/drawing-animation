@@ -1,15 +1,12 @@
 import { View, StyleSheet, useColorScheme } from 'react-native';
 import React from 'react';
-import { FaGear } from "react-icons/fa6";
-import { LuInfo } from "react-icons/lu";
-import { GiRaiseZombie } from "react-icons/gi";
 import { 
   FaTrashAlt, 
-  FaFileExport,
   FaEraser, 
   FaPencilAlt,
 } from 'react-icons/fa';
-import { GiShamblingZombie, GiLookAt } from "react-icons/gi";
+import { FaRotateRight } from "react-icons/fa6";
+import { RiSketching } from "react-icons/ri";
 import HeaderButton from '../button/HeaderButton';
 import { getIconSize } from '../../constants/Sizes';
 import { Colors } from '../../constants/Colors';
@@ -30,9 +27,6 @@ const SketchButtons = ({
   eraseMode,
   onClear, 
   setEraseMode,
-  onShowSketchInfo,
-  onShowDetectPoseOptions,
-  onToggleExportOptions,
   onToggleSettings,
   onToggleBackCanvases,
   showBackCanvases,
@@ -42,28 +36,26 @@ const SketchButtons = ({
     const [showSettings, setShowSettings] = React.useState(false);
   
     return (
-    <View style={{flexDirection: 'row', alignItems: 'center'}}>
     <View style={[styles.container, {backgroundColor: theme.controlsBackground}]}>    
     
-      {/* INFO BUTTON -------------------------------------------------------*/}
       <HeaderButton
-        onPress={onShowSketchInfo}
-      >
-        <LuInfo/>
+        onPress={onToggleBackCanvases}
+        >
+        <FaRotateRight
+          style={{
+            transform: showBackCanvases ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.3s ease',
+          }}
+        
+        />
       </HeaderButton>
 
-      {/* CLEAR BUTTON ------------------------------------------------------*/}
       <HeaderButton 
         onPress={onClear}
+        color={theme.stopButton}
+        hoveredColor={theme.stopButtonHover}
       >
         <FaTrashAlt/>
-      </HeaderButton>
-
-      {/* EXPORT BUTTON -----------------------------------------------------*/}
-      <HeaderButton
-        onPress={onToggleExportOptions}
-      >
-        <FaFileExport/> 
       </HeaderButton>
 
       {/* ERASE BUTTON ------------------------------------------------------*/}
@@ -84,53 +76,15 @@ const SketchButtons = ({
         <FaPencilAlt />
       </HeaderButton>
       
-      {/* SKETCH CONTROLS BUTTON --------------------------------------------*/}  
-      <View style={styles.buttonColumn}>
-        <HeaderButton 
-          onPress={() => {
-            setShowSettings(!showSettings);
-            onToggleSettings && onToggleSettings(!showSettings);
-          }}
-          >
-            <FaGear />
-          </HeaderButton>
-      </View>
-
-      
-      
-      {/* ANIMATE BUTTON ----------------------------------------------------*/}
-      <HeaderButton
-        onPress={onShowDetectPoseOptions} 
-        size={getIconSize() * 1.5}
-      >
-        <GiRaiseZombie />
-      </HeaderButton>
-    </View>
-    <View 
-      style={{
-        flexDirection: 'row', 
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderBottomRightRadius: 8,
-        backgroundColor: theme.listItemBackgroundPressed, 
-        padding: 12,
-        }}>
-        <GiLookAt size={getIconSize() * 1.5} color={theme.text} />
-        <HeaderButton
-            onPress={onToggleBackCanvases}
-            size={getIconSize() * 1.5}
-            style={{ borderLeft: `2px solid ${theme.text}`}}
-          >
-            {GiShamblingZombie ? (
-              <GiShamblingZombie
-                size={getIconSize() * 1.5}
-                style={{ 
-                  transform: !showBackCanvases ? 'rotateY(180deg)' : 'none', 
-                  color: theme.actionButton,
-                }} />
-            ) : null}
-        </HeaderButton>
-      </View>
+      <HeaderButton 
+        onPress={() => {
+          setShowSettings(!showSettings);
+          onToggleSettings && onToggleSettings(!showSettings);
+        }}
+        >
+          <RiSketching />
+      </HeaderButton> 
+         
       </View>
 
   );
@@ -139,10 +93,12 @@ const SketchButtons = ({
 const styles = StyleSheet.create({
   container: {
     display: 'flex',
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center', 
+    justifyContent: 'center',
     gap: 12,
     padding: 12, 
+    borderBottomRightRadius: 8,
 
   },
 

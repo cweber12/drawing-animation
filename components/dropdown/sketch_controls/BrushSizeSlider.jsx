@@ -13,9 +13,6 @@ const BrushSizeSlider = ({ onStrokeWidthChange, strokeWidth}) => {
         <div className="sketch-controls-section">
             <div className="sub-header"
                 style={{ color: theme.text}}>
-                <div className="line-width-column" 
-                style={{ color: theme.text }}>
-                Line Width
                 <input className="slider"
                     type="range"
                     min={1}
@@ -25,7 +22,6 @@ const BrushSizeSlider = ({ onStrokeWidthChange, strokeWidth}) => {
                     style={{ '--slider-color': theme.background }}
                 />
                     
-                </div>
                 
                 <div className="line-width-circle-wrapper"
                     style={{ 

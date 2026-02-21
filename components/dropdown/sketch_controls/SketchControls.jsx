@@ -22,7 +22,6 @@ return (
             style={{ 
                 color: theme.text,
             }}> 
-            Tools
             <FaMinus 
                 size={24} 
                 style={{ cursor: 'pointer' }}
