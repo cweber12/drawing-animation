@@ -3,7 +3,7 @@ import React from 'react'
 import { TouchableOpacity, useColorScheme } from 'react-native';
 import { Colors } from '../../constants/Colors';
 
-const DropdownSelect = ({ children, onPress }) => {
+const OptionButton = ({ children, onPress }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
     const [hovered, setHovered] = React.useState(false);
@@ -22,7 +22,7 @@ const DropdownSelect = ({ children, onPress }) => {
     )
 }
 
-export default DropdownSelect
+export default OptionButton
 
 const styles = StyleSheet.create({
     optionButton: {

@@ -6,6 +6,7 @@ import { FaFileExport } from 'react-icons/fa';
 import { FaPersonRunning } from "react-icons/fa6";
 import { MdOutlineSaveAs } from "react-icons/md";
 import { GiShamblingZombie, GiLookAt } from "react-icons/gi";
+import { IoMdPulse } from "react-icons/io";
 import HeaderButton from '../button/HeaderButton';
 import { getIconSize } from '../../constants/Sizes';
 import { Colors } from '../../constants/Colors';
@@ -33,7 +34,11 @@ const SketchHeaderButtons = ({
     const theme = Colors[colorScheme] ?? Colors.light;
   
     return (
-    <View style={styles.container}>    
+    <View 
+      style={{
+        ...styles.container, 
+        borderLeft: `1px solid ${theme.border}`, 
+        }}>    
       <HeaderButton
         onPress={onShowSketchInfo}
         color={theme.headerIcon}
@@ -58,7 +63,7 @@ const SketchHeaderButtons = ({
         color={theme.headerIcon}
         hoveredColor={theme.headerIconHover}
       >
-        <FaPersonRunning />
+        <IoMdPulse />
       </HeaderButton>
 
       </View>
@@ -73,8 +78,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     justifyContent: 'center',
     gap: 12,
-    paddingVertical: 12,
-
+    padding: 12,
   },
 
   buttonColumn: {

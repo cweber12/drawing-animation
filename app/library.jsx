@@ -33,6 +33,7 @@ import FileList from '../components/list/FileList';
 import { useLandmarks } from '../context/LandmarksContext';
 import LibraryToolButtons from '../components/button_group/LibraryToolButtons';
 
+
 const ViewSavedPoses = () => {
   const navigation = useNavigation();
   const window = useWindowDimensions();
@@ -79,8 +80,28 @@ const ViewSavedPoses = () => {
       onCloudSelect: () => setShowDeviceFiles(false),
       debugAnchors,
       onToggleDebugAnchors: () => setDebugAnchors((prev) => !prev),
+      showShiftControls,
+      onToggleShiftControls: () => {
+        setShowShiftControls((prev) => !prev);
+        setShowScaleControls(false);
+      },
+      showScaleControls,
+      onToggleScaleControls: () => {
+        setShowScaleControls((prev) => !prev);
+        setShowShiftControls(false);
+      },
     });
-  }, [navigation, showDeviceFiles, setShowDeviceFiles, debugAnchors, setDebugAnchors]);
+  }, [
+    navigation, 
+    showDeviceFiles, 
+    setShowDeviceFiles, 
+    debugAnchors, 
+    setDebugAnchors, 
+    showShiftControls, 
+    setShowShiftControls,
+    showScaleControls,
+    setShowScaleControls
+  ]);
 
   /* PRECOMPUTE SCALED FRAMES
   ----------------------------------------------------------------------------*/
@@ -127,51 +148,10 @@ const ViewSavedPoses = () => {
         <View 
           style={{ 
             flexDirection: 'column',  
-            minWidth: 240, position: 'absolute', top: 24, right: 24, zIndex: 10,
-            }}>
-          
-            <LibraryToolButtons
-              debugAnchors={debugAnchors}
-              onToggleDebugAnchors={() => setDebugAnchors((prev) => !prev)}
-             />
-
-            <View 
-              style={{ 
-                flexDirection: 'row', 
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: 8, 
-                }}>
-              <Text 
-                style={{ 
-                  color: theme.text, 
-                  fontFamily: 'Segoe UI', 
-                  fontSize: 18, 
-                  fontWeight: 'bold'
-                  }}>
-                {showShiftControls ? 'SHIFT' : 'SCALE'}
-              </Text>
-              <TouchableOpacity
-                onPress={() => (
-                  setShowShiftControls((prev) => !prev), 
-                  setShowScaleControls((prev) => !prev)
-                )}
-                onMouseEnter={() => setControlIconHovered(true)}
-                onMouseLeave={() => setControlIconHovered(false)}
-              >
-                {showShiftControls ? (
-                  <MdSwitchLeft 
-                    size={38} 
-                    color={controlIconHovered ? theme.iconHover : theme.icon} /> ) : ( 
-                  <MdSwitchRight 
-                    size={38} 
-                    color={controlIconHovered ? theme.iconHover : theme.icon} /> 
-                  )}
-              </TouchableOpacity>
-            </View>
+            minWidth: 240, position: 'absolute', top: 0, right: 0, zIndex: 10,
+            }}>           
           {showScaleControls && <ScaleControls />}
-          {showShiftControls && <ShiftControls />}
-        
+          {showShiftControls && <ShiftControls />}       
         </View>
 
         {/* Canvas Area */}
@@ -204,12 +184,7 @@ const ViewSavedPoses = () => {
           )}
         </div>
 
-        <View 
-        style={{ 
-          flexDirection: 'column', alignItems: 'center', 
-          justifyContent: 'center', gap: 12, 
-          position: 'absolute', top: 24, left: 24, zIndex: 10,
-          }}>
+
         <FileList
             // file lists + selections
             selectedLandmarkFile={selectedLandmarkFile}
@@ -233,7 +208,7 @@ const ViewSavedPoses = () => {
             setShowDeviceFiles={setShowDeviceFiles}
             animationRef={animationRef}
           />
-        </View>
+
       </ThemedView>
   );
 };
@@ -245,7 +220,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     padding: 24,
   },
 });

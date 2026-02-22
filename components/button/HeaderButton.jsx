@@ -61,11 +61,10 @@ const HeaderButton = ({
             {React.cloneElement(
                 children, 
                 {
-                    color: disabled ? theme.actionButton : iconColor, 
+                    color: disabled || selected ? theme.actionButton : iconColor, 
                     size: iconSize,
-
                 }
-                )}
+            )}
         </TouchableOpacity>
     )
 }

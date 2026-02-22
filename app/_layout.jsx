@@ -10,7 +10,7 @@ import {
 import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { Colors } from '../constants/Colors'
-import DetectPoseButtons from '../components/button_group/detectPoseButtons';
+import DetectHeaderIcons from '../components/button_group/DetectHeaderIcons';
 import ViewSavedButtons from '../components/button_group/ViewSavedButtons';
 import { ShiftFactorsProvider } from '../context/ShiftFactorsContext'
 import { ScaleFactorsProvider } from '../context/ScaleFactorsContext'
@@ -19,6 +19,8 @@ import SketchHeaderButtons from '../components/button_group/SketchHeaderButtons'
 import LinkButton from '../components/button/LinkButton';
 import { MdOutlineCollections } from "react-icons/md";
 import { FaRegPenToSquare } from "react-icons/fa6";
+import LibraryToolButtons from '../components/button_group/LibraryToolButtons'
+import { RiBodyScanFill } from "react-icons/ri";
 
 
 /* Home Button in Header
@@ -31,17 +33,34 @@ const HomeButton = () => {
     const logoSource = require("../assets/favicon.png");
 
     return (
-        <View >
-            <TouchableOpacity  onPress={() => router.replace('/')} >
+        <View style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 12,
+            width: logoHeight * 2.5, // Ensure enough space for the logo and hover effect
+        }}         >
+            <TouchableOpacity  
+                onPress={() => router.replace('/')}
+                onMouseEnter={() => setHoveredHome(true)}
+                onMouseLeave={() => setHoveredHome(false)}
+                style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',                   
+                }}
+                 >
                 <Image
-                        source={logoSource}
-                        style={{ 
-                            width: logoHeight * (2), 
-                            height: logoHeight, 
-
-                        }}
-                        resizeMode="contain"
-                    />
+                    source={logoSource}
+                    style={{ 
+                        width: hoveredHome ? logoHeight * 2.4 : logoHeight * 2, 
+                        height: hoveredHome ? logoHeight * 1.2 : logoHeight, 
+                        transition: 'width 0.3s, height 0.3s',
+                    }}
+                    resizeMode="contain"
+                />
             </TouchableOpacity>
         </View>
     );
@@ -68,7 +87,8 @@ const RootLayout = () => {
                 headerTitleAlign: 'center',
                 headerStyle: { 
                     backgroundColor: theme.navBackground,
-                    borderBottomWidth: 0,
+                    borderBottomWidth: 1,
+                    borderBottomColor: theme.border,
                     elevation: 0, // remove shadow on Android
                     shadowOpacity: 0, // remove shadow on iOS
                     height: isSmallScreen ? 52 : 68,
@@ -81,7 +101,7 @@ const RootLayout = () => {
                 }}>
                 <Stack.Screen 
                     name="index" 
-                    options={{ title: 'Living Sketch', 
+                    options={{ title: 'LIVING SKETCH', 
                     headerLeft: () => (
                         <View 
                             style={{
@@ -95,10 +115,7 @@ const RootLayout = () => {
                             }}
                             >
                                 <LinkButton  href="/sketch" >
-                                    <FaRegPenToSquare
-                                        size={24}
-                                        
-                                    />
+                                    <FaRegPenToSquare size={24} />
                                     <Text 
                                         style={{ 
                                             color: theme.buttonText,
@@ -107,11 +124,20 @@ const RootLayout = () => {
                                         SKETCH
                                     </Text>
                                 </LinkButton>
+
+                                <LinkButton  href="/detect" >
+                                    <RiBodyScanFill size={24} />
+                                    <Text 
+                                        style={{ 
+                                            color: theme.buttonText,
+                                            fontSize: 24, 
+                                            fontFamily: 'Segoe UI', }}>
+                                        DETECT
+                                    </Text>
+                                </LinkButton>
             
                                 <LinkButton href="/library" >
-                                    <MdOutlineCollections
-                                        size={24}
-                                    />
+                                    <MdOutlineCollections size={24}/>
                                     <Text 
                                         style={{ 
                                             color: theme.buttonText, 
@@ -131,10 +157,11 @@ const RootLayout = () => {
                         headerLeft: () => ( 
                             <>
                                 <HomeButton />
-                                <DetectPoseButtons
+                                <DetectHeaderIcons
                                     viewMode={route.params?.viewMode}
                                     showPoseAnimation={route.params?.showPoseAnimation}
                                     onToggleWebcam={route.params?.onToggleWebcam} 
+                                    onToggleDetectOptions={route.params?.onToggleDetectOptions}
                                     onDetectionStarted={route.params?.onDetectionStarted}
                                     onDetectionStopped={route.params?.onDetectionStopped}
                                     onShowPoseInfo={route.params?.onShowPoseInfo}
@@ -178,15 +205,21 @@ const RootLayout = () => {
                                     showDeviceFiles={route.params?.showDeviceFiles}
                                     onHoverTitle={(title) => setHeaderTitle(title)}
                                     title={route.params?.title || 'Saved Animations'}
-                                    debugAnchors={route.params?.debugAnchors}
-                                    onToggleDebugAnchors={route.params?.onToggleDebugAnchors}
                                      />     
                 
                             </>
-                            ),
-               
+                        ),
+                        headerRight: () => (
+                            <LibraryToolButtons
+                                debugAnchors={route.params?.debugAnchors}
+                                onToggleDebugAnchors={route.params?.onToggleDebugAnchors}
+                                showShiftControls={route.params?.showShiftControls}
+                                onToggleShiftControls={route.params?.onToggleShiftControls}
+                                showScaleControls={route.params?.showScaleControls}
+                                onToggleScaleControls={route.params?.onToggleScaleControls}
+                             />
+                        ),
                     })}
-
                 />
             </Stack>
         </LandmarksProvider>

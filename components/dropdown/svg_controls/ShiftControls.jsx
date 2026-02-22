@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import './Controls.css';
 import ListTile from './ListTile';
+import { TbTransferVertical, TbTransfer } from "react-icons/tb";
 
 const BODY_PARTS = [
     { id: 'torsoShift', label: 'Torso' },
@@ -40,6 +41,9 @@ export default function ShiftControls() {
   const mainViewStyle = {
     ...styles.mainWrapper,
     backgroundColor: theme.listItemBackground,
+    borderBottom: `1px solid ${theme.border}`,
+    borderLeft: `1px solid ${theme.border}`,
+    borderBottomLeftRadius: 8,
   };
 
   const textStyle = {
@@ -49,7 +53,10 @@ export default function ShiftControls() {
 
   return (
     <View
-        style={mainViewStyle}>
+        style={{ ...mainViewStyle  }}>
+        <Text style={{ ...styles.header, color: theme.text }}> 
+            SHIFT ANCHORS 
+        </Text>
         <View style={styles.list}>
             {BODY_PARTS.map((p) => {
                 const isSelected = selected === p.id;
@@ -66,7 +73,7 @@ export default function ShiftControls() {
 
         <View style={[styles.sliders, { color: theme.text }]}>
             <View style={styles.sliderWrapper}>
-            <Text style={[styles.text, { color: theme.text }]}>X </Text>
+            <TbTransfer size={20} color={theme.text}/>
             <input
                 className="range"
                 style={{ '--slider-color': theme.actionButton }}
@@ -80,7 +87,7 @@ export default function ShiftControls() {
             </View>
 
             <View style={styles.sliderWrapper}>
-                <Text style={[styles.text, { color: theme.text }]}>Y </Text>
+                <TbTransferVertical size={20} color={theme.text}/>
                 <input
                     className="range"
                     style={{ '--slider-color': theme.actionButton }}
@@ -104,7 +111,16 @@ const styles = StyleSheet.create({
         flexDirection: 'column', 
         gap: 12,
         minWidth: 240,
-        borderRadius: 8,
+        borderBottomWidth: 1,
+        borderLeftWidth: 1,
+        borderBottomLeftRadius: 8,
+    },
+
+    header: {
+        fontFamily: 'Segoe UI',
+        fontSize: 20,
+        paddingHorizontal: 12,
+        paddingTop: 12,
     },
 
     list: {

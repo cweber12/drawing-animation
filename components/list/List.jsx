@@ -2,7 +2,6 @@ import React from 'react';
 import { FlatList, TouchableOpacity, Text, View, StyleSheet, Touchable } from 'react-native';
 import { useColorScheme } from 'react-native';
 import { Colors } from '../../constants/Colors';
-import DropdownSelect from '../button/DropdownSelect';
 
 export default function List({
   items = [],
@@ -31,7 +30,7 @@ export default function List({
   };
   return (
     <FlatList
-      style={[styles.list, {backgroundColor: theme.listItemBackground}]}
+      style={styles.list}
       data={items}
       keyExtractor={keyExtractor}
       renderItem={({ item }) => {
@@ -45,7 +44,7 @@ export default function List({
             {renderItemContent ? (
               renderItemContent(item)
             ) : (
-              <Text style={styles.listItemText}>{String(item)}</Text>
+              <Text style={[styles.listItemText, { color: theme.text }]}>{String(item)}</Text>
             )}
           </TouchableOpacity>
         );
@@ -61,14 +60,13 @@ const styles = StyleSheet.create({
     overflowY: 'auto',
     maxWidth: 320,
     flexShrink: 0,
-    borderRadius: 8,
     direction: 'rtl',
     scrollbarGutter: 'stable',
-    padding: 12,
+
   },
   listItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     cursor: 'pointer',
     direction: 'ltr',
   },

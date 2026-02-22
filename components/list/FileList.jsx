@@ -23,6 +23,7 @@ import {
 } from '../../utils/storage/deviceFetch';
 import { useLandmarks } from '../../context/LandmarksContext';
 import List from './List';
+import { BsFiletypeJson, BsFiletypeSvg } from "react-icons/bs";
 
 export default function FileList({
   // selected items
@@ -257,12 +258,39 @@ export default function FileList({
   ]);
 
   return (
-    <View style={styles.listWrapper}>
-      <View style={styles.listHeader}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>
-          LANDMARK FILES
+    <View 
+      style={{
+        ...styles.listWrapper, 
+        backgroundColor: theme.controlsBackground, 
+        borderRightColor: theme.border,
+        borderBottomColor: theme.border,
+      }}>
+      <Text style={[styles.headerTitle, { color: theme.text }]}>
+        FILES  
+        <Text 
+          style={{ 
+            color: theme.mutedText, 
+            fontWeight: 'normal', 
+          }}
+          >
+          {showDeviceFiles ? ' | Device Storage' : ' | Cloud Storage'}
+        </Text>
+      </Text>
+      
+      <View 
+        style={{
+          ...styles.headerRow, 
+        }}>
+        <BsFiletypeJson size={28} color={theme.text} />
+        <Text 
+          style={{ 
+            ...styles.listHeader, 
+            color: theme.text,  
+          }}>
+          VECTOR FILES
         </Text>
       </View>
+
       {loading && <ActivityIndicator />}
       {/* Landmark Files List */}
       <List
@@ -272,7 +300,11 @@ export default function FileList({
         keyExtractor={(item) => item}
         selectedItemStyle={{ backgroundColor: theme.actionButton }}
         renderItemContent={(item) => (
-          <Text style={[styles.listItemText, { color: item === selectedLandmarkFile ? theme.actionButtonText : theme.text }]}>
+          <Text 
+          style={[
+            styles.listItemText, 
+            {color: item === selectedLandmarkFile ? theme.actionButtonText : theme.mutedText}]}
+            >
             {item}
           </Text>
         )}
@@ -280,11 +312,15 @@ export default function FileList({
 
       {selectedLandmarkFile && (
         <>
-          <View style={styles.listHeader}>
-            <Text style={[styles.headerTitle, { color: theme.text }]}>
-              SVG IMAGE FILES
-            </Text>
-          </View>
+        <View 
+          style={{
+            ...styles.headerRow, 
+          }}>
+          <BsFiletypeSvg size={28} color={theme.text} />
+          <Text style={{ ...styles.listHeader, color: theme.text }}>
+            IMAGE FILES
+          </Text>
+        </View>
 
           {/* SVG Files List */}
           <List
@@ -294,7 +330,7 @@ export default function FileList({
             keyExtractor={(item) => item}
             selectedItemStyle={{ backgroundColor: theme.actionButton }}
             renderItemContent={(item) => (
-              <Text style={[styles.listItemText, { color: item === selectedSvgFile ? theme.actionButtonText : theme.text }]}>
+              <Text style={[styles.listItemText, { color: item === selectedSvgFile ? theme.actionButtonText : theme.mutedText }]}>
                 {item}
               </Text>
             )}
@@ -307,24 +343,40 @@ export default function FileList({
 
 const styles = StyleSheet.create({
     listWrapper: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-end',
-            justifyContent: 'flex-start',
-            padding: 12,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
+        position: 'absolute', top: 0, left: 0, zIndex: 10,
+        borderBottomWidth: 1,
+        borderRightWidth: 1,
+  
     },
 
     listHeader: {
         flexDirection: 'row',
         alignItems: 'flex-end',
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-start',
         width: '100%',
         padding: 12,
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        width: '100%',
+        paddingHorizontal: 12,
+        gap: 8,
     },
 
     headerTitle: {
-        fontSize: 18, 
+        fontSize: 24, 
         fontWeight: 'bold',
+        padding: 12,
+        margin: 0,
     },
 
     list: {

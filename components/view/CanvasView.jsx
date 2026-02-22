@@ -10,7 +10,11 @@ const CanvasView = ({ style, children }) => {
         <View style={[
                 style, 
                 styles.canvasWrapper,
-                { backgroundColor: theme.canvasBackground}, 
+                { 
+                    backgroundColor: theme.canvasBackground, 
+                    borderColor: theme.border,
+                    borderWidth: 1,
+                }, 
             
             ]}>
             {children}

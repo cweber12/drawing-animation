@@ -15,7 +15,14 @@ const ThemedView = ({ style, ...props }) => {
             width: width,
             height: height,
             maxWidth: width,
-            maxHeight: height, 
+            maxHeight: height,
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            padding: 24,
+            zIndex: 0,
+
           }, 
           style
         ]}

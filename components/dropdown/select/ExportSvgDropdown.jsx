@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, useColorScheme} from 'react-native'
 import { Colors } from '../../../constants/Colors';
 import React from 'react'
-import DropdownSelect from '../../button/DropdownSelect';
+import OptionButton from '../../button/OptionButton';
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { IoDownloadOutline } from "react-icons/io5";
 
@@ -17,7 +17,7 @@ const ExportSvgDropdown = ({
 
     return (
         <View style={[ style, styles.exportOptionsContainer ]}>
-            <DropdownSelect
+            <OptionButton
                 onPress={() => {onDownloadSvgToDevice && onDownloadSvgToDevice();}} >
                 <IoDownloadOutline
                     size={24}
@@ -26,9 +26,9 @@ const ExportSvgDropdown = ({
                 <Text 
                     style={[styles.text, { color: theme.text }]}> 
                     Download to Device </Text>        
-            </DropdownSelect>
+            </OptionButton>
             
-            <DropdownSelect
+            <OptionButton
                 onPress={() => {  onUploadToS3 && onUploadToS3();}}>
                 <IoCloudUploadOutline
                     size={24}
@@ -37,7 +37,7 @@ const ExportSvgDropdown = ({
                 <Text 
                     style={[ styles.text,  { color: theme.text }]}>
                     Upload to S3</Text>
-            </DropdownSelect>
+            </OptionButton>
 
         </View>
     )

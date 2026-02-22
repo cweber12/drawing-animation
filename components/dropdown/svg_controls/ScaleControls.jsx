@@ -5,13 +5,13 @@ import { Colors } from '../../../constants/Colors';
 import { 
     View, 
     Text, 
-    TouchableOpacity,
     useColorScheme,
     StyleSheet,
 } from 'react-native';
 import './Controls.css';
 import { list } from '@aws-amplify/storage';
 import ListTile from './ListTile';
+import { RxStretchHorizontally, RxStretchVertically } from "react-icons/rx";
 
 const BODY_PARTS = [
     { id: 'headScale', label: 'Head' },
@@ -38,11 +38,16 @@ export default function ScaleControls() {
   const mainViewStyle = {
     ...styles.mainWrapper,
     backgroundColor: theme.listItemBackground,
+    borderBottom: `1px solid ${theme.border}`,
+    borderLeft: `1px solid ${theme.border}`,
+    borderBottomLeftRadius: 8,
   };
 
   return (
-    <View
-        style={mainViewStyle}>
+    <View style={mainViewStyle}>
+        <Text style={{ ...styles.header, color: theme.text }}> 
+            SCALE PARTS 
+        </Text>
         <View style={styles.list}>
             {BODY_PARTS.map((p) => {
                 const isSelected = selected === p.id;
@@ -64,7 +69,7 @@ export default function ScaleControls() {
                
         <View style={[styles.sliders, { color: theme.text }]}>
             <View style={styles.sliderWrapper}>
-            <Text style={[styles.text, { color: theme.text }]}>X </Text>
+            <RxStretchHorizontally size={20} color={theme.text}/>
             <input
                 className="range"
                 style={{ '--slider-color': theme.actionButton }}
@@ -78,7 +83,7 @@ export default function ScaleControls() {
             </View>
 
             <View style={styles.sliderWrapper}>
-                <Text style={[styles.text, { color: theme.text }]}>Y </Text>
+                <RxStretchVertically size={20} color={theme.text}/>
                 <input
                     className="range"
                     style={{ '--slider-color': theme.actionButton }}
@@ -101,8 +106,13 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'column',
         gap: 12,
-        borderBottomLeftRadius: 8,
-        borderBottomRightRadius: 8,
+    },
+
+    header: {
+        fontFamily: 'Segoe UI',
+        fontSize: 20,
+        paddingHorizontal: 12,
+        paddingTop: 12,
     },
 
     list: {
@@ -146,6 +156,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         marginBottom: 12,
+        gap: 6,
     },
 
     slider: {

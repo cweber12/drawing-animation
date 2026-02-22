@@ -1,4 +1,4 @@
-import { View, StyleSheet, useColorScheme } from 'react-native';
+import { View, StyleSheet, useColorScheme, Text } from 'react-native';
 import React from 'react';
 import { 
   FaTrashAlt, 
@@ -36,54 +36,77 @@ const SketchButtons = ({
     const [showSettings, setShowSettings] = React.useState(false);
   
     return (
-    <View style={[styles.container, {backgroundColor: theme.controlsBackground}]}>    
+    <View 
+    style={[
+      styles.container, 
+      {
+        backgroundColor: theme.controlsBackground, 
+        borderBottom: `1px solid ${theme.border}`,
+        borderRight: `1px solid ${theme.border}`,
+      }
+    ]}>    
     
-      <HeaderButton
-        onPress={onToggleBackCanvases}
+      <View style={styles.buttonRow}>
+        <Text style={{...styles.buttonText, color: theme.icon}}>ROTATE</Text>
+        <HeaderButton
+          onPress={onToggleBackCanvases}
+          >
+          <FaRotateRight
+            style={{
+              transform: showBackCanvases ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.3s ease',
+            }}
+          
+          />
+        </HeaderButton>
+      </View>
+      
+      <View style={styles.buttonRow}>
+        <Text style={{...styles.buttonText, color: theme.icon}}>CLEAR</Text>
+        <HeaderButton 
+          onPress={onClear}
+          color={theme.stopButton}
+          hoveredColor={theme.stopButtonHover}
         >
-        <FaRotateRight
-          style={{
-            transform: showBackCanvases ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.3s ease',
-          }}
-        
-        />
-      </HeaderButton>
-
-      <HeaderButton 
-        onPress={onClear}
-        color={theme.stopButton}
-        hoveredColor={theme.stopButtonHover}
-      >
-        <FaTrashAlt/>
-      </HeaderButton>
+          <FaTrashAlt/>
+        </HeaderButton>
+      </View>
 
       {/* ERASE BUTTON ------------------------------------------------------*/}
-      <HeaderButton 
-        onPress={() => setEraseMode(true)}
-        selected={eraseMode}
-        {...(eraseMode ? {disabled: true} : {})}
-      >
+      <View style={styles.buttonRow}>
+        <Text style={{...styles.buttonText, color: theme.icon}}>ERASE</Text>
+        <HeaderButton 
+          onPress={() => setEraseMode(true)}
+          selected={eraseMode}
+          {...(eraseMode ? {disabled: true} : {})}
+        >
         <FaEraser />
       </HeaderButton>
+      </View>
 
       {/* SKETCH BUTTON -----------------------------------------------------*/}
-      <HeaderButton
-        onPress={() => setEraseMode(false)}
-        selected={!eraseMode}
-        {...(!eraseMode ? {disabled: true} : {})}
-      >
-        <FaPencilAlt />
-      </HeaderButton>
-      
-      <HeaderButton 
-        onPress={() => {
-          setShowSettings(!showSettings);
-          onToggleSettings && onToggleSettings(!showSettings);
-        }}
+      <View style={styles.buttonRow}>
+        <Text style={{...styles.buttonText, color: theme.icon}}>SKETCH</Text>
+        <HeaderButton
+          onPress={() => setEraseMode(false)}
+          selected={!eraseMode}
+          {...(!eraseMode ? {disabled: true} : {})}
         >
-          <RiSketching />
-      </HeaderButton> 
+          <FaPencilAlt />
+      </HeaderButton>
+      </View>
+      
+      <View style={styles.buttonRow}>
+        <Text style={{...styles.buttonText, color: theme.icon}}>TOOLS</Text>
+        <HeaderButton 
+          onPress={() => {
+            setShowSettings(!showSettings);
+            onToggleSettings && onToggleSettings(!showSettings);
+          }}
+          >
+            <RiSketching />
+        </HeaderButton> 
+      </View>
          
       </View>
 
@@ -109,9 +132,17 @@ const styles = StyleSheet.create({
     gap: 2,
   },
 
+  buttonRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
+    width: '100%',
+  },
+
   buttonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
   },
 
   brushButton: {

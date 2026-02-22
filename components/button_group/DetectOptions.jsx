@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View, useColorScheme, TouchableOpacity} from 'react-native'
-import { Colors } from '../../../constants/Colors';
+import { Colors } from '../../constants/Colors';
 import React from 'react'
-import DropdownSelect from '../../button/DropdownSelect';
+import OptionButton from '../button/OptionButton';
 import { FaFileVideo } from "react-icons/fa";
 import { RiWebcamFill } from "react-icons/ri";
 import { FaVideo } from "react-icons/fa";
 
-const DetectPoseDropdown = ({
+const DetectOptions = ({
         style, 
         onPickVideo, 
         setPoseView, 
@@ -20,9 +20,13 @@ const DetectPoseDropdown = ({
         <View 
             style={[
                 style,
-                styles.poseOptionsContainer, 
+                styles.poseOptionsContainer,
+                {
+                  borderBottom: `1px solid ${theme.border}`,
+                  borderRight: `1px solid ${theme.border}`,
+                } 
             ]}>
-            <DropdownSelect
+            <OptionButton
                 onPress={() => {onPickVideo && onPickVideo();}} >
                 <FaFileVideo
                     size={24}
@@ -31,9 +35,9 @@ const DetectPoseDropdown = ({
                 <Text 
                     style={[styles.text, { color: theme.text }]}> 
                     Select Video </Text>        
-            </DropdownSelect>
+            </OptionButton>
             
-            <DropdownSelect
+            <OptionButton
                 onPress={() => {  setPoseView && setPoseView();}}>
                 <FaVideo
                     size={24}
@@ -42,9 +46,9 @@ const DetectPoseDropdown = ({
                 <Text 
                     style={[ styles.text,  { color: theme.text }]}>
                     Record Animation</Text>
-            </DropdownSelect>
+            </OptionButton>
 
-            <DropdownSelect
+            <OptionButton
                 onPress={() => {
                     setSvgView && setSvgView();
                 }}
@@ -55,12 +59,12 @@ const DetectPoseDropdown = ({
                     styles.text, 
                     { color: theme.text }
                 ]}>Live Animation</Text>
-            </DropdownSelect>
+            </OptionButton>
         </View>
     )
 }
 
-export default DetectPoseDropdown
+export default DetectOptions
 
 const styles = StyleSheet.create({
     
@@ -71,9 +75,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'flex-end',
         textAlign: 'left',
-        borderBottomLeftRadius: 8,
         padding: 0,
-        gap: "0.2rem",
         backdropFilter: 'blur(6px)', 
     },
 

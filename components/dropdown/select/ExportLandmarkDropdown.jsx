@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, useColorScheme } from 'react-native'
 import { Colors } from '../../../constants/Colors';
 import React from 'react'
-import DropdownSelect from '../../button/DropdownSelect';
+import OptionButton from '../../button/OptionButton';
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { IoDownloadOutline } from "react-icons/io5";
 import { downloadLandmarksToDevice, uploadToS3 } from '../../../utils/storage/storageUtils';
@@ -22,7 +22,7 @@ const ExportLandmarkDropdown = ({
                 style,
                 styles.exportOptionsContainer, 
             ]}>
-            <DropdownSelect
+            <OptionButton
                 onPress={() => downloadLandmarksToDevice(processedRef.current)}>
                 <IoDownloadOutline
                     size={24}
@@ -31,9 +31,9 @@ const ExportLandmarkDropdown = ({
                 <Text 
                     style={[styles.text, { color: theme.text }]}> 
                     Download to Device </Text>        
-            </DropdownSelect>
+            </OptionButton>
             
-            <DropdownSelect
+            <OptionButton
                 onPress={() => { uploadToS3({ 
                     landmarks: processedRef.current, 
                     svgs: null, 
@@ -46,7 +46,7 @@ const ExportLandmarkDropdown = ({
                 <Text 
                     style={[ styles.text,  { color: theme.text }]}>
                     Upload to S3</Text>
-            </DropdownSelect>
+            </OptionButton>
 
         </View>
     )

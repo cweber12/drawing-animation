@@ -24,7 +24,6 @@ import RightFoot from '../components/canvas/body_parts/RightFoot';
 import SketchInfo from '../components/dropdown/info/SketchInfo';
 import SketchControls from '../components/dropdown/sketch_controls/SketchControls';
 import ExportSvgDropdown from '../components/dropdown/select/ExportSvgDropdown';
-import DetectPoseDropdown from '../components/dropdown/select/DetectPoseDropdown';
 /* Import utils
 -----------------------------------------------------------------------------*/
 import { uploadToS3 } from '../utils/storage/s3Utils';
@@ -54,7 +53,6 @@ const SketchPage = () => {
     const { width, height } = useWindowDimensions();
     const [sizes, setSizes] = useState(getSvgSizes(height));
     const [armsDown, setArmsDown] = useState(true);
-    const [viewMode, setViewMode] = useState('replay'); 
 
     useEffect(() => {
         setSizes(getSvgSizes(height));
@@ -428,22 +426,11 @@ const SketchPage = () => {
         downloadSvgToDevice(svgs);
     }, [saveAll]);
 
-    /* Handle picking video for pose detection
-    --------------------------------------------------------------------------*/
-    const handlePickVideo = async () => {
-        const result = await DocumentPicker.getDocumentAsync({
-            type: 'video/*',
-        });
-        if (!result.canceled) {
-            setViewMode('replay');
-            goToDetectPose(result.assets[0].uri);    
-        }
-    };
 
     /* =========================================================================
                                     NAVIGATE TO DETECT POSE
     ==========================================================================*/
-    const goToDetectPose = useCallback(async (poseVideoUri) => {
+    const goToDetectPose = useCallback(async () => {
         
         let svgsToSend = {};
         const savedSvgs = await saveAll();
@@ -455,12 +442,10 @@ const SketchPage = () => {
             pathname: '/detect',
             params: {
             svgs: svgsToSend,
-            viewMode: viewMode,
-            videoUri: poseVideoUri,
             armOrientation: armsDown ? 'vertical' : 'horizontal',
             },
         });
-    }, [router, saveAll, armsDown, viewMode]);
+    }, [router, saveAll, armsDown]);
 
     /* =========================================================================
                                     EFFECTS
@@ -492,14 +477,13 @@ const SketchPage = () => {
     --------------------------------------------------------------------------*/
     useEffect(() => {
         navigation.setParams({
-            viewMode: viewMode,
             eraseMode: erase,
             setEraseMode: setErase,
             strokeColor: selectedColor,
             svgData: svgData,
             onClear: clearAll,
             onToggleSettings: toggleSettings,
-            onShowDetectPoseOptions: toggleDetectPoseOptions,
+            onShowDetectPoseOptions: goToDetectPose,
             onShowSketchInfo: () => setShowSketchInfo(prev => !prev),
                 onToggleExportOptions: toggleExportOptions,
                 onToggleBackCanvases: handleToggleBackCanvases,
@@ -509,13 +493,10 @@ const SketchPage = () => {
     }, [
             navigation, 
             clearAll, 
-            goToDetectPose, 
-            viewMode,
             selectedColor,
             erase,
             saveAll,
             svgData,
-            toggleDetectPoseOptions,
             toggleExportOptions, 
             toggleSettings,
             handleToggleBackCanvases,
@@ -554,19 +535,7 @@ const SketchPage = () => {
                         setShowSketchControls={setShowSketchControls}
                     />
                 )}
-                {showDetectPoseOptions && (
-                    <DetectPoseDropdown
-                        onPickVideo={handlePickVideo}
-                        setPoseView={() => {
-                            setViewMode('replay');
-                            goToDetectPose(null);
-                        }}
-                        setSvgView={() => {
-                            setViewMode('live');
-                            goToDetectPose(null);
-                        }}
-                    />
-                )}
+              
                 {showExportOptions && (
                     <ExportSvgDropdown
                         onDownloadSvgToDevice={handleDownloadSvg}

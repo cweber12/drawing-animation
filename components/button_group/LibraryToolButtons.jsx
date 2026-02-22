@@ -1,13 +1,18 @@
 import React from 'react';
-import { View, TouchableOpacity, useColorScheme } from 'react-native';
+import { View, TouchableOpacity, useColorScheme, Text } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { FaDrawPolygon } from "react-icons/fa6";
 import { MdInsights } from "react-icons/md";
-
+import { RiCustomSize, RiDragMoveFill } from "react-icons/ri";
+import HeaderButton from '../button/HeaderButton';
 
 export default function LibraryToolButtons({ 
     onToggleDebugAnchors, 
-    debugAnchors, 
+    debugAnchors,
+    showShiftControls,
+    onToggleShiftControls,
+    showScaleControls,
+    onToggleScaleControls, 
 
 }) {
     const colorScheme = useColorScheme();
@@ -18,38 +23,41 @@ export default function LibraryToolButtons({
     return (
         <View style={{
             display: 'flex',
-            flexDirection: 'column',
+            flexDirection: 'row',
             alignItems: 'flex-start',
             justifyContent: 'center',
             gap: 12,
             padding: 12,
-            backgroundColor: theme.controlsBackground,
-            borderRadius: 8,
         }}>
-                <View style={{flexDirection: 'row', gap: 8, alignItems: 'center'}}>
-                    <TouchableOpacity
-                    style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    height: 48,
-
-                    cursor: 'pointer',
-                    }}
-                    onPress={onToggleDebugAnchors}
-                    onMouseEnter={() => setHoveredAnchor(true)}
-                    onMouseLeave={() => setHoveredAnchor(false)}
-                    > 
-                        <MdInsights
-                        size={32} 
-                        style={{ marginLeft: 6}}
-                        color={debugAnchors ? theme.actionButton : hoveredAnchor ? theme.iconHover : theme.icon}
-                        />
-                    </TouchableOpacity>
 
 
-                </View>
+            <HeaderButton
+                onPress={onToggleDebugAnchors}
+                selected={debugAnchors}
+
+            > 
+                <MdInsights
+                size={32} 
+                />
+            </HeaderButton>
+
+            <HeaderButton
+                onPress={onToggleShiftControls}
+                selected={showShiftControls}
+            >
+                <RiDragMoveFill
+                    size={32} 
+                />
+            </HeaderButton>
+
+            <HeaderButton
+                onPress={onToggleScaleControls}
+                selected={showScaleControls}
+            >
+                <RiCustomSize
+                    size={32} 
+                />
+            </HeaderButton>
 
         </View>
     )

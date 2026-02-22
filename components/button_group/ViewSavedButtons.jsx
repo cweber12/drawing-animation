@@ -7,8 +7,6 @@ import { RiDownloadCloud2Line } from "react-icons/ri";
 import { GiSkeletonInside } from "react-icons/gi";
 import { MdDevices } from "react-icons/md";
 import { IoMdCloudOutline } from "react-icons/io";
-
-
 import { Colors } from '../../constants/Colors';
 
 const ViewSavedButtons = ({
@@ -22,7 +20,7 @@ const ViewSavedButtons = ({
   const theme = Colors[colorScheme] ?? Colors.light;
 
     return (
-      <View style={styles.container}>
+      <View style={{...styles.container, borderLeft: `1px solid ${theme.border}`}}>
           {/* TOGGLE VIEW BUTTON -------------------------------------------------------*/}
           
           <HeaderButton
@@ -53,23 +51,12 @@ const ViewSavedButtons = ({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-    marginLeft: 24,
-    gap: 12,
-  },
-
-  button: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'center', 
     justifyContent: 'center',
     gap: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-
+    padding: 12,
   },
 
   text: {

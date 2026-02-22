@@ -1,14 +1,12 @@
-// components/button_group/detectPoseButtons.jsx
+// components/button_group/DetectHeaderIcons.jsx
 
 import { StyleSheet, View } from 'react-native'
 import React, { useEffect } from 'react'
-import { FaStopCircle } from 'react-icons/fa';
-import { BsRecordCircleFill } from "react-icons/bs";
 import { LuInfo } from "react-icons/lu";
+import { IoMdMenu } from "react-icons/io";
 import { FaFileExport } from 'react-icons/fa';
 import HeaderButton from '../button/HeaderButton';
 import { useLandmarks } from '../../context/LandmarksContext';
-import { set } from 'lodash';
 
 /* Header buttons for the DetectPosePage
 --------------------------------------------------------------------------------
@@ -17,13 +15,11 @@ Record: Starts pose detection recording
 Stop: Stops pose detection recording
 Export: Opens export options for saved landmarks
 ------------------------------------------------------------------------------*/
-const DetectPoseButtons = ({ 
-    onDetectionStarted, 
-    onDetectionStopped,
+const DetectHeaderIcons = ({ 
     onShowPoseInfo, 
     viewMode, 
-    isDetecting,
     onHoverTitle,
+    onToggleDetectOptions,
     onToggleExportOptions,
 }) => {
     
@@ -35,21 +31,22 @@ const DetectPoseButtons = ({
     
     useEffect(() => {
         setNewLandmarks(processedRef?.current || []); 
-        console.log('DetectPoseButtons useEffect - processedVersion: ', processedVersion);
-        console.log('DetectPoseButtons useEffect - processedRef.current: ', processedRef?.current);
+        console.log('DetectHeaderIcons useEffect - processedVersion: ', processedVersion);
+        console.log('DetectHeaderIcons useEffect - processedRef.current: ', processedRef?.current);
     }, [processedVersion]);
     
     return (
         <View style={styles.container}>
             {viewMode === 'replay' && (
                 <>
-                    {/* INFO BUTTON -----------------------------------------*/}
+
+                    {/* OPTIONS BUTTON --------------------------------------*/}
                     <HeaderButton 
-                        onPress={onShowPoseInfo}
+                        onPress={onToggleDetectOptions}
                         onHoverTitle={onHoverTitle}
-                        title="INFO" 
+                        title="OPTIONS" 
                     >
-                        <LuInfo />
+                        <IoMdMenu />
                     </HeaderButton>
 
                     {/* EXPORT BUTTON ---------------------------------------*/}
@@ -63,33 +60,21 @@ const DetectPoseButtons = ({
                         </HeaderButton>                        
                     )}
 
-                    {/* RECORD / STOP BUTTON --------------------------------*/}
-                    {!isDetecting ? (
+                    {/* INFO BUTTON -----------------------------------------*/}
                     <HeaderButton 
-                        onPress={onDetectionStarted}
+                        onPress={onShowPoseInfo}
                         onHoverTitle={onHoverTitle}
-                        title="RECORD"
-                     >
-                        <BsRecordCircleFill />
+                        title="INFO" 
+                    >
+                        <LuInfo />
                     </HeaderButton>
-                    ) : (
-                    <HeaderButton 
-                        onPress={onDetectionStopped}
-                        onHoverTitle={onHoverTitle}
-                        title="STOP"
-                     >
-                        <FaStopCircle />
-                    </HeaderButton>
-
-                    
-                    )}
                 </>
             )}
         </View>
     );
 }
 
-export default DetectPoseButtons;
+export default DetectHeaderIcons;
 
 const styles = StyleSheet.create({
     container: {
