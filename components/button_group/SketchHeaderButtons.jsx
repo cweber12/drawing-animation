@@ -1,15 +1,12 @@
 import { View, StyleSheet, useColorScheme, Text } from 'react-native';
 import React from 'react';
 import { LuInfo } from "react-icons/lu";
-import { GiRaiseZombie } from "react-icons/gi";
-import { FaFileExport } from 'react-icons/fa';
-import { FaPersonRunning } from "react-icons/fa6";
 import { MdOutlineSaveAs } from "react-icons/md";
-import { GiShamblingZombie, GiLookAt } from "react-icons/gi";
 import { IoMdPulse } from "react-icons/io";
 import HeaderButton from '../button/HeaderButton';
 import { getIconSize } from '../../constants/Sizes';
 import { Colors } from '../../constants/Colors';
+
 
 
 
@@ -27,8 +24,6 @@ const SketchHeaderButtons = ({
   onShowSketchInfo,
   onShowDetectPoseOptions,
   onToggleExportOptions,
-  onToggleBackCanvases,
-  showBackCanvases,
 }) => {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;

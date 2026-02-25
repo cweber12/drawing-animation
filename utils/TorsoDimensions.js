@@ -104,12 +104,16 @@ export class TorsoDimensions {
   getCurrentTorsoWidth() {
     return this.currentTorsoWidth;
   }
+  updateCurrentTorsoWidth(newWidth) {
+    this.currentTorsoWidth = newWidth;
+  }
 
   getCurrentHipWidth() {
     return this.currentHipWidth;
   }
 
   updateAvgHipWidth(newWidth) {
+    this.updateCurrentTorsoWidth(newWidth);
     if (this.currentHipWidth * newWidth > 0) {
       if (this.initFlipFlag) {
         this.hipAlpha = 0.3;

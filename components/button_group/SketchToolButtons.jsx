@@ -23,7 +23,7 @@ Brush Size: Opens brush size slider
 Color Picker: Opens color picker
 Animate: Opens detect pose options to animate sketch
 ------------------------------------------------------------------------------*/
-const SketchButtons = ({ 
+const SketchToolButtons = ({ 
   eraseMode,
   onClear, 
   setEraseMode,
@@ -42,12 +42,57 @@ const SketchButtons = ({
       {
         backgroundColor: theme.controlsBackground, 
         borderBottom: `1px solid ${theme.border}`,
-        borderRight: `1px solid ${theme.border}`,
+        borderLeft: `1px solid ${theme.border}`,
       }
     ]}>    
-    
+      
       <View style={styles.buttonRow}>
-        <Text style={{...styles.buttonText, color: theme.icon}}>ROTATE</Text>
+        <HeaderButton 
+          onPress={onClear}
+          hoveredColor={theme.stopButtonHover}
+        >
+          <FaTrashAlt/>
+        </HeaderButton>
+        <Text style={{...styles.buttonText, color: theme.icon}}>Clear All</Text>
+      </View>
+
+      {/* ERASE BUTTON ------------------------------------------------------*/}
+      <View style={styles.buttonRow}>
+        <HeaderButton 
+            onPress={() => setEraseMode(true)}
+            selected={eraseMode}
+            {...(eraseMode ? {disabled: true} : {})}
+          >
+          <FaEraser />
+        </HeaderButton>
+        <Text style={{...styles.buttonText, color: theme.icon}}>Erase</Text>
+      </View>
+
+      {/* SKETCH BUTTON -----------------------------------------------------*/}
+      <View style={styles.buttonRow}>
+        <HeaderButton
+          onPress={() => setEraseMode(false)}
+          selected={!eraseMode}
+          {...(!eraseMode ? {disabled: true} : {})}
+        >
+          <FaPencilAlt />
+        </HeaderButton>
+        <Text style={{...styles.buttonText, color: theme.icon}}>Sketch</Text>
+      </View>
+      
+      <View style={styles.buttonRow}>
+        <HeaderButton 
+          onPress={() => {
+            setShowSettings(!showSettings);
+            onToggleSettings && onToggleSettings(!showSettings);
+          }}
+          >
+            <RiSketching />
+        </HeaderButton> 
+        <Text style={{...styles.buttonText, color: theme.icon}}>Options</Text>
+      </View>
+
+      <View style={styles.buttonRow}>
         <HeaderButton
           onPress={onToggleBackCanvases}
           >
@@ -59,56 +104,17 @@ const SketchButtons = ({
           
           />
         </HeaderButton>
+        <Text style={{...styles.buttonText, color: theme.icon}}>Flip Canvas</Text>
       </View>
-      
-      <View style={styles.buttonRow}>
-        <Text style={{...styles.buttonText, color: theme.icon}}>CLEAR</Text>
-        <HeaderButton 
-          onPress={onClear}
-          color={theme.stopButton}
-          hoveredColor={theme.stopButtonHover}
-        >
-          <FaTrashAlt/>
-        </HeaderButton>
-      </View>
-
-      {/* ERASE BUTTON ------------------------------------------------------*/}
-      <View style={styles.buttonRow}>
-        <Text style={{...styles.buttonText, color: theme.icon}}>ERASE</Text>
-        <HeaderButton 
-          onPress={() => setEraseMode(true)}
-          selected={eraseMode}
-          {...(eraseMode ? {disabled: true} : {})}
-        >
-        <FaEraser />
-      </HeaderButton>
-      </View>
-
-      {/* SKETCH BUTTON -----------------------------------------------------*/}
-      <View style={styles.buttonRow}>
-        <Text style={{...styles.buttonText, color: theme.icon}}>SKETCH</Text>
-        <HeaderButton
-          onPress={() => setEraseMode(false)}
-          selected={!eraseMode}
-          {...(!eraseMode ? {disabled: true} : {})}
-        >
-          <FaPencilAlt />
-      </HeaderButton>
-      </View>
-      
-      <View style={styles.buttonRow}>
-        <Text style={{...styles.buttonText, color: theme.icon}}>TOOLS</Text>
-        <HeaderButton 
-          onPress={() => {
-            setShowSettings(!showSettings);
-            onToggleSettings && onToggleSettings(!showSettings);
-          }}
-          >
-            <RiSketching />
-        </HeaderButton> 
+      <View style={{...styles.textSection, borderTop: `1px solid ${theme.border}`}} >
+        
+        <Text style={{ color: theme.mutedText, fontSize: 20 }}>Facing: </Text>
+        <Text style={{ color: theme.text, fontSize: 20, fontWeight: 'bold' }}>
+          {showBackCanvases ? 'BACK' : 'FRONT'}
+        </Text>
       </View>
          
-      </View>
+    </View>
 
   );
 };
@@ -120,8 +126,8 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     justifyContent: 'center',
     gap: 12,
-    padding: 12, 
-    borderBottomRightRadius: 8,
+    paddingTop: 12,
+    borderBottomLeftRadius: 8,
 
   },
 
@@ -136,20 +142,26 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     gap: 6,
+    width: '100%',
+    paddingRight: 48, 
+    paddingLeft: 12,
+  },
+
+  textSection: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12, 
     width: '100%',
   },
 
   buttonText: {
     fontSize: 18,
   },
-
-  brushButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
   
 });
 
-export default SketchButtons;
+export default SketchToolButtons;

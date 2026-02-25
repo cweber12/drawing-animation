@@ -13,13 +13,13 @@ export const Colors = {
 
         text: "#FEFBE2",
         title: "#B7D027",
-        background: "#362F4F",
+        background: "#181C14",
         navBackground: "#0d0f00",
         controlsBackground: "rgba(0,0,0,0.5)",
         dropdownBackground: "rgba(0,0,0,0.5)",
         
-        listItemBackground: "rgba(0,0,0,0.35)",
-        listItemBackgroundHover: "rgba(0,0,0,0.5)",
+        listItemBackground: "rgba(0,0,0,0.25)",
+        listItemBackgroundHover: "rgba(0,0,0,0.75)",
         listItemBackgroundPressed: "rgba(0,0,0,1)",
         listItemText: "#FEFBE2",
         listItemTextHover: "#c8c6ae",
@@ -30,9 +30,10 @@ export const Colors = {
         buttonPressed: "rgba(0, 0, 0, 1)",
         buttonText: "#FEFAE4",
         
-        actionButton: "#E4FF30",
+        actionButton: "#B7D027",
         actionButtonHover: "#779800",
         actionButtonPressed: "#457a00",
+        actionButtonText: "#0A0A0A",
         
         icon: "#FEFBE2",
         iconHover: "rgb(182, 182, 182)",
@@ -43,7 +44,7 @@ export const Colors = {
         homeButton: "#0A0A0A",
          
         svgStrokeColor: "#FEFBE2",
-        canvasBackground: "rgba(0, 0, 0, 0.75)",
+        canvasBackground: "#0d0f00",
         colorPickerDefault: "white",
         
         mutedText: "#d8d7d7ff",
@@ -85,6 +86,7 @@ export const Colors = {
         actionButton: "#E4FF30",
         actionButtonHover: "#779800",
         actionButtonPressed: "#457a00",
+        actionButtonText: "#0A0A0A",
         
         icon: "#000000",
         iconHover: "#E4FF30",

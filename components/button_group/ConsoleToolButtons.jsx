@@ -5,8 +5,9 @@ import { FaDrawPolygon } from "react-icons/fa6";
 import { MdInsights } from "react-icons/md";
 import { RiCustomSize, RiDragMoveFill } from "react-icons/ri";
 import HeaderButton from '../button/HeaderButton';
+import { PiResizeFill } from "react-icons/pi";
 
-export default function LibraryToolButtons({ 
+export default function ConsoleToolButtons({ 
     onToggleDebugAnchors, 
     debugAnchors,
     showShiftControls,
@@ -17,8 +18,6 @@ export default function LibraryToolButtons({
 }) {
     const colorScheme = useColorScheme();
     const theme = Colors[colorScheme] ?? Colors.light;
-
-    const [hoveredAnchor, setHoveredAnchor] = React.useState(false);
 
     return (
         <View style={{
@@ -54,7 +53,7 @@ export default function LibraryToolButtons({
                 onPress={onToggleScaleControls}
                 selected={showScaleControls}
             >
-                <RiCustomSize
+                <PiResizeFill
                     size={32} 
                 />
             </HeaderButton>

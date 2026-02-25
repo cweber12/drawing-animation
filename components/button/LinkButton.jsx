@@ -21,14 +21,20 @@ const LinkButton = ({ children, href, params }) => {
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
+          justifyContent: 'space-between',
           fontFamily: 'Segoe UI',
           fontWeight: 'bold',
           textAlign: 'center',
           cursor: 'pointer',
-          color: hovered ? theme.actionButton : theme.buttonText,
+          color: theme.actionButtonText,
+          backgroundColor: hovered ? theme.actionButtonHover : theme.actionButton,
           transition: 'all 0.15s cubic-bezier(.4,0,.2,1)',
           height: pressed ? 44 : 48,
+          width: pressed ? 280 : 300,
           fontSize: pressed ? 16 : 18,
+          paddingHorizontal: 24,
+          gap: 8,
+          borderRadius: 8,
           }}>
         {children} 
       </Pressable>

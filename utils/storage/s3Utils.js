@@ -1,6 +1,5 @@
 import { Alert } from 'react-native';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../constants/Sizes';
-import { useLandmarks } from '../../context/LandmarksContext';
 
 const API_BASE = 'https://kqaq8gwqvl.execute-api.us-east-2.amazonaws.com/prod';
 const BUCKET = 'pose-animations';
@@ -15,7 +14,6 @@ export const uploadToS3 = async ({
     dataType, // 'landmarks' or 'svgs'
 }) => {
 
-    const { setVideoDimensions } = useLandmarks();
     const videoDimensions = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
 
     if ((!landmarks || (Array.isArray(landmarks) && landmarks.length === 0)) && 

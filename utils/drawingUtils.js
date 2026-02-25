@@ -61,13 +61,14 @@ export function drawHeadSvg(
         const { w: svgW, h: svgH } = getSvgSize(img);
         const avgTorsoHeight = Math.abs(torsoDims?.avgTorsoHeight);
         const avgTorsoWidth = Math.abs(torsoDims?.avgTorsoWidth);
+        const currentTorsoWidth = Math.abs(torsoDims?.currentTorsoWidth);
         const torsoSvgW = torsoDims?.torsoSvgWidth;
         const torsoSvgH = torsoDims?.torsoSvgHeight;
 
         // Midpoint between ears
         const midX = (leftEar.x + rightEar.x) / 2;
         const midY = ((leftEar.y + rightEar.y) / 2); 
-        const scaleX = avgTorsoWidth * 0.5 / Math.max(1, torsoSvgW);  
+        const scaleX = avgTorsoWidth * 0.5 / Math.max(1, torsoSvgW);
         const scaleY = avgTorsoHeight * 0.5 / Math.max(1, torsoSvgH);
         ctx.save();
         ctx.translate(midX, midY);
@@ -330,12 +331,12 @@ export function drawFootSvg(
         ctx.translate(fx, fy);
         ctx.rotate(angle - Math.PI / 2); // vertical authoring
 
-        if (part === 'leftFoot') {
+        if (part === 'leftFoot' || part === 'leftFootBack') {
             ctx.scale(
                 scaleX * footScaleFactors.x, 
                 scaleY * footScaleFactors.y);
             ctx.drawImage(img, -svgW / 2, 0, svgW, svgH);
-        } else if (part === 'rightFoot') {
+        } else if (part === 'rightFoot' || part === 'rightFootBack') {
             ctx.scale(
                 scaleX * footScaleFactors.x, 
                 scaleY * footScaleFactors.y);

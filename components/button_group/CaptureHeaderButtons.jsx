@@ -7,6 +7,7 @@ import { IoMdMenu } from "react-icons/io";
 import { FaFileExport } from 'react-icons/fa';
 import HeaderButton from '../button/HeaderButton';
 import { useLandmarks } from '../../context/LandmarksContext';
+import { MdOutlineSaveAs } from "react-icons/md";
 
 /* Header buttons for the DetectPosePage
 --------------------------------------------------------------------------------
@@ -15,7 +16,7 @@ Record: Starts pose detection recording
 Stop: Stops pose detection recording
 Export: Opens export options for saved landmarks
 ------------------------------------------------------------------------------*/
-const DetectHeaderIcons = ({ 
+const CaptureHeaderButtons = ({ 
     onShowPoseInfo, 
     viewMode, 
     onHoverTitle,
@@ -27,7 +28,6 @@ const DetectHeaderIcons = ({
     --------------------------------------------------------------------------*/
     const { processedRef, processedVersion } = useLandmarks();
     const [newLandmarks, setNewLandmarks] = React.useState([]);
-    const [newMedia, setNewMedia] = React.useState(null);
     
     useEffect(() => {
         setNewLandmarks(processedRef?.current || []); 
@@ -49,17 +49,6 @@ const DetectHeaderIcons = ({
                         <IoMdMenu />
                     </HeaderButton>
 
-                    {/* EXPORT BUTTON ---------------------------------------*/}
-                    {newLandmarks && newLandmarks.length > 0 && (
-                        <HeaderButton 
-                            onPress={onToggleExportOptions}
-                            onHoverTitle={onHoverTitle}
-                            title="EXPORT" 
-                        >
-                            <FaFileExport />
-                        </HeaderButton>                        
-                    )}
-
                     {/* INFO BUTTON -----------------------------------------*/}
                     <HeaderButton 
                         onPress={onShowPoseInfo}
@@ -74,7 +63,7 @@ const DetectHeaderIcons = ({
     );
 }
 
-export default DetectHeaderIcons;
+export default CaptureHeaderButtons;
 
 const styles = StyleSheet.create({
     container: {

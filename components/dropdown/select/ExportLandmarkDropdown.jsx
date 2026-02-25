@@ -4,8 +4,9 @@ import React from 'react'
 import OptionButton from '../../button/OptionButton';
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { IoDownloadOutline } from "react-icons/io5";
-import { downloadLandmarksToDevice, uploadToS3 } from '../../../utils/storage/storageUtils';
+import { downloadLandmarksToDevice} from '../../../utils/storage/storageUtils';
 import { useLandmarks } from '../../../context/LandmarksContext';
+import { uploadToS3 } from '../../../utils/storage/s3Utils';
 
 const ExportLandmarkDropdown = ({
         style,
@@ -21,6 +22,11 @@ const ExportLandmarkDropdown = ({
             style={[
                 style,
                 styles.exportOptionsContainer, 
+                { 
+                    backgroundColor: theme.listItemBackground, 
+                    borderBottom: `1px solid ${theme.border}`, 
+                    borderLeft: `1px solid ${theme.border}`,
+                }
             ]}>
             <OptionButton
                 onPress={() => downloadLandmarksToDevice(processedRef.current)}>
@@ -65,8 +71,11 @@ const styles = StyleSheet.create({
         textAlign: 'left',
         borderBottomLeftRadius: 8,
         padding: 0,
-        gap: "0.2rem",
-        backdropFilter: 'blur(6px)', 
+        backdropFilter: 'blur(6px)',
+        position: 'absolute',
+        top: 60,
+        right: 0,
+        zIndex: 10, 
     },
 
     optionButton: {

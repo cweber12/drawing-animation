@@ -1,9 +1,8 @@
 import { StyleSheet, Text, View, useColorScheme} from 'react-native'
 import { Colors } from '../../../constants/Colors';
-import React from 'react'
 import OptionButton from '../../button/OptionButton';
-import { IoCloudUploadOutline } from "react-icons/io5";
-import { IoDownloadOutline } from "react-icons/io5";
+import { MdDevices } from "react-icons/md";
+import { IoMdCloudOutline } from "react-icons/io";
 
 
 const ExportSvgDropdown = ({
@@ -16,27 +15,40 @@ const ExportSvgDropdown = ({
     const theme = Colors[colorScheme] ?? Colors.light;
 
     return (
-        <View style={[ style, styles.exportOptionsContainer ]}>
+        <View 
+            style={[ 
+                style, 
+                styles.exportOptionsContainer, 
+                { 
+                    backgroundColor: theme.listItemBackground, 
+                    borderBottom: `1px solid ${theme.border}`,
+                    borderRight: `1px solid ${theme.border}`,
+                    borderLeft: `1px solid ${theme.border}`,
+                }
+
+            ]}>
             <OptionButton
                 onPress={() => {onDownloadSvgToDevice && onDownloadSvgToDevice();}} >
-                <IoDownloadOutline
-                    size={24}
-                    color={theme.actionButton} 
-                /> 
                 <Text 
                     style={[styles.text, { color: theme.text }]}> 
-                    Download to Device </Text>        
+                    Download to Device 
+                </Text> 
+                <MdDevices
+                    size={24}
+                    color={theme.icon} 
+                />        
             </OptionButton>
             
             <OptionButton
                 onPress={() => {  onUploadToS3 && onUploadToS3();}}>
-                <IoCloudUploadOutline
-                    size={24}
-                    color={theme.actionButton}
-                />
                 <Text 
                     style={[ styles.text,  { color: theme.text }]}>
-                    Upload to S3</Text>
+                    Upload to S3
+                </Text>
+                <IoMdCloudOutline
+                    size={24}
+                    color={theme.icon}
+                />
             </OptionButton>
 
         </View>
@@ -49,30 +61,18 @@ const styles = StyleSheet.create({
     
     exportOptionsContainer: {
         display: 'flex',
-        width: '280px',
+        width: '240px',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'flex-end',
         textAlign: 'left',
-        borderBottomLeftRadius: 8,
-        padding: 0,
-        gap: "0.2rem",
         backdropFilter: 'blur(6px)', 
-    },
-
-    optionButton: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flex: 1, 
-        width: '100%', 
-        paddingVertical: "1rem",
-        paddingHorizontal: "1rem",
+        borderBottomLeftRadius: 8,
+        borderBottomRightRadius: 8,
+        padding: 0,
     },
 
     text: {
-        fontSize: 20,
-        fontWeight: '500',
+        fontSize: 16,
     },
 })

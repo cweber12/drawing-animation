@@ -8,28 +8,17 @@ import {
 import ThemedView from '../components/view/ThemedView';
 import { Colors } from '../constants/Colors';
 import LinkButton from '../components/button/LinkButton';
+import HomeOptionButtons from '../components/button_group/HomeOptionButtons';
 
 
 const Home = () => {
 
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme] ?? Colors.light;
-    const logoSource = require("../assets/favicon.png");
+    const logoSource = require("../assets/logo.png");
     
     return (
         <>     
-            <ThemedView 
-                style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    flex: 1,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    justifyContent: 'flex-start', 
-                    paddingTop: Platform.OS === 'web' ? 80 : 40, 
-                    gap: 24,           
-                }}
-            >
+            <ThemedView style={{alignItems: 'flex-start'}} >
+                
                 <View style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -37,17 +26,18 @@ const Home = () => {
                     justifyContent: 'center',
                     gap: 12,
                 }}>
-                                       
+                    <HomeOptionButtons />                   
                     <Image
                         source={logoSource}
                         style={{ 
-                            width: 400, 
-                            height: 300, 
+                            width: 500, 
+                            height: 400, 
                         }}
                         resizeMode="contain"
                     />
                     
                 </View>
+                
              
             </ThemedView>
         </>

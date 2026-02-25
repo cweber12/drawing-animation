@@ -31,8 +31,6 @@ import { MdSwitchLeft, MdSwitchRight } from "react-icons/md";
 // IMPORTANT: adjust this path if your FileList is in a different folder
 import FileList from '../components/list/FileList';
 import { useLandmarks } from '../context/LandmarksContext';
-import LibraryToolButtons from '../components/button_group/LibraryToolButtons';
-
 
 const ViewSavedPoses = () => {
   const navigation = useNavigation();
@@ -143,8 +141,7 @@ const ViewSavedPoses = () => {
                                 RENDER
   ============================================================================*/
   return (
-      <ThemedView style={styles.mainContainer}>
-        
+      <ThemedView>       
         <View 
           style={{ 
             flexDirection: 'column',  
@@ -215,12 +212,3 @@ const ViewSavedPoses = () => {
 
 export default ViewSavedPoses;
 
-const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    padding: 24,
-  },
-});

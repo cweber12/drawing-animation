@@ -1,15 +1,10 @@
-import { View, StyleSheet, Text, useColorScheme, TouchableOpacity } from 'react-native';
-import React from 'react';
-import { FaRotate } from "react-icons/fa6";
+import { View, StyleSheet, useColorScheme } from 'react-native';
 import HeaderButton from '../button/HeaderButton';
-import { LuHardDriveUpload } from "react-icons/lu";
-import { RiDownloadCloud2Line } from "react-icons/ri";
-import { GiSkeletonInside } from "react-icons/gi";
 import { MdDevices } from "react-icons/md";
 import { IoMdCloudOutline } from "react-icons/io";
 import { Colors } from '../../constants/Colors';
 
-const ViewSavedButtons = ({
+const ConsoleHeaderButtons = ({
     onDeviceSelect,
     onCloudSelect,
     showDeviceFiles,
@@ -65,4 +60,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ViewSavedButtons;
+export default ConsoleHeaderButtons;

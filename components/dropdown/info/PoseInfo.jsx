@@ -10,27 +10,26 @@ const SketchInfo = () => {
   
     return (
     <View style={[
-        styles.poseInfo,
+        styles.container,
         { 
             backgroundColor: theme.dropdownBackground, 
-            color: theme.text
         }
     ]}>
-        <Text style={styles.header}>Animating From Video</Text>
-        <Text style={styles.text}>
+        <Text style={{...styles.header, color: theme.text}}>Animating From Video</Text>
+        <Text style={{...styles.text, color: theme.text}}>
             Press the green record button in the top right to start recording pose 
             data in the video. You can move to different parts of the video 
             before recording to only record a specific section. Press the red stop 
             button to finish recording and view the animation. 
         </Text>
-        <Text style={styles.header}>Recording an Animation</Text>
-        <Text style={styles.text}>
+        <Text style={{...styles.header, color: theme.text}}>Recording an Animation</Text>
+        <Text style={{...styles.text, color: theme.text}}>
             Press the green play button in the top right to start recording pose 
             data from your webcam. Press the red stop button to finish recording and 
             view the animation.
         </Text>
-        <Text style={styles.header}>Live Animation</Text>
-        <Text style={styles.text}>
+        <Text style={{...styles.header, color: theme.text}}>Live Animation</Text>
+        <Text style={{...styles.text, color: theme.text}}>
             Runs automatically using webcam input. No recording necessary.
         </Text>
     </View>
@@ -40,38 +39,27 @@ const SketchInfo = () => {
 export default SketchInfo
 
 const styles = StyleSheet.create({
-    poseInfo: {
+    container: {
         maxWidth: "30vw",
-        padding: 10,
-        zIndex: 1000,
+        zIndex: 10,
         backdropFilter: 'blur(6px)',
-        padding: '1rem',
-        borderBottomLeftRadius: 10,
+        padding: 12,
+        borderBottomLeftRadius: 8,
     }, 
 
     header: {
-        fontWeight: 'bold',
-        fontSize: 24,
+        fontSize: 18,
         margin: 0,
     },
 
     text: {
         margin: 0,
-        fontSize: 20,
+        fontSize: 18,
     },
 
     listItem: {
         flexDirection: 'row', 
         alignItems: 'center',
-        marginBottom: '1rem',
-        marginTop: '1rem', 
-        gap: '1rem', 
-    },
-
-    inconColumn: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 2,
+        paddingVertical: 6,
     },
 })

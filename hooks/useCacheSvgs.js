@@ -6,6 +6,7 @@ import {
   addSvgOpacityGradient, 
   svgStringToImage 
 } from '../utils/svgUtils';
+import { round } from 'lodash';
 
 /* Hook to cache SVG images from SVG strings
 --------------------------------------------------------------------------------
@@ -19,6 +20,8 @@ Returns | ref with cached Image objects
 export function useCacheSvgs(svgs, torsoDimsRef) {
   const imagesRef = useRef({});
   const torsoDims = torsoDimsRef?.current;
+  const addGradient = false; 
+  const roundCorners = false;
   useEffect(() => {
 
     let cancelled = false;
@@ -34,6 +37,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
           torsoDims.updateTorsoSvgDimensions(svgW, svgH);
           let svgToSend = svgString;
           
+        if (roundCorners) {
           if (part === 'torso') {
             svgToSend = addSvgClipPath(
               svgString,
@@ -126,7 +130,9 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
               true, true, false, false  
             ); 
           }
+        }
 
+        if (addGradient) {
           if (part === 'leftUpperArm' || part === 'leftUpperArmBack' ||
               part === 'leftLowerArm' || part === 'leftLowerArmBack' ||
               part === 'rightUpperArm' || part === 'rightUpperArmBack' ||
@@ -167,6 +173,7 @@ export function useCacheSvgs(svgs, torsoDimsRef) {
             });
           
           }
+        }
 
           const img = await svgStringToImage(svgToSend);
           if (img) next[part] = img;

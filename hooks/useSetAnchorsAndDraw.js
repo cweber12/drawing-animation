@@ -90,7 +90,7 @@ export function useSetAnchorsAndDraw({
 
     /* Rotation Detection : Front vs Back Facing
     --------------------------------------------------------------------------*/
-    const faceEps = 0.1; 
+    const faceEps = 0.0001; 
     const facingFront = avgTorsoWidth > faceEps;
     const facingBack = avgTorsoWidth < -faceEps;
 
@@ -135,12 +135,7 @@ export function useSetAnchorsAndDraw({
       const [part, img] = entries[i];
       const nextEntry = entries[i + 1];
       const nextPart = nextEntry ? nextEntry[0] : null;
-      const nextImg = nextEntry ? nextEntry[1] : null;
 
-      const replaceBackWithFront = 
-        renderBack &&
-        !part.includes('Back') && 
-        !nextPart?.includes('Back');
       try {
 
         /* Fetch/validate anchor indices & corresponding landmarks for this part

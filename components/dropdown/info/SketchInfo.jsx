@@ -102,7 +102,8 @@ const styles = StyleSheet.create({
         zIndex: 1000,
         backdropFilter: 'blur(6px)',
         padding: '1rem',
-        borderRadius: 8,
+        borderBottomLeftRadius: 8,
+        borderBottomRightRadius: 8,
     }, 
 
     header: {

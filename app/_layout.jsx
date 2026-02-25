@@ -10,17 +10,18 @@ import {
 import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { Colors } from '../constants/Colors'
-import DetectHeaderIcons from '../components/button_group/DetectHeaderIcons';
-import ViewSavedButtons from '../components/button_group/ViewSavedButtons';
+import CaptureHeaderButtons from '../components/button_group/CaptureHeaderButtons';
+import ConsoleHeaderButtons from '../components/button_group/ConsoleHeaderButtons';
 import { ShiftFactorsProvider } from '../context/ShiftFactorsContext'
 import { ScaleFactorsProvider } from '../context/ScaleFactorsContext'
 import { LandmarksProvider } from '../context/LandmarksContext';
 import SketchHeaderButtons from '../components/button_group/SketchHeaderButtons'
 import LinkButton from '../components/button/LinkButton';
-import { MdOutlineCollections } from "react-icons/md";
 import { FaRegPenToSquare } from "react-icons/fa6";
-import LibraryToolButtons from '../components/button_group/LibraryToolButtons'
-import { RiBodyScanFill } from "react-icons/ri";
+import ConsoleToolButtons from '../components/button_group/ConsoleToolButtons'
+import { RiBodyScanLine } from "react-icons/ri";
+import { RxTransform } from "react-icons/rx";
+
 
 
 /* Home Button in Header
@@ -38,8 +39,7 @@ const HomeButton = () => {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            marginRight: 12,
-            width: logoHeight * 2.5, // Ensure enough space for the logo and hover effect
+            width: 150,
         }}         >
             <TouchableOpacity  
                 onPress={() => router.replace('/')}
@@ -101,63 +101,16 @@ const RootLayout = () => {
                 }}>
                 <Stack.Screen 
                     name="index" 
-                    options={{ title: 'LIVING SKETCH', 
-                    headerLeft: () => (
-                        <View 
-                            style={{
-                                display: 'flex',
-                                flexWrap: 'wrap', 
-                                flexDirection: 'row', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                gap: 20,
-                                marginLeft: 24,    
-                            }}
-                            >
-                                <LinkButton  href="/sketch" >
-                                    <FaRegPenToSquare size={24} />
-                                    <Text 
-                                        style={{ 
-                                            color: theme.buttonText,
-                                            fontSize: 24, 
-                                            fontFamily: 'Segoe UI', }}>
-                                        SKETCH
-                                    </Text>
-                                </LinkButton>
-
-                                <LinkButton  href="/detect" >
-                                    <RiBodyScanFill size={24} />
-                                    <Text 
-                                        style={{ 
-                                            color: theme.buttonText,
-                                            fontSize: 24, 
-                                            fontFamily: 'Segoe UI', }}>
-                                        DETECT
-                                    </Text>
-                                </LinkButton>
-            
-                                <LinkButton href="/library" >
-                                    <MdOutlineCollections size={24}/>
-                                    <Text 
-                                        style={{ 
-                                            color: theme.buttonText, 
-                                            fontSize: 24, 
-                                            fontFamily: 'Segoe UI', }}>
-                                        COLLECTION
-                                        </Text>
-                                </LinkButton>
-                            </View>
-                        ),
-                    }}
+                    options={{ title: 'LIVING SKETCH' }}
                 />
                 <Stack.Screen
-                    name="detect"
+                    name="capture"
                     options={({ route }) => ({
-                        title: route.params?.viewMode === 'svg' ? 'Live Animation' : 'Create Animation',
+                        title: 'CAPTURE',
                         headerLeft: () => ( 
                             <>
                                 <HomeButton />
-                                <DetectHeaderIcons
+                                <CaptureHeaderButtons
                                     viewMode={route.params?.viewMode}
                                     showPoseAnimation={route.params?.showPoseAnimation}
                                     onToggleWebcam={route.params?.onToggleWebcam} 
@@ -192,25 +145,22 @@ const RootLayout = () => {
                     })}
                 />
                 <Stack.Screen 
-                    name="library" 
+                    name="console" 
                     options={({ route }) => ({ 
                         title: '' ,
                         headerLeft: () => (   
                             <>   
                                 <HomeButton />                 
-                                <ViewSavedButtons
-
+                                <ConsoleHeaderButtons
                                     onDeviceSelect={route.params?.onDeviceSelect}
                                     onCloudSelect={route.params?.onCloudSelect}
                                     showDeviceFiles={route.params?.showDeviceFiles}
                                     onHoverTitle={(title) => setHeaderTitle(title)}
-                                    title={route.params?.title || 'Saved Animations'}
-                                     />     
-                
+                                    title={route.params?.title || 'Saved Animations'} />                    
                             </>
                         ),
                         headerRight: () => (
-                            <LibraryToolButtons
+                            <ConsoleToolButtons
                                 debugAnchors={route.params?.debugAnchors}
                                 onToggleDebugAnchors={route.params?.onToggleDebugAnchors}
                                 showShiftControls={route.params?.showShiftControls}

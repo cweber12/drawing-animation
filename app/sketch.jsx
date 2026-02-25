@@ -28,7 +28,7 @@ import ExportSvgDropdown from '../components/dropdown/select/ExportSvgDropdown';
 -----------------------------------------------------------------------------*/
 import { uploadToS3 } from '../utils/storage/s3Utils';
 import { downloadSvgToDevice } from '../utils/storage/storageUtils';
-import SketchButtons from '../components/button_group/SketchButtons';
+import SketchToolButtons from '../components/button_group/SketchToolButtons';
 
 /*==============================================================================
                                 SKETCH PAGE
@@ -39,17 +39,9 @@ handles navigation to detect pose screen with saved SVGs.
 ------------------------------------------------------------------------------*/
 const SketchPage = () => {
     
-    /* =========================================================================
-                                CONSTANTS
-    ==========================================================================*/
-    
-    /* Navigation and routing 
-    --------------------------------------------------------------------------*/
     const router = useRouter();
     const navigation = useNavigation();
 
-    /* Dynamic sizing based on screen dimensions
-    --------------------------------------------------------------------------*/
     const { width, height } = useWindowDimensions();
     const [sizes, setSizes] = useState(getSvgSizes(height));
     const [armsDown, setArmsDown] = useState(true);
@@ -407,11 +399,16 @@ const SketchPage = () => {
             return;
         }
         setSvgData(svgs); 
-        uploadToS3({
-            landmarks: null,
-            svgs: svgs,
-            dataType: 'svg',
-        });
+        try {
+            uploadToS3({
+                landmarks: null,
+                svgs: svgs,
+                dataType: 'svg',
+            });
+            console.log('Success', 'SVGs uploaded successfully!');
+        } catch (e) {
+            console.error('Upload failed:', e);
+        }
     }, [saveAll]);
 
     /* Handle download SVGs to device
@@ -439,7 +436,7 @@ const SketchPage = () => {
         } 
         // Navigate to detectPose with SVGs and mode
         router.push({
-            pathname: '/detect',
+            pathname: '/capture',
             params: {
             svgs: svgsToSend,
             armOrientation: armsDown ? 'vertical' : 'horizontal',
@@ -508,24 +505,13 @@ const SketchPage = () => {
     ----------------------------------------------------------------------------
     Renders body part canvases and dropdowns
     --------------------------------------------------------------------------*/
-    return (       
-        <View style={[styles.mainContainer, { minWidth: sizes.TOTAL_WIDTH }]}>
-            
+    return ( 
+        <View style={[styles.mainContainer, { minWidth: sizes.TOTAL_WIDTH }]}>            
             <View 
                 style={{ 
-                    position: 'absolute', top: 0, left: 0, zIndex: 50, 
-                    flexDirection: 'row', alignItems: 'flex-start', gap: 12
-                }}>
-                <SketchButtons
-                    eraseMode={erase}
-                    onClear={clearAll}
-                    setEraseMode={setErase}
-                    onToggleSettings={toggleSettings}
-                    onToggleBackCanvases={handleToggleBackCanvases}
-                    showBackCanvases={showBackCanvases}
-                />
-            
-
+                    position: 'absolute', top: 0, right: 0, zIndex: 10, 
+                    flexDirection: 'row', alignItems: 'flex-start', 
+                }}>                            
                 {showSketchControls && (
                     <SketchControls
                         selectedColor={selectedColor}
@@ -535,23 +521,29 @@ const SketchPage = () => {
                         setShowSketchControls={setShowSketchControls}
                     />
                 )}
-              
+                <SketchToolButtons
+                    eraseMode={erase}
+                    onClear={clearAll}
+                    setEraseMode={setErase}
+                    onToggleSettings={toggleSettings}
+                    onToggleBackCanvases={handleToggleBackCanvases}
+                    showBackCanvases={showBackCanvases}
+                />
+            </View>
+            <View style={{ position: 'absolute', top: 0, left: 150, zIndex: 10 }}>            
                 {showExportOptions && (
                     <ExportSvgDropdown
                         onDownloadSvgToDevice={handleDownloadSvg}
                         onUploadToS3={handleUploadSvg}
                     />
-                )}
-                
+                )}               
                 {showSketchInfo && (
-                    <SketchInfo 
-                        setShowSketchInfo={setShowSketchInfo}
-                    />
-                )}
-
+                    <SketchInfo setShowSketchInfo={setShowSketchInfo} />
+                )}              
             </View>
 
-            <ThemedView style={[styles.container, { zIndex: !showBackCanvases ? 1 : -1 }]}>              
+            <ThemedView 
+            style={[styles.container, { zIndex: !showBackCanvases ? 1 : -1 }]}>              
                 <Head 
                     canvasProps={canvasProps}
                     canvasId="head"
@@ -716,7 +708,7 @@ const SketchPage = () => {
                     </View>                        
                 </View>
             </ThemedView>      
-        </View>        
+        </View>
     );
 };
 
@@ -735,9 +727,10 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
         display: 'flex',
+        flexDirection: 'column',
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         padding: 12,
         gap: 2, 
     },
