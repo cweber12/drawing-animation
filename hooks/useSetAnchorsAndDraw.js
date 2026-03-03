@@ -30,6 +30,8 @@ export function useSetAnchorsAndDraw({
   width,
   height,
   processedLandmarks,
+  landmarksRef,
+  viewMode,
   processedVersion,
   replay,
   scaleWebcamX,
@@ -39,6 +41,7 @@ export function useSetAnchorsAndDraw({
   torsoDimsRef, 
   earDistRef,
   debugAnchorsFlag = false,
+  liveToken,
 }) {
   
   /* Scale/Shift Factor Contexts
@@ -49,7 +52,11 @@ export function useSetAnchorsAndDraw({
   const _scaleCtx = useScaleFactors();
   const scaleFactorsRef = _scaleCtx.scaleFactorsRef || _scaleCtx.factorsRef;
   
+  
+  
   useEffect(() => {
+    
+    
     
     const debugPipeline = false;    
     if (debugPipeline) console.log('useSetAnchorsAndDraw: start', { 
@@ -112,40 +119,26 @@ export function useSetAnchorsAndDraw({
     --------------------------------------------------------------------------*/
     if (!processedLandmarks || processedLandmarks.length === 0) return;
 
-    let scaledLandmarks = null;
-    if (replay) {
-      scaledLandmarks = processedLandmarks;
-    } else {
-      scaledLandmarks = processedLandmarks.map(kp =>
-        kp
-          ? {
-              ...kp,
-              x: kp.x * scaleWebcamX,
-              y: kp.y * scaleWebcamY,
-            }
-          : kp
-      );
-    }
+    const scaledLandmarks = processedLandmarks;
+   
 
-    /* =========================================================================
-                            MAIN LOOP: SET ANCHORS & DRAW PARTS
-    ==========================================================================*/
-    const entries = Object.entries(images);
-      for (let i = 0; i < entries.length; i++) {
-      const [part, img] = entries[i];
-      const nextEntry = entries[i + 1];
-      const nextPart = nextEntry ? nextEntry[0] : null;
-
-      try {
+   function setAnchorsAndDraw(part, img, nextPart) {
+    
+    try {
 
         /* Fetch/validate anchor indices & corresponding landmarks for this part
         ----------------------------------------------------------------------*/
         const map = ANCHOR_MAP[part];
-        if (!map || !img) continue;
+        if (!map || !img) return;
         if (debugPipeline) console.log('LOADED:', part);
         const anchorIndices = 
           Object.values(map).filter(idx => typeof idx === 'number');
-        const anchors = anchorIndices.map(idx => scaledLandmarks[idx]);
+        let anchors; 
+        if (landmarksRef && landmarksRef.current) {
+           anchors = anchorIndices.map(idx => landmarksRef.current.data[idx]);
+        } else {
+           anchors = anchorIndices.map(idx => scaledLandmarks[idx]);
+        }
         const hasInvalidAnchor = anchors.some(lm =>
           !lm ||
           typeof lm.x !== 'number' ||
@@ -159,7 +152,7 @@ export function useSetAnchorsAndDraw({
         );
         if (hasInvalidAnchor) {
           if (debugPipeline) console.log('INVALID ANCHORS: ', part, anchors);
-          continue;
+          return;
         }            
 
         if (debugPipeline) console.log(`Part: ${part}, Anchors:`, anchors);
@@ -236,7 +229,7 @@ export function useSetAnchorsAndDraw({
             
             if (!anchors) {
               if (debugPipeline) console.warn('setTorsoAnchors returned no anchors');
-              continue;
+              return;
             }
 
             // Returned anchors (adjusted)  
@@ -248,7 +241,7 @@ export function useSetAnchorsAndDraw({
             ------------------------------------------------------------------*/
             if (shouldDeferTorso) {
               deferredTorso = { img, anchors: { tl, tr, bl, br } };
-              continue;
+              return;
             } else {
               
               /* Draw 
@@ -262,12 +255,12 @@ export function useSetAnchorsAndDraw({
                   debugAnchors(tl, bl, ctx, null, avgTorsoHeight);
                   debugAnchors(tr, br, ctx, null, avgTorsoHeight);
                 }
-                continue;
+                return;
               }
             }
           } catch (e) {
             console.warn('Error drawing torso:', e);
-            continue;
+            return;
           }
         }
 
@@ -294,7 +287,7 @@ export function useSetAnchorsAndDraw({
           
           if (!anchors) {
             if (debugPipeline) console.warn('setHeadAnchors returned no anchors');
-            continue;
+            return;
           }
           const { leftAnchor, rightAnchor } = anchors;
 
@@ -314,7 +307,7 @@ export function useSetAnchorsAndDraw({
           } else {
             console.warn('Failed to draw head:', part);
           }
-          continue; 
+          return; 
         }
 
         /* ARMS
@@ -340,7 +333,7 @@ export function useSetAnchorsAndDraw({
 
           if (!anchors) {
             if (debugPipeline) console.warn('setArmAnchors returned no anchors');
-            continue;
+            return;
           }
 
           const { from, to } = anchors;
@@ -361,7 +354,7 @@ export function useSetAnchorsAndDraw({
           } else {
             console.warn('Failed to draw arm:', part);
           }
-          continue; 
+          return; 
         }
 
         /* HANDS
@@ -390,7 +383,7 @@ export function useSetAnchorsAndDraw({
           if (!anchors) {
             if (debugPipeline) console.warn(
               'setHandAnchors returned no anchors');
-            continue;
+            return;
           }
 
           const { from, to } = anchors;
@@ -412,7 +405,7 @@ export function useSetAnchorsAndDraw({
           } else {
             console.warn('Failed to draw hand:', part);
           }
-          continue; 
+          return; 
           
         }
 
@@ -437,7 +430,7 @@ export function useSetAnchorsAndDraw({
 
           if (!anchors) {
             if (debugPipeline) console.warn('setLegAnchors returned no anchors');
-            continue;
+            return;
           }
           const { from, to } = anchors;
 
@@ -460,7 +453,7 @@ export function useSetAnchorsAndDraw({
           } else {
             console.warn('Failed to draw leg:', part);
           }
-          continue;
+          return;
         }
 
         /* FEET 
@@ -483,7 +476,7 @@ export function useSetAnchorsAndDraw({
 
           if (!anchors) {
             if (debugPipeline) console.warn('setFootAnchors returned no anchors');
-            continue;
+            return;
           }
           const { from, to } = anchors;
 
@@ -501,12 +494,12 @@ export function useSetAnchorsAndDraw({
             if (debugAnchorsFlag) { 
               debugAnchors(from, to, ctx, part, avgTorsoHeight); 
             }
-            continue;
+            return;
           }
         }
       } catch (e) {
         console.warn(`Error processing part ${part}:`, e);
-        continue;
+        return;
       }
     }
 
@@ -521,13 +514,28 @@ export function useSetAnchorsAndDraw({
       }
     }
 
+    const entries = Object.entries(images);
+    for (let i = 0; i < entries.length; i++) {
+      const [part, img] = entries[i];
+      const nextEntry = entries[i + 1];
+      const nextPart = nextEntry ? nextEntry[0] : null;
+
+      setAnchorsAndDraw(part, img, nextPart);
+    }
+
+      
+
   }, [
     processedLandmarks,
     processedVersion,
+    landmarksRef,
     width, height,
     scaleWebcamX, scaleWebcamY,
     svgs,
     armOrientation,
     torsoDimsRef,
+    earDistRef,
+    debugAnchorsFlag,
+    liveToken,
   ]);
 }

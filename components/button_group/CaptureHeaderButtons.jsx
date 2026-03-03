@@ -21,7 +21,6 @@ const CaptureHeaderButtons = ({
     viewMode, 
     onHoverTitle,
     onToggleDetectOptions,
-    onToggleExportOptions,
 }) => {
     
     /* Landmarks context for determining when to show export button
@@ -37,28 +36,26 @@ const CaptureHeaderButtons = ({
     
     return (
         <View style={styles.container}>
-            {viewMode === 'replay' && (
-                <>
 
-                    {/* OPTIONS BUTTON --------------------------------------*/}
-                    <HeaderButton 
-                        onPress={onToggleDetectOptions}
-                        onHoverTitle={onHoverTitle}
-                        title="OPTIONS" 
-                    >
-                        <IoMdMenu />
-                    </HeaderButton>
 
-                    {/* INFO BUTTON -----------------------------------------*/}
-                    <HeaderButton 
-                        onPress={onShowPoseInfo}
-                        onHoverTitle={onHoverTitle}
-                        title="INFO" 
-                    >
-                        <LuInfo />
-                    </HeaderButton>
-                </>
-            )}
+
+                {/* OPTIONS BUTTON --------------------------------------*/}
+                <HeaderButton 
+                    onPress={onToggleDetectOptions}
+                    onHoverTitle={onHoverTitle}
+                    title="OPTIONS" 
+                >
+                    <IoMdMenu />
+                </HeaderButton>
+
+                {/* INFO BUTTON -----------------------------------------*/}
+                <HeaderButton 
+                    onPress={onShowPoseInfo}
+                    onHoverTitle={onHoverTitle}
+                    title="INFO" 
+                >
+                    <LuInfo />
+                </HeaderButton>
         </View>
     );
 }

@@ -433,6 +433,7 @@ const SketchPage = () => {
         const savedSvgs = await saveAll();
         if (savedSvgs) {
             svgsToSend = JSON.stringify(savedSvgs);
+            console.log('SVGs to send to detect pose: ', svgsToSend);
         } 
         // Navigate to detectPose with SVGs and mode
         router.push({

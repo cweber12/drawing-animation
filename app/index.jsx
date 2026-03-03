@@ -15,17 +15,9 @@ const Home = () => {
 
     const logoSource = require("../assets/logo.png");
     
-    return (
-        <>     
-            <ThemedView style={{alignItems: 'flex-start'}} >
+    return ( 
+            <ThemedView style={{alignItems: 'center', position: 'relative'}} >
                 
-                <View style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 12,
-                }}>
                     <HomeOptionButtons />                   
                     <Image
                         source={logoSource}
@@ -35,12 +27,8 @@ const Home = () => {
                         }}
                         resizeMode="contain"
                     />
-                    
-                </View>
-                
-             
+                            
             </ThemedView>
-        </>
     )
 }
 

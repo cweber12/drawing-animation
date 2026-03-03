@@ -18,11 +18,13 @@ const SvgCanvas = ({
   width, height, // canvas dimensions
   webcamWidth, webcamHeight, // webcam video dimensions (live)
   landmarks, // current pose landmarks (live)
+  landmarksRef, // ref to current pose landmarks (live)
   replay, // whether in replay mode
   svgs = {}, // original SVG strings
   armOrientation, // extended horizintal (large screen) or vertical (mobile)
   style, 
   debugAnchorsFlag,
+  viewMode,
 }) => {
 
   /*============================================================================
@@ -46,19 +48,29 @@ const SvgCanvas = ({
 
   /* DRAW / SET ANCHORS HOOK (call at top-level only)
   ---------------------------------------------------------------------------*/
+  const activeLandmarks = replay
+  ? processedRef?.current?.[frame]
+  : landmarks;
+
+  const liveToken = landmarksRef?.current?.__token ?? 0;
+
   useSetAnchorsAndDraw({
     canvasRef,
     imagesRef: cachedSvgsRef,
-    width, height,
-    processedLandmarks: processedRef?.current?.[frame],
+    width,
+    height,
+    processedLandmarks: activeLandmarks,
+    landmarksRef,
     processedVersion,
     replay,
-    scaleWebcamX, scaleWebcamY,
+    scaleWebcamX,
+    scaleWebcamY,
     svgs,
     armOrientation,
     torsoDimsRef,
     earDistRef,
     debugAnchorsFlag,
+    liveToken,
   });
   
   /* ANIMATE THROUGH SAVED LANDMARKS

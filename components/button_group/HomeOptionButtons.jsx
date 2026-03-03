@@ -21,25 +21,27 @@ const HomeOptionButtons = () => {
             borderBottomLeftRadius: 8,
             borderBottomRightRadius: 8,
             marginBottom: 24,
-            }}>
+            position: 'absolute',
+            top: 0,
+            left: 0, }}>
             
             <LinkButton  href="/sketch" >
                 <FaRegPenToSquare size={24} />
-                <Text style={{...styles.text, color: theme.actionButtonText,}}>
+                <Text style={{...styles.text, color: theme.text,}}>
                     Sketch Canvas
                 </Text>
             </LinkButton>
 
             <LinkButton  href="/capture" >
                 <RiBodyScanLine size={32} />
-                <Text style={{...styles.text, color: theme.actionButtonText,}}>
+                <Text style={{...styles.text, color: theme.text,}}>
                     Motion Capture
                 </Text>
             </LinkButton>
 
             <LinkButton href="/console" >
                 <RxTransform size={32}/>
-                <Text style={{...styles.text, color: theme.actionButtonText,}}>
+                <Text style={{...styles.text, color: theme.text,}}>
                     Animation Console
                 </Text>
             </LinkButton>

@@ -94,12 +94,15 @@ export function usePoseDetection({
       const detect = async () => {
         if (cancelled) return;
         const video = videoUri ? videoRef.current : webcamRef.current?.video;
+        const width = video?.videoWidth || naturalVideoWidth;
+        const height = video?.videoHeight || naturalVideoHeight;
         // If video not ready, try again on next frame
         if (!video || video.readyState !== 4) {
           requestAnimationFrame(detect);
           return;
         }
         try {
+
           /* Run pose detection on the current video frame
           --------------------------------------------------------------------*/
           if (isDetecting) {
@@ -110,18 +113,18 @@ export function usePoseDetection({
             
             /* Scale landmarks to video dimensions
             ------------------------------------------------------------------*/
-            if (videoUri && videoLoaded && naturalVideoWidth && 
-              naturalVideoHeight
+            if (videoUri && videoLoaded && width && 
+              height
             ) {
-              const videoAspect = naturalVideoWidth / naturalVideoHeight;
+              const videoAspect = width / height;
               const canvasAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
               let scale, offsetX = 0, offsetY = 0;
               if (videoAspect > canvasAspect) {
-                scale = CANVAS_WIDTH / naturalVideoWidth;
-                offsetY = (CANVAS_HEIGHT - naturalVideoHeight * scale) / 2;
+                scale = CANVAS_WIDTH / width;
+                offsetY = (CANVAS_HEIGHT - height * scale) / 2;
               } else {
-                scale = CANVAS_HEIGHT / naturalVideoHeight;
-                offsetX = (CANVAS_WIDTH - naturalVideoWidth * scale) / 2;
+                scale = CANVAS_HEIGHT / height;
+                offsetX = (CANVAS_WIDTH - width * scale) / 2;
               }
               currentLandmarks = currentLandmarks.map(kp => ({
                 ...kp,

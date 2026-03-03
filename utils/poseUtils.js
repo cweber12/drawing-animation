@@ -29,7 +29,7 @@ export function smoothLandmarks(landmarksArray, windowSize = 5) {
                 const lm = landmarksArray[k][j];            
                 
                 // Check if landmark exists and has valid x,y
-                if ( lm && typeof lm.x === 'number' && typeof lm.y === 'number') { 
+                if ( lm && typeof lm.x === 'number' && typeof lm.y === 'number' ) { 
                     
                     // Accumulate x, y, and z if present
                     sumX += lm.x; 

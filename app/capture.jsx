@@ -38,15 +38,11 @@ import CaptureToolButtons from '../components/button_group/CaptureToolButtons';
 
 const Capture = () => {
   
-  /* ===========================================================================
-                            LOCAL VARIABLES AND REFS
+  /* CONSTANTS AND REFS
   ============================================================================*/
-  // Navigation and URL Params
+  const { width: webcamWidth, height: webcamHeight } = getWebcamDimensions();
   const navigation = useNavigation(); 
   const params = useLocalSearchParams();
-
-  const { width: webcamWidth, height: webcamHeight } = getWebcamDimensions();
-
   const svgs = params.svgs ? JSON.parse(params.svgs) : {};
   const armOrientation = params.armOrientation;
 
@@ -58,12 +54,8 @@ const Capture = () => {
 
   const { clearOriginals, clearProcessed } = useLandmarks();
 
-  
-  
-  /* ===========================================================================
-                               STATE
+  /* STATE VARIABLES
   ============================================================================*/
-  
   const [isTfReady, setIsTfReady] = useState(false); 
   const [loading, setLoading] = useState(true); 
   const [landmarks, setLandmarks] = useState([]); 
@@ -85,12 +77,6 @@ const Capture = () => {
   /*============================================================================
                             CALLBACK FUNCTIONS
   ============================================================================*/
-
-  /* Toggle Webcam Visibility ***REMOVE***
-  ----------------------------------------------------------------------------*/
-  const toggleWebcam = useCallback(() => {
-    setShowWebcam(prev => !prev);
-  }, []);
 
   /* Toggle Export Options Dropdown
   ----------------------------------------------------------------------------*/
@@ -196,49 +182,37 @@ const Capture = () => {
   ----------------------------------------------------------------------------*/
   useEffect(() => {
     navigation.setParams({
-      onToggleWebcam: toggleWebcam,
       onToggleDetectOptions: toggleDetectOptions, 
-      onDetectionStarted: () => {
-        firstStartRef.current = false; 
-        setShowPoseAnimation(false); 
-        setIsDetecting(true); 
-      },
-      onDetectionStopped: () => {
-        setIsDetecting(false); 
-        if (!firstStartRef.current) setShowPoseAnimation(true); 
-      },
       onShowPoseInfo: () => {
         setShowPoseInfo(prev => !prev);
       },
-      onToggleExportOptions: toggleExportOptions,
       viewMode,
-      showPoseAnimation,
-      isDetecting,
     });
   }, [
     navigation,
-    toggleWebcam,
     toggleDetectOptions,
-    toggleExportOptions,
-    setIsDetecting,
-    setShowPoseAnimation,
     setShowPoseInfo,
     viewMode,
-    showPoseAnimation,
-    isDetecting,
   ]);
 
   /* Manage pose animation display based on isDetecting state
   ----------------------------------------------------------------------------*/
   useEffect(() => {
-    if (isDetecting) {
- 
+    if (isDetecting && viewMode === 'replay') {
       setShowPoseAnimation(false); 
       firstStartRef.current = false; 
     } else if (!firstStartRef.current) {
       setShowPoseAnimation(true);
     }
   }, [isDetecting, viewMode]);
+
+  useEffect(() => {
+    if (viewMode ==='live') {
+      firstStartRef.current = false; 
+      setShowPoseAnimation(false);
+      setIsDetecting(true);
+    }
+  }, [viewMode]);
 
   /* Custom hook to run pose detection
   ----------------------------------------------------------------------------*/
@@ -280,6 +254,8 @@ const Capture = () => {
                     setViewMode('live');
                     setShowDetectOptions(false);
                     setShowWebcam(true);
+                    setIsDetecting(true);
+                    setShowPoseAnimation(true);
                 }}
             />
         )}
@@ -296,19 +272,10 @@ const Capture = () => {
             />
           )}
 
+          {viewMode === 'replay' && (
           <PoseCanvas
-            width={
-              viewMode === 'replay' ? (
-                videoUri ? CANVAS_WIDTH : naturalVideoWidth || CANVAS_WIDTH)
-                : webcamWidth
-            }
-            height={
-              viewMode === 'replay'
-                ? (videoUri
-                    ? CANVAS_HEIGHT
-                    : naturalVideoHeight || CANVAS_HEIGHT)
-                : webcamHeight
-            }
+            width={videoUri ? CANVAS_WIDTH : naturalVideoWidth || CANVAS_WIDTH}
+            height={videoUri? CANVAS_HEIGHT: naturalVideoHeight || CANVAS_HEIGHT}
             landmarks={landmarks}
             landmarksRef={landmarksRef}
             viewMode={viewMode}
@@ -317,22 +284,23 @@ const Capture = () => {
               left: 0,
               top: 0,
               zIndex: 3,
-              width: viewMode === 'replay' ? CANVAS_WIDTH : webcamWidth,
-              height: viewMode === 'replay' ? CANVAS_HEIGHT : webcamHeight,
             }}
           />
+          )}
           
-          {(viewMode === 'live' || showPoseAnimation) && svgs && (
+          {(viewMode === 'live' || showPoseAnimation) && (
             <SvgCanvas
               width={CANVAS_WIDTH}
               height={CANVAS_HEIGHT}
               webcamWidth={webcamWidth}
               webcamHeight={webcamHeight}
               landmarks={landmarks}
+              landmarksRef={landmarksRef}
               replay={showPoseAnimation}
               svgs={svgs}
               armOrientation={armOrientation}
               videoLoaded={videoLoaded}
+              viewMode={viewMode}
               style={{
                 position: 'absolute',
                 left: 0,
@@ -340,11 +308,13 @@ const Capture = () => {
                 zIndex: 1,
                 width: CANVAS_WIDTH,
                 height: CANVAS_HEIGHT,
+
               }}
             />
 
           )}
-          {(videoUri || showPoseAnimation || showWebcam) && (
+
+           {viewMode ==='replay' && !showPoseAnimation && (videoUri || showWebcam ) && (
            <View style={styles.toolWrapper}>
               <CaptureToolButtons
                 onDetectionStarted={() => {
@@ -363,6 +333,7 @@ const Capture = () => {
               />
             </View>
           )}
+
           {videoUri && !showPoseAnimation && (            
               <video
                 ref={videoRef}
@@ -390,21 +361,21 @@ const Capture = () => {
               />
           )}
                    
-          {(viewMode === 'live' || showWebcam) && !showPoseAnimation && (
+          {showWebcam && (
             <Webcam
               ref={webcamRef}
               style={{
                 position: 'absolute',
                 left: 0,
                 top: 0,
-                zIndex: 2,
-                visibility: showWebcam ? 'visible' : 'hidden',
-                width: viewMode === 'replay' ? CANVAS_WIDTH : webcamWidth,
-                height: viewMode === 'replay' ? CANVAS_HEIGHT : webcamHeight,
+                zIndex: viewMode === 'live' ? -10 : 1,
+                visibility: viewMode === 'live' ? 'hidden' : 'visible',
+                width: CANVAS_WIDTH,
+                height: CANVAS_HEIGHT,
               }}
               videoConstraints={{
-                width: viewMode === 'replay' ? CANVAS_WIDTH : webcamWidth,
-                height: viewMode === 'replay' ? CANVAS_HEIGHT : webcamHeight,
+                width: CANVAS_WIDTH,
+                height: CANVAS_HEIGHT,
                 facingMode: 'user',
               }}
             />

@@ -112,16 +112,10 @@ const RootLayout = () => {
                                 <HomeButton />
                                 <CaptureHeaderButtons
                                     viewMode={route.params?.viewMode}
-                                    showPoseAnimation={route.params?.showPoseAnimation}
-                                    onToggleWebcam={route.params?.onToggleWebcam} 
                                     onToggleDetectOptions={route.params?.onToggleDetectOptions}
-                                    onDetectionStarted={route.params?.onDetectionStarted}
-                                    onDetectionStopped={route.params?.onDetectionStopped}
                                     onShowPoseInfo={route.params?.onShowPoseInfo}
-                                    savedLandmarks={route.params?.savedLandmarks}
-                                    isDetecting={route.params?.isDetecting}
                                     onHoverTitle={(title) => setHeaderTitle(title)}
-                                    onToggleExportOptions={route.params?.onToggleExportOptions} />
+                                />
                             </> 
                         ),
                     })}
