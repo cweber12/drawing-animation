@@ -19,14 +19,13 @@ import { useNavigation } from 'expo-router';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants/Sizes';
 import { Colors } from '../constants/Colors';
 import { scaleLandmarkFrames } from '../utils/poseUtils';
+import { uploadToS3 } from '../utils/storage/s3Utils';
 
 import SvgCanvas from '../components/canvas/SvgCanvas';
 import ThemedView from '../components/view/ThemedView';
 import PoseCanvas from '../components/canvas/PoseCanvas';
 import ShiftControls from '../components/dropdown/svg_controls/ShiftControls';
 import ScaleControls from '../components/dropdown/svg_controls/ScaleControls';
-
-import { MdSwitchLeft, MdSwitchRight } from "react-icons/md";
 
 // IMPORTANT: adjust this path if your FileList is in a different folder
 import FileList from '../components/list/FileList';
@@ -63,7 +62,33 @@ const ViewSavedPoses = () => {
 
   // Ref for animation interval
   const animationRef = useRef(null);
+ 
+  const { processedRef } = useLandmarks();
 
+  const handleSaveAnimation = async () => {
+    const frames = processedRef.current;
+    try {
+      const timeStamp = Date.now();
+      await uploadToS3({
+        landmarks: frames,
+        svgs: null, 
+        dataType: 'landmarks',
+        isAnimation: true,
+        animationTimestamp: timeStamp, // or use a more meaningful identifier
+      });
+      await uploadToS3({
+        landmarks: null,
+        svgs: selectedSvgString,
+        dataType: 'svgs',
+        isAnimation: true,
+        animationTimestamp: timeStamp, // ensure this matches the landmarks upload
+      });
+    } catch (error) {
+      console.error("Error saving animation:", error);
+    }
+  };
+  
+  
   /*============================================================================
                                 EFFECTS
   ============================================================================*/
@@ -98,7 +123,7 @@ const ViewSavedPoses = () => {
     showShiftControls, 
     setShowShiftControls,
     showScaleControls,
-    setShowScaleControls
+    setShowScaleControls, 
   ]);
 
   /* PRECOMPUTE SCALED FRAMES
@@ -146,7 +171,10 @@ const ViewSavedPoses = () => {
           style={{ 
             flexDirection: 'column',  
             minWidth: 240, position: 'absolute', top: 0, right: 0, zIndex: 10,
-            }}>           
+            }}>
+          <TouchableOpacity onPress={handleSaveAnimation}>
+            Save
+          </TouchableOpacity>           
           {showScaleControls && <ScaleControls />}
           {showShiftControls && <ShiftControls />}       
         </View>

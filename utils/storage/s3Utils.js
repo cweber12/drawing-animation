@@ -11,7 +11,9 @@ key.split("/").map(encodeURIComponent).join("/");
 export const uploadToS3 = async ({
     landmarks,
     svgs,
-    dataType, // 'landmarks' or 'svgs'
+    dataType, // 'landmarks' or 'svgs' 
+    isAnimation = false, // save both to same folder if true
+    animationTimestamp = null, // to identify animation folders
 }) => {
 
     const videoDimensions = { width: CANVAS_WIDTH, height: CANVAS_HEIGHT };
@@ -24,7 +26,14 @@ export const uploadToS3 = async ({
 
     const bucket = BUCKET;
     const timestamp = Date.now();
-    const key = dataType === 'landmarks' ? `landmarks/${timestamp}.json` : `svgs/${timestamp}.svg`;
+    let key;
+    if (isAnimation && animationTimestamp) {
+        key = dataType === 'landmarks' 
+            ? `animations/${animationTimestamp}/landmarks/${timestamp}.json` 
+            : `animations/${animationTimestamp}/svgs/${timestamp}.svg`;
+    } else {
+        key = dataType === 'landmarks' ? `landmarks/${timestamp}.json` : `svgs/${timestamp}.svg`;
+    }
     const url = `${API_BASE}/${bucket}/${key}`;
     const landmarkPayload = JSON.stringify({ landmarks, videoDimensions });
     console.log("landmarkPayload:", landmarkPayload);

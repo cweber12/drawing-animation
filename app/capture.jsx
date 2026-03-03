@@ -54,25 +54,22 @@ const Capture = () => {
 
   const { clearOriginals, clearProcessed } = useLandmarks();
 
-  /* STATE VARIABLES
+  /* STATE 
   ============================================================================*/
   const [isTfReady, setIsTfReady] = useState(false); 
   const [loading, setLoading] = useState(true); 
   const [landmarks, setLandmarks] = useState([]); 
   const [isDetecting, setIsDetecting] = useState(false); 
+  const [viewMode, setViewMode] = useState('replay');
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoUri, setVideoUri] = useState(params.videoUri || null);
+  const [naturalVideoWidth, setNaturalVideoWidth] = useState(null);
+  const [naturalVideoHeight, setNaturalVideoHeight] = useState(null);
+  const [showExportOptions, setShowExportOptions] = useState(false);
   const [showWebcam, setShowWebcam] = useState(false); 
   const [showPoseAnimation, setShowPoseAnimation] = useState(false);
   const [showPoseInfo, setShowPoseInfo] = useState(false); 
   const [showDetectOptions, setShowDetectOptions] = useState(true);
-  const [viewMode, setViewMode] = useState('replay');
-  const [videoLoaded, setVideoLoaded] = useState(false);
-  const [videoUri, setVideoUri] = useState(params.videoUri || null);
-
-  /* Natural video dimensions: used to transform landmarks to canvas coordinates
-  ----------------------------------------------------------------------------*/
-  const [naturalVideoWidth, setNaturalVideoWidth] = useState(null);
-  const [naturalVideoHeight, setNaturalVideoHeight] = useState(null);
-  const [showExportOptions, setShowExportOptions] = useState(false);
 
   /*============================================================================
                             CALLBACK FUNCTIONS
@@ -100,6 +97,7 @@ const Capture = () => {
         const videoURL = URL.createObjectURL(file);
         setVideoUri(videoURL);
         setViewMode('replay');
+        setShowWebcam(false);
       }
     };
     input.click();
@@ -328,7 +326,7 @@ const Capture = () => {
                 }}
                 viewMode={viewMode}
                 isDetecting={isDetecting}
-                onToggleExportOptions={toggleExportOptions}
+                onToggleExportOptions={() => setShowExportOptions(prev => !prev)}
                 onReset={handlePageReset}
               />
             </View>

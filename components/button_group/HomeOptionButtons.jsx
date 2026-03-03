@@ -1,8 +1,10 @@
 import { View, Text, StyleSheet, useColorScheme } from 'react-native';
 import LinkButton from '../button/LinkButton';
 import { FaRegPenToSquare } from "react-icons/fa6";
-import { RiBodyScanLine } from "react-icons/ri";
-import { RxTransform } from "react-icons/rx";
+import { FaPersonThroughWindow } from "react-icons/fa6";
+import { FaSliders } from "react-icons/fa6";
+
+
 import { Colors } from '../../constants/Colors';
 
 
@@ -14,7 +16,7 @@ const HomeOptionButtons = () => {
 
         <View style={{
             ...styles.mainWrapper, 
-            backgroundColor: theme.controlsBackground, 
+            backgroundColor: theme.actionButtonHover,
             borderLeft: `1px solid ${theme.border}`, 
             borderRight: `1px solid ${theme.border}`,
             borderBottom: `1px solid ${theme.border}`,
@@ -28,21 +30,21 @@ const HomeOptionButtons = () => {
             <LinkButton  href="/sketch" >
                 <FaRegPenToSquare size={24} />
                 <Text style={{...styles.text, color: theme.text,}}>
-                    Sketch Canvas
+                    SKETCH CANVAS
                 </Text>
             </LinkButton>
 
             <LinkButton  href="/capture" >
-                <RiBodyScanLine size={32} />
+                <FaPersonThroughWindow size={24} />
                 <Text style={{...styles.text, color: theme.text,}}>
-                    Motion Capture
+                    MOTION CAPTURE
                 </Text>
             </LinkButton>
 
             <LinkButton href="/console" >
-                <RxTransform size={32}/>
+                <FaSliders size={24}/>
                 <Text style={{...styles.text, color: theme.text,}}>
-                    Animation Console
+                    ANIMATION CONSOLE
                 </Text>
             </LinkButton>
 
@@ -65,7 +67,7 @@ const styles = StyleSheet.create({
     },
 
     text: {
-        fontSize: 24, 
+        fontSize: 18, 
         fontFamily: 'Segoe UI', 
     },
 });
